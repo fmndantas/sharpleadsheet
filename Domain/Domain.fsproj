@@ -6,7 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Domain.fs"/>
+    <Compile Include="GenericFunctions.fs"/>
+    <Compile Include="Types.fs"/>
+    <Compile Include="MeasureBuilder.fs"/>
+    <Compile Include="Measure.fs"/>
     <Compile Include="XmlWrapper.fs"/>
     <Compile Include="MusicToXml.fs"/>
   </ItemGroup>

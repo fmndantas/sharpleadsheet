@@ -1,5 +1,6 @@
 ﻿module Domain.Types
 
+[<RequireQualifiedAccess>]
 type Duration =
     | WholeNote
     | HalfNote
@@ -7,6 +8,7 @@ type Duration =
     | EightNote
     | SixteenthNote
 
+[<RequireQualifiedAccess>]
 type NaturalNote =
     | C
     | D
@@ -16,6 +18,7 @@ type NaturalNote =
     | A
     | B
 
+[<RequireQualifiedAccess>]
 type Accidental =
     | Flat
     | Natural
@@ -25,7 +28,7 @@ type Note =
     { NaturalNote: NaturalNote
       Accidental: Accidental }
 
-type Octave = Octave of uint
+type Octave = Octave of int
 
 type Pitch = { Note: Note; Octave: Octave }
 
@@ -36,7 +39,7 @@ type ChordEvent =
     { Root: Pitch; ChordDuration: Duration }
 
 type TimeSignature =
-    { Numerator: uint
+    { Numerator: int
       Denominator: Duration }
 
 type KeySignature = KeySignature of Note
@@ -54,3 +57,8 @@ type Part =
     { Name: string; Measures: Measure list }
 
 type Music = Music of List<Part>
+
+[<RequireQualifiedAccess>]
+type MeasureEvent =
+    | DefineKeySignature of KeySignature
+    | DefineTimeSignature of TimeSignature

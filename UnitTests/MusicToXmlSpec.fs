@@ -49,19 +49,20 @@ let expectedResult =
 let ``it should convert music to xml`` =
     testTheory
         "it should convert music to xml"
-        [ { Id = "Simplest case possible"
+        [ { Id = "simplest case possible"
             Data =
               Music
                   [ { Name = "Instrument name"
                       Measures =
+                        // TODO: use measure builder here
                         [ { MeasureNumber = MeasureNumber 1
                             TimeSignature =
-                              { Numerator = 4u
-                                Denominator = QuarterNote }
+                              { Numerator = 4
+                                Denominator = Duration.QuarterNote }
                             KeySignature =
                               KeySignature
-                                  { NaturalNote = C
-                                    Accidental = Natural }
+                                  { NaturalNote = NaturalNote.C
+                                    Accidental = Accidental.Natural }
                             NoteEvents = []
                             ChordEvents = [] } ] } ]
             ExpectedResult = expectedResult } ]

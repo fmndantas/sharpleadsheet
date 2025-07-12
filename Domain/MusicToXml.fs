@@ -22,17 +22,46 @@ let createPartList (names: string list) : XElement =
 
 let measureNumber2String (MeasureNumber measureNumber) = measureNumber.ToString()
 
-let createMeasure (m: Measure) : XElement =
-    element "measure" [ attribute "number" (measureNumber2String m.MeasureNumber) ] []
+// TEST: calculateFifths
+let calculateFifths (k: KeySignature) : string = "0"
+
+// TEST: calculateBeatType
+let calculateBeatType (t: TimeSignature) : string = "4"
+
+let createMeasureAttributes (es: MeasureEvent list) : XElement =
+    es
+    |> List.map (fun e ->
+        match e with
+        | MeasureEvent.DefineKeySignature k -> element "key" [] [ leafElement "fifths" (calculateFifths k) ]
+        | MeasureEvent.DefineTimeSignature t ->
+            element
+                "time"
+                []
+                [ leafElement "beats" (t.Numerator.ToString())
+                  leafElement "beat-type" (calculateBeatType t) ])
+    |> element "attributes" []
+
+let createMeasure (previous: Measure option, current: Measure) : XElement =
+    [ (previous, current) ||> Measure.generateEvents |> createMeasureAttributes ]
+    |> element "measure" [ attribute "number" (measureNumber2String current.MeasureNumber) ]
 
 let createPart (measures: Measure list list) : XElement list =
     measures
     |> indexWithPartId
     |> List.map (fun (partId, measures) ->
-        measures
+        let pairsOfMeasures =
+            if List.isEmpty measures then
+                []
+            else
+                List.append
+                    [ None, List.head measures ]
+                    (measures |> List.pairwise |> List.map (fun (a, b) -> Some a, b))
+
+        pairsOfMeasures
         |> List.map createMeasure
         |> element "part" [ attribute "id" (partId2String partId) ])
 
+// TODO: add validation
 let convert (m: Music) : XDocument =
     let (Music parts) = m
 
