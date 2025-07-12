@@ -47,7 +47,7 @@ let expectedResult =
 """
 
 let ``it should convert music to xml`` =
-    testTheory
+    tt
         "it should convert music to xml"
         [ { Id = "simplest case possible"
             Data =
@@ -66,10 +66,7 @@ let ``it should convert music to xml`` =
                             NoteEvents = []
                             ChordEvents = [] } ] } ]
             ExpectedResult = expectedResult } ]
-    <| fun
-           { Id = _
-             Data = music
-             ExpectedResult = expectedResult } ->
+    <| fun (music: Music) (expectedResult: string) ->
         let result = convert music
         result.ToString() |> equal "Generated XML is incorrect" expectedResult
 
