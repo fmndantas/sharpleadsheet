@@ -1,4 +1,4 @@
-﻿namespace Domain
+﻿module Domain.Types
 
 type Duration =
     | WholeNote
@@ -16,14 +16,14 @@ type NaturalNote =
     | A
     | B
 
-type NoteAccident =
+type Accidental =
     | Flat
     | Natural
     | Sharp
 
 type Note =
     { NaturalNote: NaturalNote
-      NoteAccident: NoteAccident }
+      Accidental: Accidental }
 
 type Octave = Octave of uint
 
@@ -36,15 +36,21 @@ type ChordEvent =
     { Root: Pitch; ChordDuration: Duration }
 
 type TimeSignature =
-    { Numerator: Duration
+    { Numerator: uint
       Denominator: Duration }
 
+type KeySignature = KeySignature of Note
+
+type MeasureNumber = MeasureNumber of int
+
 type Measure =
-    { TimeSignature: TimeSignature
-      NoteEvents: List<NoteEvent>
-      ChordEvents: List<ChordEvent> }
+    { MeasureNumber: MeasureNumber
+      TimeSignature: TimeSignature
+      KeySignature: KeySignature
+      NoteEvents: NoteEvent list
+      ChordEvents: ChordEvent list }
 
-type Music = List<Measure>
+type Part =
+    { Name: string; Measures: Measure list }
 
-module XmlConverter =
-    ()
+type Music = Music of List<Part>
