@@ -11,7 +11,7 @@ let ``it should create xelement with attributes`` =
     testCase "it should create xelement with attributes"
     <| fun () ->
         let result =
-            element "name" [ attribute "key" "value" ] [ leafElement "leafName" "leafContent" ]
+            elementWithAttributes "name" [ attribute "key" "value" ] [ leafElement "leafName" "leafContent" ]
 
         let expectedResult =
             XElement(

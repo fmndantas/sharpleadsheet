@@ -17,8 +17,11 @@ let createPartList (names: string list) : XElement =
     names
     |> indexWithPartId
     |> List.map (fun (partId, name) ->
-        element "score-part" [ attribute "id" (partId2String partId) ] [ leafElement "part-name" name ])
-    |> element "part-list" []
+        elementWithAttributes
+            "score-part"
+            [ partId |> partId2String |> attribute "id" ]
+            [ leafElement "part-name" name ])
+    |> elementWithAttributes "part-list" []
 
 let measureNumber2String (MeasureNumber measureNumber) = measureNumber.ToString()
 
@@ -32,18 +35,18 @@ let createMeasureAttributes (es: MeasureEvent list) : XElement =
     es
     |> List.map (fun e ->
         match e with
-        | MeasureEvent.DefineKeySignature k -> element "key" [] [ leafElement "fifths" (calculateFifths k) ]
+        | MeasureEvent.DefineKeySignature k -> element "key" [ k |> calculateFifths |> leafElement "fifths" ]
         | MeasureEvent.DefineTimeSignature t ->
-            element
+            elementWithAttributes
                 "time"
                 []
                 [ leafElement "beats" (t.Numerator.ToString())
-                  leafElement "beat-type" (calculateBeatType t) ])
-    |> element "attributes" []
+                  t |> calculateBeatType |> leafElement "beat-type" ])
+    |> elementWithAttributes "attributes" []
 
 let createMeasure (previous: Measure option, current: Measure) : XElement =
     [ (previous, current) ||> Measure.generateEvents |> createMeasureAttributes ]
-    |> element "measure" [ attribute "number" (measureNumber2String current.MeasureNumber) ]
+    |> elementWithAttributes "measure" [ current.MeasureNumber |> measureNumber2String |> attribute "number" ]
 
 let createPart (measures: Measure list list) : XElement list =
     measures
@@ -59,7 +62,7 @@ let createPart (measures: Measure list list) : XElement list =
 
         pairsOfMeasures
         |> List.map createMeasure
-        |> element "part" [ attribute "id" (partId2String partId) ])
+        |> elementWithAttributes "part" [ attribute "id" (partId2String partId) ])
 
 // TODO: add validation
 let convert (m: Music) : XDocument =
@@ -67,5 +70,5 @@ let convert (m: Music) : XDocument =
 
     [ parts |> List.map _.Name |> createPartList
       yield! parts |> List.map _.Measures |> createPart ]
-    |> element "score-partwise" [ attribute "version" "4.0" ]
+    |> elementWithAttributes "score-partwise" [ attribute "version" "4.0" ]
     |> document
