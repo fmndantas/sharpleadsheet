@@ -31,6 +31,10 @@ let calculateFifths (k: KeySignature) : string = "0"
 // TEST: calculateBeatType
 let calculateBeatType (t: TimeSignature) : string = "4"
 
+// TEST: interpretClefEvent
+let interpretClefEvent (c: Clef) : XElement =
+    [ leafElement "sign" "G"; leafElement "line" "2" ] |> element "clef"
+
 let interpretMeasureEvents (es: MeasureEvent list) : XElement =
     es
     |> List.map (fun e ->
@@ -41,7 +45,8 @@ let interpretMeasureEvents (es: MeasureEvent list) : XElement =
                 "time"
                 []
                 [ leafElement "beats" (t.Numerator.ToString())
-                  t |> calculateBeatType |> leafElement "beat-type" ])
+                  t |> calculateBeatType |> leafElement "beat-type" ]
+        | MeasureEvent.DefineClef c -> interpretClefEvent c)
     |> elementWithAttributes "attributes" []
 
 // TEST: interpretNoteEvents
@@ -56,15 +61,19 @@ let interpretNoteEvents (es: NoteEvent list) : XElement list =
         | NoteEvent.Pause pause -> failwith "todo"
         |> element "note")
 
-let createMeasure (previous: Measure option, current: Measure) : XElement =
-    [ (previous, current) ||> Measure.generateEvents |> interpretMeasureEvents
+let createMeasure (initialClef: Clef) (previous: Measure option, current: Measure) : XElement =
+    [ (initialClef, previous, current)
+      |||> Measure.generateEvents
+      |> interpretMeasureEvents
       yield! current |> Note.generateEvents |> interpretNoteEvents ]
     |> elementWithAttributes "measure" [ current.MeasureNumber |> measureNumber2String |> attribute "number" ]
 
-let createPart (measures: Measure list list) : XElement list =
-    measures
+let createPart (parts: Part list) : XElement list =
+    parts
     |> indexWithPartId
-    |> List.map (fun (partId, measures) ->
+    |> List.map (fun (partId, part) ->
+        let measures = part.Measures
+
         let pairsOfMeasures =
             if List.isEmpty measures then
                 []
@@ -74,14 +83,13 @@ let createPart (measures: Measure list list) : XElement list =
                     (measures |> List.pairwise |> List.map (fun (a, b) -> Some a, b))
 
         pairsOfMeasures
-        |> List.map createMeasure
+        |> List.map (createMeasure part.Clef)
         |> elementWithAttributes "part" [ partId |> partId2String |> attribute "id" ])
 
 // TODO: add validation
 let convert (m: Music) : XDocument =
     let (Music parts) = m
 
-    [ parts |> List.map _.Name |> createPartList
-      yield! parts |> List.map _.Measures |> createPart ]
+    [ parts |> List.map _.Name |> createPartList; yield! createPart parts ]
     |> elementWithAttributes "score-partwise" [ attribute "version" "4.0" ]
     |> document

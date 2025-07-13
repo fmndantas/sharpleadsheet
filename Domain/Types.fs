@@ -51,8 +51,15 @@ type Measure =
       KeySignature: KeySignature
       Notes: NoteEvent list }
 
+[<RequireQualifiedAccess>]
+type Clef =
+    | G
+    | F
+
 type Part =
-    { Name: string; Measures: Measure list }
+    { Name: string
+      Clef: Clef
+      Measures: Measure list }
 
 type Music = Music of List<Part>
 
@@ -60,3 +67,4 @@ type Music = Music of List<Part>
 type MeasureEvent =
     | DefineKeySignature of KeySignature
     | DefineTimeSignature of TimeSignature
+    | DefineClef of Clef

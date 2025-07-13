@@ -13,7 +13,7 @@ let ``it generates events between two measures`` =
     tt
         "it generates events between two measures"
         [ { Id = "the current measure is the first measure"
-            Data = None, emptyMeasure >> cNatural >> commonTime <| MeasureNumber 1
+            Data = Clef.G, None, emptyMeasure >> cNatural >> commonTime <| MeasureNumber 1
             ExpectedResult =
               [ { NaturalNote = NaturalNote.C
                   Accidental = Accidental.Natural }
@@ -21,9 +21,11 @@ let ``it generates events between two measures`` =
 
                 { Numerator = 4
                   Denominator = Duration.QuarterNote }
-                |> MeasureEvent.DefineTimeSignature ] } ]
-    <| fun (previousMeasure, currentMeasure) (expectedResult) ->
-        let events = Measure.generateEvents previousMeasure currentMeasure
+                |> MeasureEvent.DefineTimeSignature
+
+                Clef.G |> MeasureEvent.DefineClef ] } ]
+    <| fun (initialClef, previousMeasure, currentMeasure) (expectedResult) ->
+        let events = Measure.generateEvents initialClef previousMeasure currentMeasure
 
         events |> containsAll "The expected events were not found" expectedResult
 

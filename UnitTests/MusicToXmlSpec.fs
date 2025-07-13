@@ -52,6 +52,7 @@ let ``it should convert music to xml`` =
             Data =
               Music
                   [ { Name = "Instrument name"
+                      Clef = Clef.G
                       Measures =
                         // TODO: use measure builder here
                         [ { MeasureNumber = MeasureNumber 1
