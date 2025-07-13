@@ -38,8 +38,8 @@ let interpretClefEvent (c: Clef) : XElement =
 // TEST: defineDivisions
 let defineDivisions (m: Measure) : int = 1
 
-let interpretMeasureEvents (current: Measure) (es: MeasureEvent list) : XElement =
-    [ current |> defineDivisions |> _.ToString() |> leafElement "divisions"
+let interpretMeasureEvents (m: Measure) (es: MeasureEvent list) : XElement =
+    [ m |> defineDivisions |> _.ToString() |> leafElement "divisions"
       yield!
           es
           |> List.map (fun e ->
@@ -65,14 +65,14 @@ let interpretNoteEvents (es: NoteEvent list) : XElement list =
         | NoteEvent.Pause pause -> failwith "todo"
         |> element "note")
 
-let createMeasure (initialClef: Clef) (previous: Measure option, current: Measure) : XElement =
-    [ Measure.generateEvents initialClef previous current
-      |> interpretMeasureEvents current
-      yield! current |> Note.generateEvents |> interpretNoteEvents ]
-    |> elementWithAttributes "measure" [ current.MeasureNumber |> measureNumber2String |> attribute "number" ]
+let createMeasure (initialClef: Clef) (previousMeasure: Measure option, currentMeasure: Measure) : XElement =
+    [ Measure.generateEvents initialClef previousMeasure currentMeasure
+      |> interpretMeasureEvents currentMeasure
+      yield! currentMeasure |> Note.generateEvents |> interpretNoteEvents ]
+    |> elementWithAttributes "measure" [ currentMeasure.MeasureNumber |> measureNumber2String |> attribute "number" ]
 
-let createPart (parts: Part list) : XElement list =
-    parts
+let createPart (ps: Part list) : XElement list =
+    ps
     |> indexWithPartId
     |> List.map (fun (partId, part) ->
         let measures = part.Measures
