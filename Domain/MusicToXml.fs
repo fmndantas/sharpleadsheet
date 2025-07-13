@@ -13,15 +13,15 @@ let partId2String (PartId partId) = $"P{partId}"
 let indexWithPartId (xs: 'a list) : list<PartId * 'a> =
     xs |> List.indexed |> List.map (fun (idx, x) -> idx + 1 |> PartId, x)
 
-let createPartList (names: string list) : XElement =
+let createPartList (names: Part list) : XElement =
     names
     |> indexWithPartId
-    |> List.map (fun (partId, name) ->
+    |> List.map (fun (partId, part) ->
         elementWithAttributes
             "score-part"
             [ partId |> partId2String |> attribute "id" ]
-            [ leafElement "part-name" name ])
-    |> elementWithAttributes "part-list" []
+            [ leafElement "part-name" part.Name ])
+    |> element "part-list"
 
 let measureNumber2String (MeasureNumber measureNumber) = measureNumber.ToString()
 
@@ -35,19 +35,23 @@ let calculateBeatType (t: TimeSignature) : string = "4"
 let interpretClefEvent (c: Clef) : XElement =
     [ leafElement "sign" "G"; leafElement "line" "2" ] |> element "clef"
 
-let interpretMeasureEvents (es: MeasureEvent list) : XElement =
-    es
-    |> List.map (fun e ->
-        match e with
-        | MeasureEvent.DefineKeySignature k -> element "key" [ k |> calculateFifths |> leafElement "fifths" ]
-        | MeasureEvent.DefineTimeSignature t ->
-            elementWithAttributes
-                "time"
-                []
-                [ leafElement "beats" (t.Numerator.ToString())
-                  t |> calculateBeatType |> leafElement "beat-type" ]
-        | MeasureEvent.DefineClef c -> interpretClefEvent c)
-    |> elementWithAttributes "attributes" []
+// TEST: defineDivisions
+let defineDivisions (m: Measure) : int = 1
+
+let interpretMeasureEvents (current: Measure) (es: MeasureEvent list) : XElement =
+    [ current |> defineDivisions |> _.ToString() |> leafElement "divisions"
+      yield!
+          es
+          |> List.map (fun e ->
+              match e with
+              | MeasureEvent.DefineKeySignature k -> element "key" [ k |> calculateFifths |> leafElement "fifths" ]
+              | MeasureEvent.DefineTimeSignature t ->
+                  element
+                      "time"
+                      [ leafElement "beats" (t.Numerator.ToString())
+                        t |> calculateBeatType |> leafElement "beat-type" ]
+              | MeasureEvent.DefineClef c -> interpretClefEvent c) ]
+    |> element "attributes"
 
 // TEST: interpretNoteEvents
 let interpretNoteEvents (es: NoteEvent list) : XElement list =
@@ -62,9 +66,8 @@ let interpretNoteEvents (es: NoteEvent list) : XElement list =
         |> element "note")
 
 let createMeasure (initialClef: Clef) (previous: Measure option, current: Measure) : XElement =
-    [ (initialClef, previous, current)
-      |||> Measure.generateEvents
-      |> interpretMeasureEvents
+    [ Measure.generateEvents initialClef previous current
+      |> interpretMeasureEvents current
       yield! current |> Note.generateEvents |> interpretNoteEvents ]
     |> elementWithAttributes "measure" [ current.MeasureNumber |> measureNumber2String |> attribute "number" ]
 
@@ -78,9 +81,8 @@ let createPart (parts: Part list) : XElement list =
             if List.isEmpty measures then
                 []
             else
-                List.append
-                    [ None, List.head measures ]
-                    (measures |> List.pairwise |> List.map (fun (a, b) -> Some a, b))
+                (None, List.head measures)
+                :: (measures |> List.pairwise |> List.map (fun (a, b) -> Some a, b))
 
         pairsOfMeasures
         |> List.map (createMeasure part.Clef)
@@ -90,6 +92,6 @@ let createPart (parts: Part list) : XElement list =
 let convert (m: Music) : XDocument =
     let (Music parts) = m
 
-    [ parts |> List.map _.Name |> createPartList; yield! createPart parts ]
+    [ parts |> createPartList; yield! createPart parts ]
     |> elementWithAttributes "score-partwise" [ attribute "version" "4.0" ]
     |> document

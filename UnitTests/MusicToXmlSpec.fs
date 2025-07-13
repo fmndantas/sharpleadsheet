@@ -3,6 +3,8 @@ module UnitTests.MusicToXmlSpec
 open Expecto
 open Expecto.Flip.Expect
 
+open System.Xml.Linq
+
 open UnitTests.Case
 
 open Domain.Types
@@ -13,7 +15,7 @@ let expectedResult =
 <score-partwise version="4.0">
   <part-list>
     <score-part id="P1">
-      <part-name>P1</part-name>
+      <part-name>Instrument Name</part-name>
     </score-part>
   </part-list>
   <part id="P1">
@@ -43,7 +45,13 @@ let expectedResult =
     </measure>
   </part>
 </score-partwise>
-"""
+    """
+
+let private normalizeXml (xml: XDocument) : string =
+    xml.ToString(SaveOptions.DisableFormatting)
+
+let private normalizeXmlText (xmlText: string) : string =
+    XDocument.Parse(xmlText) |> normalizeXml
 
 let ``it should convert music to xml`` =
     tt
@@ -51,7 +59,7 @@ let ``it should convert music to xml`` =
         [ { Id = "simplest case possible"
             Data =
               Music
-                  [ { Name = "Instrument name"
+                  [ { Name = "Instrument Name"
                       Clef = Clef.G
                       Measures =
                         // TODO: use measure builder here
@@ -71,7 +79,9 @@ let ``it should convert music to xml`` =
             ExpectedResult = expectedResult } ]
     <| fun (music: Music) (expectedResult: string) ->
         let result = convert music
-        result.ToString() |> equal "Generated XML is incorrect" expectedResult
+
+        (normalizeXml result, normalizeXmlText expectedResult)
+        ||> equal "Generated XML is incorrect"
 
 [<Tests>]
 let MusicToXmlSpec =
