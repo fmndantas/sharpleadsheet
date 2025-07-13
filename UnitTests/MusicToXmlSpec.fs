@@ -3,10 +3,9 @@ module UnitTests.MusicToXmlSpec
 open Expecto
 open Expecto.Flip.Expect
 
-open System.Xml.Linq
-
 open UnitTests.Case
 
+open Domain
 open Domain.Types
 open Domain.MusicToXml
 
@@ -47,12 +46,6 @@ let expectedResult =
 </score-partwise>
     """
 
-let private normalizeXml (xml: XDocument) : string =
-    xml.ToString(SaveOptions.DisableFormatting)
-
-let private normalizeXmlText (xmlText: string) : string =
-    XDocument.Parse(xmlText) |> normalizeXml
-
 let ``it should convert music to xml`` =
     tt
         "it should convert music to xml"
@@ -80,7 +73,7 @@ let ``it should convert music to xml`` =
     <| fun (music: Music) (expectedResult: string) ->
         let result = convert music
 
-        (normalizeXml result, normalizeXmlText expectedResult)
+        (XmlWrapper.normalizeXml result, XmlWrapper.normalizeXmlText expectedResult)
         ||> equal "Generated XML is incorrect"
 
 [<Tests>]

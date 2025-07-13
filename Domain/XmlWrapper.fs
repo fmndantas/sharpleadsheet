@@ -12,3 +12,9 @@ let element (name: string) (content: XElement list) = elementWithAttributes name
 let leafElement (name: string) (content: string) : XElement = XElement(XName.Get name, content)
 
 let document (root: XElement) = XDocument(root)
+
+let normalizeXml (xml: XDocument) : string =
+    xml.ToString(SaveOptions.DisableFormatting)
+
+let normalizeXmlText (xmlText: string) : string =
+    XDocument.Parse(xmlText) |> normalizeXml
