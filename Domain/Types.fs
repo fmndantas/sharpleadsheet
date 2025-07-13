@@ -26,32 +26,30 @@ type Accidental =
 
 type Note =
     { NaturalNote: NaturalNote
-      Accidental: Accidental }
-
-type Octave = Octave of int
-
-type Pitch = { Note: Note; Octave: Octave }
-
-type NoteEvent =
-    { Pitch: Pitch; NoteDuration: Duration }
-
-type ChordEvent =
-    { Root: Pitch; ChordDuration: Duration }
+      Accidental: Accidental
+      Octave: int
+      Duration: Duration }
 
 type TimeSignature =
     { Numerator: int
       Denominator: Duration }
 
-type KeySignature = KeySignature of Note
+type KeySignature =
+    { NaturalNote: NaturalNote
+      Accidental: Accidental }
 
 type MeasureNumber = MeasureNumber of int
+
+[<RequireQualifiedAccess>]
+type NoteEvent =
+    | Note of Note
+    | Pause of Duration
 
 type Measure =
     { MeasureNumber: MeasureNumber
       TimeSignature: TimeSignature
       KeySignature: KeySignature
-      NoteEvents: NoteEvent list
-      ChordEvents: ChordEvent list }
+      Notes: NoteEvent list }
 
 type Part =
     { Name: string; Measures: Measure list }

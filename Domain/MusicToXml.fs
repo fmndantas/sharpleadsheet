@@ -31,7 +31,7 @@ let calculateFifths (k: KeySignature) : string = "0"
 // TEST: calculateBeatType
 let calculateBeatType (t: TimeSignature) : string = "4"
 
-let createMeasureAttributes (es: MeasureEvent list) : XElement =
+let interpretMeasureEvents (es: MeasureEvent list) : XElement =
     es
     |> List.map (fun e ->
         match e with
@@ -44,8 +44,21 @@ let createMeasureAttributes (es: MeasureEvent list) : XElement =
                   t |> calculateBeatType |> leafElement "beat-type" ])
     |> elementWithAttributes "attributes" []
 
+// TEST: interpretNoteEvents
+let interpretNoteEvents (es: NoteEvent list) : XElement list =
+    es
+    |> List.map (fun e ->
+        match e with
+        | NoteEvent.Note note ->
+            [ element "pitch" [ leafElement "step" "C"; leafElement "octave" "4" ]
+              leafElement "duration" "4"
+              leafElement "type" "whole" ]
+        | NoteEvent.Pause pause -> failwith "todo"
+        |> element "note")
+
 let createMeasure (previous: Measure option, current: Measure) : XElement =
-    [ (previous, current) ||> Measure.generateEvents |> createMeasureAttributes ]
+    [ (previous, current) ||> Measure.generateEvents |> interpretMeasureEvents
+      yield! current |> Note.generateEvents |> interpretNoteEvents ]
     |> elementWithAttributes "measure" [ current.MeasureNumber |> measureNumber2String |> attribute "number" ]
 
 let createPart (measures: Measure list list) : XElement list =
@@ -62,7 +75,7 @@ let createPart (measures: Measure list list) : XElement list =
 
         pairsOfMeasures
         |> List.map createMeasure
-        |> elementWithAttributes "part" [ attribute "id" (partId2String partId) ])
+        |> elementWithAttributes "part" [ partId |> partId2String |> attribute "id" ])
 
 // TODO: add validation
 let convert (m: Music) : XDocument =

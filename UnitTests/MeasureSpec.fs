@@ -17,7 +17,6 @@ let ``it generates events between two measures`` =
             ExpectedResult =
               [ { NaturalNote = NaturalNote.C
                   Accidental = Accidental.Natural }
-                |> KeySignature
                 |> MeasureEvent.DefineKeySignature
 
                 { Numerator = 4

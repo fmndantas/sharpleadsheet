@@ -33,14 +33,13 @@ let expectedResult =
         </clef>
       </attributes>
       <note>
-        <rest/>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
         <duration>4</duration>
-        <voice>1</voice>
         <type>whole</type>
       </note>
-      <barline>
-        <bar-style>light-heavy</bar-style>
-      </barline>
     </measure>
   </part>
 </score-partwise>
@@ -60,11 +59,14 @@ let ``it should convert music to xml`` =
                               { Numerator = 4
                                 Denominator = Duration.QuarterNote }
                             KeySignature =
-                              KeySignature
-                                  { NaturalNote = NaturalNote.C
-                                    Accidental = Accidental.Natural }
-                            NoteEvents = []
-                            ChordEvents = [] } ] } ]
+                              { NaturalNote = NaturalNote.C
+                                Accidental = Accidental.Natural }
+                            Notes =
+                              [ NoteEvent.Note
+                                    { NaturalNote = NaturalNote.C
+                                      Accidental = Accidental.Natural
+                                      Octave = 3
+                                      Duration = Duration.WholeNote } ] } ] } ]
             ExpectedResult = expectedResult } ]
     <| fun (music: Music) (expectedResult: string) ->
         let result = convert music
