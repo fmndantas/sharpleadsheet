@@ -1,5 +1,7 @@
 module UnitTests.MusicToXmlSpec
 
+open System.IO
+
 open Expecto
 open Expecto.Flip.Expect
 
@@ -9,42 +11,11 @@ open Domain
 open Domain.Types
 open Domain.MusicToXml
 
-let expectedResult =
-    """
-<score-partwise version="4.0">
-  <part-list>
-    <score-part id="P1">
-      <part-name>Instrument Name</part-name>
-    </score-part>
-  </part-list>
-  <part id="P1">
-    <measure number="1">
-      <attributes>
-        <divisions>1</divisions>
-        <key>
-          <fifths>0</fifths>
-        </key>
-        <time>
-          <beats>4</beats>
-          <beat-type>4</beat-type>
-        </time>
-        <clef>
-          <sign>G</sign>
-          <line>2</line>
-        </clef>
-      </attributes>
-      <note>
-        <pitch>
-          <step>C</step>
-          <octave>4</octave>
-        </pitch>
-        <duration>4</duration>
-        <type>whole</type>
-      </note>
-    </measure>
-  </part>
-</score-partwise>
-    """
+[<Literal>]
+let here = __SOURCE_DIRECTORY__
+
+let openXml (file: string) =
+    File.ReadAllText(Path.Join(here, "Xmls", file))
 
 let ``it should convert music to xml`` =
     tt
@@ -70,6 +41,7 @@ let ``it should convert music to xml`` =
                                       Octave = 3
                                       Duration = Duration.WholeNote } ] } ] } ]
             ExpectedResult = expectedResult } ]
+            ExpectedResult = openXml "helloworld.xml" } ]
     <| fun (music: Music) (expectedResult: string) ->
         let result = convert music
 
