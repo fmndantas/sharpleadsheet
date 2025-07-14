@@ -30,4 +30,6 @@ let commonTime (m: T) : T =
       Denominator = Duration.QuarterNote }
     |> (flip2 withTimeSignature) m
 
-let withNoteEvent (noteEvent: NoteEvent) (m: T) : T = { m with Notes = noteEvent :: m.Notes }
+let withNote (note: Note) (m: T) : T =
+    { m with
+        Notes = NoteOrPause.Note note :: m.Notes }

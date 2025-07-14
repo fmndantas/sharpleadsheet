@@ -41,15 +41,13 @@ type KeySignature =
 type MeasureNumber = MeasureNumber of int
 
 [<RequireQualifiedAccess>]
-type NoteEvent =
-    | Note of Note
-    | Pause of Duration
+type NoteOrPause = Note of Note
 
 type Measure =
     { MeasureNumber: MeasureNumber
       TimeSignature: TimeSignature
       KeySignature: KeySignature
-      Notes: NoteEvent list }
+      Notes: NoteOrPause list }
 
 [<RequireQualifiedAccess>]
 type Clef =
@@ -68,3 +66,4 @@ type MeasureEvent =
     | DefineKeySignature of KeySignature
     | DefineTimeSignature of TimeSignature
     | DefineClef of Clef
+    | Note of Note

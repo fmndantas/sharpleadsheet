@@ -30,20 +30,18 @@ let ``it should convert music to xml`` =
                         [ emptyMeasure (MeasureNumber 1)
                           |> commonTime
                           |> cNatural
-                          |> withNoteEvent (
-                              NoteEvent.Note
-                                  { NaturalNote = NaturalNote.C
-                                    Accidental = Accidental.Natural
-                                    Octave = 4
-                                    Duration = Duration.WholeNote }
-                          ) ] }
+                          |> withNote
+                              { NaturalNote = NaturalNote.C
+                                Accidental = Accidental.Natural
+                                Octave = 4
+                                Duration = Duration.WholeNote } ] }
 
                     ]
             ExpectedResult = openXml "helloworld.xml" } ]
     <| fun (music: Music) (expectedResult: string) ->
         let result = convert music
 
-        (XmlWrapper.normalizeXml result, XmlWrapper.normalizeXmlText expectedResult)
+        (XmlWrapper.normalizeXmlText expectedResult, XmlWrapper.normalizeXml result)
         ||> equal "Generated XML is incorrect"
 
 [<Tests>]

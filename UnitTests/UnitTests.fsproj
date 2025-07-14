@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <Compile Include="Case.fs"/>
-    <Compile Include="NoteSpec.fs"/>
     <Compile Include="MeasureSpec.fs"/>
     <Compile Include="XmlWrapperSpec.fs"/>
     <Compile Include="MusicToXmlSpec.fs"/>
