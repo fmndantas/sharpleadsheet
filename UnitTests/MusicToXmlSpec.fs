@@ -9,6 +9,7 @@ open UnitTests.Case
 
 open Domain
 open Domain.Types
+open Domain.MeasureBuilder
 open Domain.MusicToXml
 
 [<Literal>]
@@ -26,21 +27,18 @@ let ``it should convert music to xml`` =
                   [ { Name = "Instrument Name"
                       Clef = Clef.G
                       Measures =
-                        // TODO: use measure builder here
-                        [ { MeasureNumber = MeasureNumber 1
-                            TimeSignature =
-                              { Numerator = 4
-                                Denominator = Duration.QuarterNote }
-                            KeySignature =
-                              { NaturalNote = NaturalNote.C
-                                Accidental = Accidental.Natural }
-                            Notes =
-                              [ NoteEvent.Note
-                                    { NaturalNote = NaturalNote.C
-                                      Accidental = Accidental.Natural
-                                      Octave = 3
-                                      Duration = Duration.WholeNote } ] } ] } ]
-            ExpectedResult = expectedResult } ]
+                        [ emptyMeasure (MeasureNumber 1)
+                          |> commonTime
+                          |> cNatural
+                          |> withNoteEvent (
+                              NoteEvent.Note
+                                  { NaturalNote = NaturalNote.C
+                                    Accidental = Accidental.Natural
+                                    Octave = 4
+                                    Duration = Duration.WholeNote }
+                          ) ] }
+
+                    ]
             ExpectedResult = openXml "helloworld.xml" } ]
     <| fun (music: Music) (expectedResult: string) ->
         let result = convert music
