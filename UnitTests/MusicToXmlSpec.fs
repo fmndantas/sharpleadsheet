@@ -28,11 +28,10 @@ let ``it should convert music to xml`` =
                       Clef = Clef.G
                       Measures =
                         [ emptyMeasure (MeasureNumber 1)
-                          |> commonTime
-                          |> cNatural
+                          |> withCommonTimeSignature
+                          |> withCNaturalKeySignature
                           |> withNote
-                              { NaturalNote = NaturalNote.C
-                                Accidental = Accidental.Natural
+                              { NoteName = NoteName.C
                                 Octave = 4
                                 Duration = Duration.WholeNote } ] }
 

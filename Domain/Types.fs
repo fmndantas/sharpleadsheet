@@ -24,9 +24,28 @@ type Accidental =
     | Natural
     | Sharp
 
+[<RequireQualifiedAccess>]
+type NoteName = 
+    | C
+    | CSharp
+    | DFlat
+    | D
+    | DSharp
+    | EFlat
+    | E
+    | F
+    | FSharp
+    | GFlat
+    | G
+    | GSharp
+    | AFlat
+    | A
+    | ASharp
+    | BFlat
+    | B
+
 type Note =
-    { NaturalNote: NaturalNote
-      Accidental: Accidental
+    { NoteName: NoteName
       Octave: int
       Duration: Duration }
 
@@ -34,9 +53,7 @@ type TimeSignature =
     { Numerator: int
       Denominator: Duration }
 
-type KeySignature =
-    { NaturalNote: NaturalNote
-      Accidental: Accidental }
+type KeySignature = KeySignature of NoteName
 
 type MeasureNumber = MeasureNumber of int
 
@@ -67,3 +84,9 @@ type MeasureEvent =
     | DefineTimeSignature of TimeSignature
     | DefineClef of Clef
     | Note of Note
+
+[<RequireQualifiedAccess>]
+type Fifth =
+    | Zero
+    | Flat of int
+    | Sharp of int

@@ -25,8 +25,11 @@ let createPartList (names: Part list) : XElement =
 
 let measureNumber2String (MeasureNumber measureNumber) = measureNumber.ToString()
 
-// TEST: calculateFifths
-let calculateFifths (k: KeySignature) : string = "0"
+let calculateFifths =
+    KeySignature.fifths
+    >> function
+        | Fifth.Zero -> "0"
+        | Fifth.Flat flat -> $"{-flat}"
 
 // TEST: calculateBeatType
 let calculateBeatType (t: TimeSignature) : string = "4"

@@ -11,21 +11,17 @@ let emptyMeasure (measureNumber: MeasureNumber) : T =
       TimeSignature =
         { Numerator = 4
           Denominator = Duration.QuarterNote }
-      KeySignature =
-        { NaturalNote = NaturalNote.C
-          Accidental = Accidental.Natural }
+      KeySignature = KeySignature NoteName.C
       Notes = [] }
 
 let withKeySignature (k: KeySignature) (m: T) : T = { m with KeySignature = k }
 
 let withTimeSignature (t: TimeSignature) (m: T) : T = { m with TimeSignature = t }
 
-let cNatural (m: T) : T =
-    { NaturalNote = NaturalNote.C
-      Accidental = Accidental.Natural }
-    |> (flip2 withKeySignature) m
+let withCNaturalKeySignature (m: T) : T =
+    NoteName.C |> KeySignature |> (flip2 withKeySignature) m
 
-let commonTime (m: T) : T =
+let withCommonTimeSignature (m: T) : T =
     { Numerator = 4
       Denominator = Duration.QuarterNote }
     |> (flip2 withTimeSignature) m

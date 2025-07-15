@@ -13,10 +13,10 @@ let ``it generates events between two measures`` =
     tt
         "it generates events between two measures"
         [ { Id = "the current measure is the first measure"
-            Data = Clef.G, None, emptyMeasure >> cNatural >> commonTime <| MeasureNumber 1
+            Data = Clef.G, None, emptyMeasure >> withCNaturalKeySignature >> withCommonTimeSignature <| MeasureNumber 1
             ExpectedResult =
-              [ { NaturalNote = NaturalNote.C
-                  Accidental = Accidental.Natural }
+              [ NoteName.C
+                |> KeySignature
                 |> MeasureEvent.DefineKeySignature
 
                 { Numerator = 4
