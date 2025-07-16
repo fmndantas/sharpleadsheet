@@ -30,6 +30,7 @@ let calculateFifths =
     >> function
         | Fifth.Zero -> "0"
         | Fifth.Flat flat -> $"{-flat}"
+        | Fifth.Sharp sharp -> $"{sharp}"
 
 // TEST: calculateBeatType
 let calculateBeatType (t: TimeSignature) : string = "4"
@@ -37,9 +38,6 @@ let calculateBeatType (t: TimeSignature) : string = "4"
 // TEST: interpretClefEvent
 let interpretClefEvent (c: Clef) : XElement =
     [ leafElement "sign" "G"; leafElement "line" "2" ] |> element "clef"
-
-// TEST: defineDivisions
-let defineDivisions (m: Measure) : int = 1
 
 // TEST: interpretNote
 let interpretNote (n: Note) : XElement =
@@ -49,7 +47,7 @@ let interpretNote (n: Note) : XElement =
     |> element "note"
 
 let createMeasureAttributes (m: Measure) (es: MeasureEvent list) : XElement =
-    [ m |> defineDivisions |> _.ToString() |> leafElement "divisions"
+    [ m |> Measure.defineDivisions |> _.ToString() |> leafElement "divisions"
       yield!
           es
           |> List.choose (fun e ->

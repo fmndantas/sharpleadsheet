@@ -4,9 +4,7 @@ open Domain.GenericFunctions
 
 open Domain.Types
 
-type T = Measure
-
-let emptyMeasure (measureNumber: MeasureNumber) : T =
+let emptyMeasure (measureNumber: MeasureNumber) : Measure =
     { MeasureNumber = measureNumber
       TimeSignature =
         { Numerator = 4
@@ -14,18 +12,22 @@ let emptyMeasure (measureNumber: MeasureNumber) : T =
       KeySignature = KeySignature NoteName.C
       Notes = [] }
 
-let withKeySignature (k: KeySignature) (m: T) : T = { m with KeySignature = k }
+let withKeySignature (k: KeySignature) (m: Measure) : Measure = { m with KeySignature = k }
 
-let withTimeSignature (t: TimeSignature) (m: T) : T = { m with TimeSignature = t }
+let withTimeSignature (t: TimeSignature) (m: Measure) : Measure = { m with TimeSignature = t }
 
-let withCNaturalKeySignature (m: T) : T =
+let withCNaturalKeySignature (m: Measure) : Measure =
     NoteName.C |> KeySignature |> (flip2 withKeySignature) m
 
-let withCommonTimeSignature (m: T) : T =
+let withCommonTimeSignature (m: Measure) : Measure =
     { Numerator = 4
       Denominator = Duration.QuarterNote }
     |> (flip2 withTimeSignature) m
 
-let withNote (note: Note) (m: T) : T =
+let withNote (note: Note) (m: Measure) : Measure =
     { m with
         Notes = NoteOrPause.Note note :: m.Notes }
+
+let withNotes (notes: Note list) (m: Measure) : Measure =
+    { m with
+        Notes = List.map NoteOrPause.Note notes }

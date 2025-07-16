@@ -9,6 +9,11 @@ type Duration =
     | SixteenthNote
 
 [<RequireQualifiedAccess>]
+type DurationEquivalence = 
+    | Multiple of int
+    | Divider of int
+
+[<RequireQualifiedAccess>]
 type NaturalNote =
     | C
     | D
@@ -25,7 +30,7 @@ type Accidental =
     | Sharp
 
 [<RequireQualifiedAccess>]
-type NoteName = 
+type NoteName =
     | C
     | CSharp
     | DFlat
