@@ -5,7 +5,8 @@ open Domain.GenericFunctions
 open Domain.Types
 
 let emptyMeasure (measureNumber: MeasureNumber) : Measure =
-    { MeasureNumber = measureNumber
+    { Clef = Clef.G
+      MeasureNumber = measureNumber
       TimeSignature =
         { Numerator = 4
           Denominator = Duration.QuarterNote }
@@ -31,3 +32,5 @@ let withNote (note: Note) (m: Measure) : Measure =
 let withNotes (notes: Note list) (m: Measure) : Measure =
     { m with
         Notes = List.map NoteOrPause.Note notes }
+
+let withClef (clef: Clef) (m: Measure) : Measure = { m with Clef = clef }

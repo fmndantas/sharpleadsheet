@@ -40,7 +40,7 @@ let interpretClefEvent (c: Clef) : XElement =
     [ leafElement "sign" "G"; leafElement "line" "2" ] |> element "clef"
 
 // TEST: interpretNote
-let interpretNote (n: Note) : XElement =
+let interpretNote (n: NoteOrPause) : XElement =
     [ element "pitch" [ leafElement "step" "C"; leafElement "octave" "4" ]
       leafElement "duration" "4"
       leafElement "type" "whole" ]
@@ -68,11 +68,11 @@ let createMeasureNotes (es: MeasureEvent list) : XElement list =
     es
     |> List.choose (fun e ->
         match e with
-        | MeasureEvent.Note note -> interpretNote note |> Some
+        | MeasureEvent.NoteOrPause noteOrPause -> interpretNote noteOrPause |> Some
         | _ -> None)
 
-let createMeasure (initialClef: Clef) (previousMeasure: Measure option, currentMeasure: Measure) : XElement =
-    let events = Measure.generateEvents initialClef previousMeasure currentMeasure
+let createMeasure (previousMeasure: Measure option, currentMeasure: Measure) : XElement =
+    let events = Measure.generateEvents previousMeasure currentMeasure
 
     [ createMeasureAttributes currentMeasure events
       yield! createMeasureNotes events ]
@@ -92,7 +92,7 @@ let createPart (ps: Part list) : XElement list =
                 :: (measures |> List.pairwise |> List.map (fun (a, b) -> Some a, b))
 
         pairsOfMeasures
-        |> List.map (createMeasure part.Clef)
+        |> List.map createMeasure
         |> elementWithAttributes "part" [ partId |> partId2String |> attribute "id" ])
 
 // TODO: add validation

@@ -9,7 +9,7 @@ type Duration =
     | SixteenthNote
 
 [<RequireQualifiedAccess>]
-type DurationEquivalence = 
+type DurationEquivalence =
     | Multiple of int
     | Divider of int
 
@@ -65,21 +65,20 @@ type MeasureNumber = MeasureNumber of int
 [<RequireQualifiedAccess>]
 type NoteOrPause = Note of Note
 
-type Measure =
-    { MeasureNumber: MeasureNumber
-      TimeSignature: TimeSignature
-      KeySignature: KeySignature
-      Notes: NoteOrPause list }
-
 [<RequireQualifiedAccess>]
 type Clef =
     | G
     | F
 
+type Measure =
+    { Clef: Clef
+      MeasureNumber: MeasureNumber
+      TimeSignature: TimeSignature
+      KeySignature: KeySignature
+      Notes: NoteOrPause list }
+
 type Part =
-    { Name: string
-      Clef: Clef
-      Measures: Measure list }
+    { Name: string; Measures: Measure list }
 
 type Music = Music of List<Part>
 
@@ -88,7 +87,7 @@ type MeasureEvent =
     | DefineKeySignature of KeySignature
     | DefineTimeSignature of TimeSignature
     | DefineClef of Clef
-    | Note of Note
+    | NoteOrPause of NoteOrPause
 
 [<RequireQualifiedAccess>]
 type Fifth =

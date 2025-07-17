@@ -9,27 +9,86 @@ open Domain
 open Domain.Types
 open Domain.MeasureBuilder
 
-let ``it generates events between two measures`` =
-    tt
-        "it generates events between two measures"
-        [ { Id = "the current measure is the first measure"
-            Data =
-              Clef.G,
-              None,
-              emptyMeasure >> withCNaturalKeySignature >> withCommonTimeSignature
-              <| MeasureNumber 1
-            ExpectedResult =
-              [ KeySignature >> MeasureEvent.DefineKeySignature <| NoteName.C
+let ``generates events between two measures`` =
+    let initialMeasure =
+        MeasureNumber 1
+        |> emptyMeasure
+        |> withCNaturalKeySignature
+        |> withCommonTimeSignature
+        |> withNotes []
+        |> withClef Clef.G
 
+    tt
+        "generates events between two measures"
+        [ { Id = "current measure is the first measure"
+            Data = None, initialMeasure
+            ExpectedResult =
+              [ NoteName.C |> KeySignature |> MeasureEvent.DefineKeySignature
                 MeasureEvent.DefineTimeSignature
                     { Numerator = 4
                       Denominator = Duration.QuarterNote }
+                MeasureEvent.DefineClef Clef.G ],
+              [] }
 
-                MeasureEvent.DefineClef Clef.G ] } ]
-    <| fun (initialClef, previousMeasure, currentMeasure) (expectedResult) ->
-        let events = Measure.generateEvents initialClef previousMeasure currentMeasure
+          // Key signature, time signature and clef
+          yield!
+              [ { Id = "current measure does not change key signature, time signature or clef"
+                  Data =
+                    Some initialMeasure,
+                    MeasureNumber 2
+                    |> emptyMeasure
+                    |> withCNaturalKeySignature
+                    |> withCommonTimeSignature
+                  ExpectedResult =
+                    [],
+                    [ NoteName.C |> KeySignature |> MeasureEvent.DefineKeySignature
+                      MeasureEvent.DefineTimeSignature
+                          { Numerator = 4
+                            Denominator = Duration.QuarterNote }
+                      MeasureEvent.DefineClef Clef.G ] }
 
-        events |> containsAll "The expected events were not found" expectedResult
+                { Id = "current measure changes key signature"
+                  Data =
+                    Some initialMeasure,
+                    MeasureNumber 2
+                    |> emptyMeasure
+                    |> withKeySignature (KeySignature NoteName.D)
+                    |> withCommonTimeSignature
+                  ExpectedResult = [ NoteName.D |> KeySignature |> MeasureEvent.DefineKeySignature ], [] }
+
+                { Id = "current measure changes time signature"
+                  Data =
+                    Some initialMeasure,
+                    MeasureNumber 2
+                    |> emptyMeasure
+                    |> withCNaturalKeySignature
+                    |> withTimeSignature
+                        { Numerator = 6
+                          Denominator = Duration.EightNote }
+                  ExpectedResult =
+                    [ MeasureEvent.DefineTimeSignature
+                          { Numerator = 6
+                            Denominator = Duration.EightNote } ],
+                    [] }
+
+                { Id = "current measure changes clef"
+                  Data =
+                    Some initialMeasure,
+                    MeasureNumber 2
+                    |> emptyMeasure
+                    |> withCNaturalKeySignature
+                    |> withCommonTimeSignature
+                    |> withClef Clef.F
+                  ExpectedResult = [ MeasureEvent.DefineClef Clef.F ], [] } ] ]
+    <| fun (previousMeasure, currentMeasure) (resultShouldInclude, resultShouldNotInclude) ->
+        let events = Measure.generateEvents previousMeasure currentMeasure
+
+        for item in resultShouldInclude do
+            events |> contains $"Expected measure event not found: \"{item}\"" item
+
+        for item in resultShouldNotInclude do
+            List.contains item events
+            |> isFalse $"Unexpected measure event found: \"{item}\""
 
 let ``defines the number of divisions based on quarter note`` =
     let measureWithDurations durations =
@@ -45,9 +104,7 @@ let ``defines the number of divisions based on quarter note`` =
 
     tt
         "defines the number of divisions based on quarter note"
-        [
-
-          { Id = "Empty case"
+        [ { Id = "Empty case"
             Data = measureWithDurations []
             ExpectedResult = 1 }
 
@@ -88,9 +145,7 @@ let ``defines the number of divisions based on quarter note`` =
                     Duration.SixteenthNote
                     Duration.EightNote
                     Duration.SixteenthNote ]
-            ExpectedResult = 4 }
-
-          ]
+            ExpectedResult = 4 } ]
     <| fun measure expectedResult ->
         let result = Measure.defineDivisions measure
         result |> equal "The calculated division is incorrect" expectedResult
@@ -99,5 +154,5 @@ let ``defines the number of divisions based on quarter note`` =
 let MeasureSpec =
     testList
         "MeasureSpec"
-        [ ``it generates events between two measures``
+        [ ``generates events between two measures``
           ``defines the number of divisions based on quarter note`` ]

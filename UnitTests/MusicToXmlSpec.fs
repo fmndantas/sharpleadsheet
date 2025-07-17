@@ -25,9 +25,9 @@ let ``it should convert music to xml`` =
             Data =
               Music
                   [ { Name = "Instrument Name"
-                      Clef = Clef.G
                       Measures =
                         [ emptyMeasure (MeasureNumber 1)
+                          |> withClef Clef.G
                           |> withCommonTimeSignature
                           |> withCNaturalKeySignature
                           |> withNote
