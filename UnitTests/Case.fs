@@ -7,7 +7,7 @@ type Case<'a, 'b> =
       Data: 'a
       ExpectedResult: 'b }
 
-    override this.ToString() = $"[Id = {this.Id}]"
+    override this.ToString() = $"{this.Id}"
 
 type TestBody<'a, 'b> = 'a -> 'b -> unit
 
