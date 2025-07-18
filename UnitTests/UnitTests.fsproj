@@ -15,6 +15,7 @@
     <Compile Include="MeasureSpec.fs"/>
     <Compile Include="XmlWrapperSpec.fs"/>
     <Compile Include="MusicToXmlSpec.fs"/>
+    <Compile Include="ParserSpec.fs"/>
     <Compile Include="Program.fs"/>
   </ItemGroup>
 
