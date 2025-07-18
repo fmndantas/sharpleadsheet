@@ -11,8 +11,7 @@ open Domain.MeasureBuilder
 
 let ``generates events between two measures`` =
     let initialMeasure =
-        MeasureNumber 1
-        |> emptyMeasure
+        aMeasure 1
         |> withCNaturalKeySignature
         |> withCommonTimeSignature
         |> withNotes []
@@ -33,12 +32,7 @@ let ``generates events between two measures`` =
           // Key signature, time signature and clef
           yield!
               [ { Id = "current measure does not change key signature, time signature or clef"
-                  Data =
-                    Some initialMeasure,
-                    MeasureNumber 2
-                    |> emptyMeasure
-                    |> withCNaturalKeySignature
-                    |> withCommonTimeSignature
+                  Data = Some initialMeasure, aMeasure 2 |> withCNaturalKeySignature |> withCommonTimeSignature
                   ExpectedResult =
                     [],
                     [ NoteName.C |> KeySignature |> MeasureEvent.DefineKeySignature
@@ -50,8 +44,7 @@ let ``generates events between two measures`` =
                 { Id = "current measure changes key signature"
                   Data =
                     Some initialMeasure,
-                    MeasureNumber 2
-                    |> emptyMeasure
+                    aMeasure 2
                     |> withKeySignature (KeySignature NoteName.D)
                     |> withCommonTimeSignature
                   ExpectedResult = [ NoteName.D |> KeySignature |> MeasureEvent.DefineKeySignature ], [] }
@@ -59,8 +52,7 @@ let ``generates events between two measures`` =
                 { Id = "current measure changes time signature"
                   Data =
                     Some initialMeasure,
-                    MeasureNumber 2
-                    |> emptyMeasure
+                    aMeasure 2
                     |> withCNaturalKeySignature
                     |> withTimeSignature
                         { Numerator = 6
@@ -74,8 +66,7 @@ let ``generates events between two measures`` =
                 { Id = "current measure changes clef"
                   Data =
                     Some initialMeasure,
-                    MeasureNumber 2
-                    |> emptyMeasure
+                    aMeasure 2
                     |> withCNaturalKeySignature
                     |> withCommonTimeSignature
                     |> withClef Clef.F
@@ -100,7 +91,7 @@ let ``defines the number of divisions based on quarter note`` =
                       Duration = d })
                 durations
 
-        emptyMeasure (MeasureNumber 1) |> withNotes notes
+        aMeasure 1 |> withNotes notes
 
     tt
         "defines the number of divisions based on quarter note"

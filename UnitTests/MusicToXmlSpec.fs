@@ -18,15 +18,15 @@ let here = __SOURCE_DIRECTORY__
 let openXml (file: string) =
     File.ReadAllText(Path.Join(here, "Xmls", file))
 
-let ``it should convert music to xml`` =
+let ``converts music to xml`` =
     tt
         "it should convert music to xml"
-        [ { Id = "simplest case possible"
+        [ { Id = "hello world"
             Data =
               Music
                   [ { Name = "Instrument Name"
                       Measures =
-                        [ emptyMeasure (MeasureNumber 1)
+                        [ aMeasure 1
                           |> withClef Clef.G
                           |> withCommonTimeSignature
                           |> withCNaturalKeySignature
@@ -44,5 +44,4 @@ let ``it should convert music to xml`` =
         ||> equal "Generated XML is incorrect"
 
 [<Tests>]
-let MusicToXmlSpec =
-    testList "MusicToXmlSpec" [ ``it should convert music to xml`` ]
+let MusicToXmlSpec = testList "MusicToXmlSpec" [ ``converts music to xml`` ]
