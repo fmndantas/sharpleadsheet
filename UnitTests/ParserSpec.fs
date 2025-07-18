@@ -64,7 +64,10 @@ let ``parses music`` =
           ]
     <| fun (fileContent) (expectedResult: Music) ->
         let result = Parser.parse fileContent
-        result |> equal "The parsed music is not correct" expectedResult
+
+        result
+        |> wantOk "Parsing failed"
+        |> equal "Parsed music is incorrect" expectedResult
 
 [<Tests>]
 let ParserSpec = testList "ParserSpec" [ ``parses music`` ]
