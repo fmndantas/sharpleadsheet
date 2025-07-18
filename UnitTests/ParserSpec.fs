@@ -28,6 +28,7 @@ let ``parses music`` =
             ExpectedResult =
               Music
                   [ { Name = "Piano"
+                      Id = PartId 1
                       Measures =
                         [
 

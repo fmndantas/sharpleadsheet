@@ -6,8 +6,6 @@ open Domain.XmlWrapper
 
 open Domain.Types
 
-type PartId = PartId of int
-
 let partId2String (PartId partId) = $"P{partId}"
 
 let indexWithPartId (xs: 'a list) : list<PartId * 'a> =

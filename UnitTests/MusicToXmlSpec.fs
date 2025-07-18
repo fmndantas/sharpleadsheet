@@ -20,11 +20,12 @@ let openXml (file: string) =
 
 let ``converts music to xml`` =
     tt
-        "it should convert music to xml"
+        "converts music to xml"
         [ { Id = "hello world"
             Data =
               Music
                   [ { Name = "Instrument Name"
+                      Id = PartId 1
                       Measures =
                         [ aMeasure 1
                           |> withClef Clef.G

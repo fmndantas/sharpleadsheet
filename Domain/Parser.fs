@@ -5,6 +5,7 @@ open Domain.MeasureBuilder
 
 let parse (fileContent: string) : Result<Music, string> =
     [ { Name = "Piano"
+        Id = PartId 1
         Measures =
           [ aMeasure 1
             |> withCNaturalKeySignature

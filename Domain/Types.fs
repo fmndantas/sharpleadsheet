@@ -77,8 +77,12 @@ type Measure =
       KeySignature: KeySignature
       Notes: NoteOrPause list }
 
+type PartId = PartId of int
+
 type Part =
-    { Name: string; Measures: Measure list }
+    { Id: PartId
+      Name: string
+      Measures: Measure list }
 
 type Music = Music of List<Part>
 
