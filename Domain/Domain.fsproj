@@ -6,16 +6,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="GenericFunctions.fs"/>
-    <Compile Include="Types.fs"/>
-    <Compile Include="MeasureBuilder.fs"/>
-    <Compile Include="NoteName.fs"/>
-    <Compile Include="Duration.fs"/>
-    <Compile Include="NoteOrPause.fs"/>
-    <Compile Include="KeySignature.fs"/>
-    <Compile Include="Measure.fs"/>
-    <Compile Include="XmlWrapper.fs"/>
-    <Compile Include="MusicToXml.fs"/>
+    <Compile Include="GenericFunctions.fs" />
+    <Compile Include="Types.fs" />
+    <Compile Include="MeasureBuilder.fs" />
+    <Compile Include="NoteName.fs" />
+    <Compile Include="Duration.fs" />
+    <Compile Include="NoteOrPause.fs" />
+    <Compile Include="KeySignature.fs" />
+    <Compile Include="Measure.fs" />
+    <Compile Include="XmlWrapper.fs" />
+    <Compile Include="MusicToXml.fs" />
+    <Compile Include="FParsec.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FParsec" Version="1.1.1" />
   </ItemGroup>
 
 </Project>
