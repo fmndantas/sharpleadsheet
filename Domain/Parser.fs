@@ -38,7 +38,7 @@ module Functions =
             |>> fun v ->
                 match v with
                 | "g" -> Clef.G
-                | _ -> failwith "TODO: clef"
+                | _ -> failwith "Unknown clef: \"{v}\""
 
         let pNoteName: P<_> =
             [ "c"; "d"; "e"; "f"; "g"; "a"; "b" ] |> List.map pstring |> choice
@@ -51,14 +51,18 @@ module Functions =
                 | "g" -> NoteName.G
                 | "a" -> NoteName.A
                 | "b" -> NoteName.B
-                | _ -> failwith "TODO: natural note"
+                | _ -> failwith $"Unknown note name: \"{v}\""
 
         let pDuration: P<_> =
-            [ "4" ] |> List.map pstring |> choice
+            [ "16"; "8"; "4"; "2"; "1" ] |> List.map pstring |> choice
             |>> fun v ->
                 match v with
+                | "1" -> Duration.WholeNote
+                | "2" -> Duration.HalfNote
                 | "4" -> Duration.QuarterNote
-                | _ -> failwith "TODO: duration"
+                | "8" -> Duration.EighthNote
+                | "16" -> Duration.SixteenthNote
+                | _ -> failwith $"Unknown duration: \"{v}\""
 
     let pPartDefinitionAttribute: P<_> =
         choice
@@ -110,19 +114,19 @@ module Functions =
                 |> withNote
                     { NoteName = NoteName.C
                       Octave = 4
-                      Duration = Duration.EightNote }
+                      Duration = Duration.EighthNote }
                 |> withNote
                     { NoteName = NoteName.D
                       Octave = 4
-                      Duration = Duration.EightNote }
+                      Duration = Duration.EighthNote }
                 |> withNote
                     { NoteName = NoteName.E
                       Octave = 4
-                      Duration = Duration.EightNote }
+                      Duration = Duration.EighthNote }
                 |> withNote
                     { NoteName = NoteName.D
                       Octave = 4
-                      Duration = Duration.EightNote }
+                      Duration = Duration.EighthNote }
 
             let secondMeasure =
                 aMeasure 2

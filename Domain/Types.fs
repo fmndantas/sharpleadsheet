@@ -5,7 +5,7 @@ type Duration =
     | WholeNote
     | HalfNote
     | QuarterNote
-    | EightNote
+    | EighthNote
     | SixteenthNote
 
 [<RequireQualifiedAccess>]

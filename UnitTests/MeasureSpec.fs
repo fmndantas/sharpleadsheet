@@ -56,11 +56,11 @@ let ``generates events between two measures`` =
                     |> withCNaturalKeySignature
                     |> withTimeSignature
                         { Numerator = 6
-                          Denominator = Duration.EightNote }
+                          Denominator = Duration.EighthNote }
                   ExpectedResult =
                     [ MeasureEvent.DefineTimeSignature
                           { Numerator = 6
-                            Denominator = Duration.EightNote } ],
+                            Denominator = Duration.EighthNote } ],
                     [] }
 
                 { Id = "current measure changes clef"
@@ -122,19 +122,19 @@ let ``defines the number of divisions based on quarter note`` =
                   [ Duration.QuarterNote
                     Duration.QuarterNote
                     Duration.QuarterNote
-                    Duration.EightNote
-                    Duration.EightNote ]
+                    Duration.EighthNote
+                    Duration.EighthNote ]
             ExpectedResult = 2 }
 
           { Id = "qeeqses"
             Data =
               measureWithDurations
                   [ Duration.QuarterNote
-                    Duration.EightNote
-                    Duration.EightNote
+                    Duration.EighthNote
+                    Duration.EighthNote
                     Duration.QuarterNote
                     Duration.SixteenthNote
-                    Duration.EightNote
+                    Duration.EighthNote
                     Duration.SixteenthNote ]
             ExpectedResult = 4 } ]
     <| fun measure expectedResult ->

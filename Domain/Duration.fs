@@ -6,7 +6,7 @@ let private durations =
     [ Duration.WholeNote
       Duration.HalfNote
       Duration.QuarterNote
-      Duration.EightNote
+      Duration.EighthNote
       Duration.SixteenthNote ]
 
 let private minimalDuration = List.last durations

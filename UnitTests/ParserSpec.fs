@@ -49,19 +49,19 @@ let ``parses music`` =
                           |> withNote
                               { NoteName = NoteName.C
                                 Octave = 4
-                                Duration = Duration.EightNote }
+                                Duration = Duration.EighthNote }
                           |> withNote
                               { NoteName = NoteName.D
                                 Octave = 4
-                                Duration = Duration.EightNote }
+                                Duration = Duration.EighthNote }
                           |> withNote
                               { NoteName = NoteName.E
                                 Octave = 4
-                                Duration = Duration.EightNote }
+                                Duration = Duration.EighthNote }
                           |> withNote
                               { NoteName = NoteName.D
                                 Octave = 4
-                                Duration = Duration.EightNote }
+                                Duration = Duration.EighthNote }
 
                           aMeasure 2
                           |> withCNaturalKeySignature
@@ -135,6 +135,40 @@ let ``parses a note name`` =
     <| fun data expectedResult ->
         runAndAssert Parser.Functions.Helpers.pNoteName data (equal "Parsed note name is incorrect" expectedResult)
 
+let ``parses a duration`` =
+    tt
+        "parses a duration"
+        [
+
+          { Id = "whole note"
+            Data = "1"
+            ExpectedResult = Duration.WholeNote }
+
+          { Id = "half note"
+            Data = "2"
+            ExpectedResult = Duration.HalfNote }
+
+          { Id = "quarter note"
+            Data = "4"
+            ExpectedResult = Duration.QuarterNote }
+
+          { Id = "eighth note"
+            Data = "8"
+            ExpectedResult = Duration.EighthNote }
+
+          { Id = "sixteenth note"
+            Data = "16"
+            ExpectedResult = Duration.SixteenthNote }
+
+          ]
+    <| fun data expectedResult ->
+        runAndAssert Parser.Functions.Helpers.pDuration data (equal "Parsed duration is incorrect" expectedResult)
+
 [<Tests>]
 let ParserSpec =
-    testList "ParserSpec" [ ``parses music``; ``parses a part definition``; ``parses a note name`` ]
+    testList
+        "ParserSpec"
+        [ ``parses music``
+          ``parses a part definition``
+          ``parses a note name``
+          ``parses a duration`` ]

@@ -35,5 +35,5 @@ let defineDivisions (measure: Measure) : int =
         | Duration.WholeNote
         | Duration.HalfNote
         | Duration.QuarterNote -> 1
-        | Duration.EightNote -> 2
+        | Duration.EighthNote -> 2
         | Duration.SixteenthNote -> 4
