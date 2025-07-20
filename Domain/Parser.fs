@@ -34,16 +34,17 @@ module Functions =
         let num: P<_> = pint32
 
         let pclef: P<_> =
-            [ "g" ] |> List.map pstring |> choice
+            [ "f"; "g" ] |> List.map pstring |> choice
             |>> fun v ->
                 match v with
                 | "g" -> Clef.G
                 | _ -> failwith "TODO: clef"
 
         let naturalNote: P<_> =
-            [ "f" ] |> List.map pstring |> choice
+            [ "c"; "f" ] |> List.map pstring |> choice
             |>> fun v ->
                 match v with
+                | "c" -> NoteName.C
                 | "f" -> NoteName.F
                 | _ -> failwith "TODO: natural note"
 
@@ -92,15 +93,15 @@ module Functions =
               KeySignature = keySignature })
 
     // TODO: validation
-    let parse (content: string) : Result<Music, string> =
-        [ { Name = "Piano"
-            Id = PartId 1
-            Measures =
-              [ aMeasure 1
-                |> withCNaturalKeySignature
-                |> withTimeSignature
-                    { Numerator = 2
-                      Denominator = Duration.HalfNote }
+    // TODO: parsing of notes
+    let pMusic: P<Music> =
+        pPartDefinition
+        |>> (fun partDefinition ->
+            let firstMeasure =
+                aMeasure 1
+                |> withKeySignature (Option.get partDefinition.KeySignature)
+                |> withTimeSignature (Option.get partDefinition.TimeSignature)
+                |> withClef (Option.get partDefinition.Clef)
                 |> withNote
                     { NoteName = NoteName.C
                       Octave = 4
@@ -118,10 +119,17 @@ module Functions =
                       Octave = 4
                       Duration = Duration.EightNote }
 
+            let secondMeasure =
                 aMeasure 2
-                |> withCNaturalKeySignature
-                |> withTimeSignature
-                    { Numerator = 2
-                      Denominator = Duration.HalfNote } ] } ]
-        |> Music
-        |> Result.Ok
+                |> withKeySignature (Option.get partDefinition.KeySignature)
+                |> withTimeSignature (Option.get partDefinition.TimeSignature)
+                |> withClef (Option.get partDefinition.Clef)
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 4
+                      Duration = Duration.HalfNote }
+
+            Music
+                [ { Id = Option.get partDefinition.Id
+                    Name = Option.get partDefinition.Name
+                    Measures = [ firstMeasure; secondMeasure ] } ])

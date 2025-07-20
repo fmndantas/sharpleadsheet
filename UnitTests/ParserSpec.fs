@@ -18,9 +18,14 @@ open Domain.Parser.Types
 [<Literal>]
 let here = __SOURCE_DIRECTORY__
 
-let openSharpLeadsheet (file: string) =
+let private openSharpLeadsheet (file: string) =
     let dot = Directory.GetParent(here).FullName
     File.ReadAllText(Path.Join(dot, "Samples", file))
+
+let private runAndAssert p content assertFn =
+    match run p content with
+    | Success(result, _, _) -> assertFn result
+    | Failure(errorMessage, _, _) -> failtest errorMessage
 
 let ``parses music`` =
     tt
@@ -40,7 +45,7 @@ let ``parses music`` =
                           |> withCNaturalKeySignature
                           |> withTimeSignature
                               { Numerator = 2
-                                Denominator = Duration.HalfNote }
+                                Denominator = Duration.QuarterNote }
                           |> withNote
                               { NoteName = NoteName.C
                                 Octave = 4
@@ -62,17 +67,17 @@ let ``parses music`` =
                           |> withCNaturalKeySignature
                           |> withTimeSignature
                               { Numerator = 2
-                                Denominator = Duration.HalfNote }
+                                Denominator = Duration.QuarterNote }
+                          |> withNote
+                              { NoteName = NoteName.C
+                                Octave = 4
+                                Duration = Duration.HalfNote }
 
                           ] } ] }
 
           ]
     <| fun (fileContent) (expectedResult: Music) ->
-        let result = Parser.Functions.parse fileContent
-
-        result
-        |> wantOk "Parsing failed"
-        |> equal "Parsed music is incorrect" expectedResult
+        runAndAssert Parser.Functions.pMusic fileContent (equal "Parsed music is incorrect" expectedResult)
 
 let ``parses a part definition`` =
     testCase "parses a part definition"
@@ -89,11 +94,8 @@ let ``parses a part definition`` =
                       Denominator = Duration.QuarterNote }
               KeySignature = KeySignature NoteName.F |> Some }
 
-        let result = run Parser.Functions.pPartDefinition part
-
-        match result with
-        | Success(partDefinition, _, _) -> partDefinition |> equal "Part definition is incorrect" expectedResult
-        | Failure(error, _, _) -> failtest error
+        runAndAssert Parser.Functions.pPartDefinition part (fun result ->
+            result |> equal "Part definition is incorrect" expectedResult)
 
 [<Tests>]
 let ParserSpec =
