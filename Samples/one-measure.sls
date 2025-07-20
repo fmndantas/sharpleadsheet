@@ -1,9 +1,9 @@
 :part 
   :id 1
   :name Piano
-  :clef G
-  :time 2/4
-  :key F
+  :clef g
+  :time 2 4
+  :key c
 
 :music 1
   c8 d e d | c2

@@ -14,22 +14,6 @@ type DurationEquivalence =
     | Divider of int
 
 [<RequireQualifiedAccess>]
-type NaturalNote =
-    | C
-    | D
-    | E
-    | F
-    | G
-    | A
-    | B
-
-[<RequireQualifiedAccess>]
-type Accidental =
-    | Flat
-    | Natural
-    | Sharp
-
-[<RequireQualifiedAccess>]
 type NoteName =
     | C
     | CSharp

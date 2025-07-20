@@ -19,4 +19,8 @@
     <Compile Include="MusicToXml.fs"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="fparsec" Version="1.1.1"/>
+  </ItemGroup>
+
 </Project>

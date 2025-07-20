@@ -5,11 +5,15 @@ open System.IO
 open Expecto
 open Expecto.Flip.Expect
 
+open FParsec
+
 open Case
 
 open Domain
 open Domain.Types
 open Domain.MeasureBuilder
+
+open Domain.Parser.Types
 
 [<Literal>]
 let here = __SOURCE_DIRECTORY__
@@ -64,11 +68,33 @@ let ``parses music`` =
 
           ]
     <| fun (fileContent) (expectedResult: Music) ->
-        let result = Parser.parse fileContent
+        let result = Parser.Functions.parse fileContent
 
         result
         |> wantOk "Parsing failed"
         |> equal "Parsed music is incorrect" expectedResult
 
+let ``parses a part definition`` =
+    testCase "parses a part definition"
+    <| fun () ->
+        let part = openSharpLeadsheet "part-definition.sls"
+
+        let expectedResult =
+            { Id = PartId 1 |> Some
+              Name = Some "Piano"
+              Clef = Some Clef.G
+              TimeSignature =
+                Some
+                    { Numerator = 2
+                      Denominator = Duration.QuarterNote }
+              KeySignature = KeySignature NoteName.F |> Some }
+
+        let result = run Parser.Functions.pPartDefinition part
+
+        match result with
+        | Success(partDefinition, _, _) -> partDefinition |> equal "Part definition is incorrect" expectedResult
+        | Failure(error, _, _) -> failtest error
+
 [<Tests>]
-let ParserSpec = testList "ParserSpec" [ ``parses music`` ]
+let ParserSpec =
+    testList "ParserSpec" [ ``parses music``; ``parses a part definition`` ]
