@@ -27,7 +27,7 @@ let withCommonTimeSignature (m: Measure) : Measure =
 
 let withNote (note: Note) (m: Measure) : Measure =
     { m with
-        Notes = NoteOrPause.Note note :: m.Notes }
+        Notes = List.append m.Notes [ NoteOrPause.Note note ] }
 
 let withNotes (notes: Note list) (m: Measure) : Measure =
     { m with
