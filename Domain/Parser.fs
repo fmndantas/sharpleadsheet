@@ -40,15 +40,20 @@ module Functions =
                 | "g" -> Clef.G
                 | _ -> failwith "TODO: clef"
 
-        let naturalNote: P<_> =
-            [ "c"; "f" ] |> List.map pstring |> choice
+        let pNoteName: P<_> =
+            [ "c"; "d"; "e"; "f"; "g"; "a"; "b" ] |> List.map pstring |> choice
             |>> fun v ->
                 match v with
                 | "c" -> NoteName.C
+                | "d" -> NoteName.D
+                | "e" -> NoteName.E
                 | "f" -> NoteName.F
+                | "g" -> NoteName.G
+                | "a" -> NoteName.A
+                | "b" -> NoteName.B
                 | _ -> failwith "TODO: natural note"
 
-        let duration: P<_> =
+        let pDuration: P<_> =
             [ "4" ] |> List.map pstring |> choice
             |>> fun v ->
                 match v with
@@ -60,12 +65,12 @@ module Functions =
             [ attempt <| command "id" .>> ws >>. num |>> PartDefinitionAttribute.Id
               attempt <| command "name" .>> ws >>. str |>> PartDefinitionAttribute.Name
               attempt <| command "clef" .>> ws >>. pclef |>> PartDefinitionAttribute.Clef
-              attempt <| command "time" .>> ws >>. num .>>. spaces1 .>>. duration
+              attempt <| command "time" .>> ws >>. num .>>. spaces1 .>>. pDuration
               |>> fun ((numerator, _), denominator) ->
                   PartDefinitionAttribute.TimeSignature
                       { Numerator = numerator
                         Denominator = denominator }
-              attempt <| command "key" .>> ws >>. naturalNote
+              attempt <| command "key" .>> ws >>. pNoteName
               |>> fun v -> v |> KeySignature |> PartDefinitionAttribute.KeySignature ]
 
     let pPartDefinition: P<_> =

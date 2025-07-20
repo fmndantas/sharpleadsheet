@@ -97,6 +97,44 @@ let ``parses a part definition`` =
         runAndAssert Parser.Functions.pPartDefinition part (fun result ->
             result |> equal "Part definition is incorrect" expectedResult)
 
+// TODO: sharp and flat notes
+let ``parses a note name`` =
+    tt
+        "parses a note name"
+        [
+
+          { Id = "c"
+            Data = "c"
+            ExpectedResult = NoteName.C }
+
+          { Id = "d"
+            Data = "d"
+            ExpectedResult = NoteName.D }
+
+          { Id = "e"
+            Data = "e"
+            ExpectedResult = NoteName.E }
+
+          { Id = "f"
+            Data = "f"
+            ExpectedResult = NoteName.F }
+
+          { Id = "g"
+            Data = "g"
+            ExpectedResult = NoteName.G }
+
+          { Id = "a"
+            Data = "a"
+            ExpectedResult = NoteName.A }
+
+          { Id = "b"
+            Data = "b"
+            ExpectedResult = NoteName.B }
+
+          ]
+    <| fun data expectedResult ->
+        runAndAssert Parser.Functions.Helpers.pNoteName data (equal "Parsed note name is incorrect" expectedResult)
+
 [<Tests>]
 let ParserSpec =
-    testList "ParserSpec" [ ``parses music``; ``parses a part definition`` ]
+    testList "ParserSpec" [ ``parses music``; ``parses a part definition``; ``parses a note name`` ]
