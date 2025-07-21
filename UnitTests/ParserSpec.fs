@@ -32,11 +32,13 @@ let private runWithStateAndAssert p initialState content assertFn =
     | Success(result, finalState, _) -> assertFn result finalState
     | Failure(errorMessage, _, _) -> failtest errorMessage
 
-let private anyParsingState =
-    { PreviousKeySignature = KeySignature NoteName.C
-      PreviousTimeSignature =
+let private parsingStateForTest =
+    { InitialKeySignature = KeySignature NoteName.C
+      InitialTimeSignature =
         { Numerator = 2
           Denominator = Duration.QuarterNote }
+      InitialClef = Clef.G
+      LastMeasure = None
       LastNote = None }
 
 let ``parses music`` =
@@ -51,9 +53,7 @@ let ``parses music`` =
                   [ { Name = "Piano"
                       Id = PartId 1
                       Measures =
-                        [
-
-                          aMeasure 1
+                        [ aMeasure 1
                           |> withCNaturalKeySignature
                           |> withTimeSignature
                               { Numerator = 2
@@ -83,13 +83,11 @@ let ``parses music`` =
                           |> withNote
                               { NoteName = NoteName.C
                                 Octave = 4
-                                Duration = Duration.HalfNote }
-
-                          ] } ] }
+                                Duration = Duration.HalfNote } ] } ] }
 
           ]
     <| fun (fileContent) (expectedResult: Music) ->
-        runWithStateAndAssert Parser.Functions.pMusic anyParsingState fileContent
+        runWithStateAndAssert Parser.Functions.pMusic parsingStateForTest fileContent
         <| fun result _ -> result |> equal "Parsed music is incorrect" expectedResult
 
 let ``parses a part definition`` =
@@ -107,7 +105,7 @@ let ``parses a part definition`` =
                       Denominator = Duration.QuarterNote }
               KeySignature = KeySignature NoteName.F |> Some }
 
-        runWithStateAndAssert Parser.Functions.pPartDefinition anyParsingState part
+        runWithStateAndAssert Parser.Functions.pPartDefinition parsingStateForTest part
         <| fun result _ -> result |> equal "Part definition is incorrect" expectedResult
 
 // TODO: sharp and flat notes
@@ -146,7 +144,7 @@ let ``parses a note name`` =
 
           ]
     <| fun data expectedResult ->
-        runWithStateAndAssert Parser.Functions.pNoteName anyParsingState data
+        runWithStateAndAssert Parser.Functions.pNoteName parsingStateForTest data
         <| fun result _ -> result |> equal "Parsed note name is incorrect" expectedResult
 
 // TODO: dotted durations
@@ -177,17 +175,19 @@ let ``parses a duration`` =
 
           ]
     <| fun data expectedResult ->
-        runWithStateAndAssert Parser.Functions.pDuration anyParsingState data
+        runWithStateAndAssert Parser.Functions.pDuration parsingStateForTest data
         <| fun result _ -> result |> equal "Parsed duration is incorrect" expectedResult
 
 // TODO: define octave rule
 let ``parses a note`` =
     let aState lastNote =
-        { PreviousKeySignature = KeySignature NoteName.C
-          PreviousTimeSignature =
+        { InitialKeySignature = KeySignature NoteName.C
+          InitialTimeSignature =
             { Numerator = 2
               Denominator = Duration.QuarterNote }
-          LastNote = lastNote }
+          InitialClef = Clef.G
+          LastNote = lastNote
+          LastMeasure = None }
 
     tt
         "parses a note"
@@ -243,6 +243,120 @@ let ``parses a note`` =
 
             finalState.LastNote
             |> equal "Updated last note is incorrect" (Some expectedNote)
+
+let ``parses sequences of notes`` =
+    tt
+        "parses sequences of notes"
+        [
+
+          { Id = "case 1"
+            Data =
+              { InitialTimeSignature =
+                  { Numerator = 2
+                    Denominator = Duration.QuarterNote }
+                InitialKeySignature = KeySignature NoteName.C
+                InitialClef = Clef.G
+                LastNote = None
+                LastMeasure = None },
+              openSample "sequence-of-notes-1"
+            ExpectedResult =
+              let measure =
+                  aMeasure
+                  >> withClef Clef.G
+                  >> withCNaturalKeySignature
+                  >> withTimeSignature
+                      { Numerator = 2
+                        Denominator = Duration.QuarterNote }
+
+              [ measure 1
+                |> withNotes
+                    [ { NoteName = NoteName.C
+                        Octave = 4
+                        Duration = Duration.EighthNote }
+
+                      { NoteName = NoteName.D
+                        Octave = 4
+                        Duration = Duration.EighthNote }
+
+                      { NoteName = NoteName.E
+                        Octave = 4
+                        Duration = Duration.EighthNote }
+
+                      { NoteName = NoteName.D
+                        Octave = 4
+                        Duration = Duration.EighthNote } ]
+
+                measure 2
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 4
+                      Duration = Duration.HalfNote } ] }
+
+          { Id = "case 2"
+            Data =
+              { InitialTimeSignature =
+                  { Numerator = 3
+                    Denominator = Duration.QuarterNote }
+                InitialKeySignature = KeySignature NoteName.F
+                InitialClef = Clef.F
+                LastNote = None
+                LastMeasure = None },
+              openSample "sequence-of-notes-2"
+            ExpectedResult =
+              let measure =
+                  aMeasure
+                  >> withClef Clef.F
+                  >> withKeySignature (KeySignature NoteName.F)
+                  >> withTimeSignature
+                      { Numerator = 3
+                        Denominator = Duration.QuarterNote }
+
+              [ measure 1
+                |> withNotes
+                    [ { NoteName = NoteName.C
+                        Octave = 4
+                        Duration = Duration.QuarterNote }
+
+                      { NoteName = NoteName.D
+                        Octave = 4
+                        Duration = Duration.QuarterNote }
+
+                      { NoteName = NoteName.C
+                        Octave = 4
+                        Duration = Duration.QuarterNote } ]
+
+                measure 2
+                |> withNote
+                    { NoteName = NoteName.F
+                      Octave = 4
+                      Duration = Duration.HalfNote }
+                |> withNote
+                    { NoteName = NoteName.G
+                      Octave = 4
+                      Duration = Duration.QuarterNote }
+
+                measure 3
+                |> withRepeteadNote
+                    6
+                    { NoteName = NoteName.E
+                      Octave = 4
+                      Duration = Duration.EighthNote }
+
+                measure 4
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 4
+                      Duration = Duration.HalfNote }
+                |> withNote
+                    { NoteName = NoteName.D
+                      Octave = 4
+                      Duration = Duration.QuarterNote } ] }
+
+          ]
+    <| fun (initialState, content) expectedResult ->
+        runWithStateAndAssert Parser.Functions.pSequencesOfNotes initialState content
+        <| fun result finalState -> result |> equal "Parsed duration is incorrect" expectedResult
+
 [<Tests>]
 let ParserSpec =
     testList
@@ -252,4 +366,4 @@ let ParserSpec =
           ``parses a note name``
           ``parses a duration``
           ``parses a note``
-          ]
+          ``parses sequences of notes`` ]

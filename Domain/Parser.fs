@@ -22,9 +22,11 @@ module Types =
           KeySignature: KeySignature option }
 
     type ParsingState =
-        { PreviousTimeSignature: TimeSignature
-          PreviousKeySignature: KeySignature
-          LastNote: Note option }
+        { InitialTimeSignature: TimeSignature
+          InitialKeySignature: KeySignature
+          InitialClef: Clef
+          LastNote: Note option
+          LastMeasure: Measure option }
 
 module Functions =
     open Types
@@ -77,7 +79,7 @@ module Functions =
 
             let lastNoteDuration = Option.map (_.Duration) state.LastNote
 
-            let previousTimeSignatureDuration = state.PreviousTimeSignature.Denominator
+            let previousTimeSignatureDuration = state.InitialTimeSignature.Denominator
 
             let duration =
                 duration
@@ -130,6 +132,45 @@ module Functions =
               Clef = clef
               TimeSignature = timeSignature
               KeySignature = keySignature })
+
+    let pSequencesOfNotes: P<Measure list> =
+        parse {
+            let! notesByMeasures = sepBy (pNote .>> ws |> many) (pstring "|" .>> ws)
+            let! state = getUserState
+
+            let currentMeasureNumber =
+                Option.map (_.MeasureNumber) state.LastMeasure
+                |> Option.defaultValue (MeasureNumber 0)
+
+            let keySignature = state.InitialKeySignature
+            let timeSignature = state.InitialTimeSignature
+            let clef = state.InitialClef
+
+            let createMeasure =
+                aMeasure
+                >> withKeySignature keySignature
+                >> withTimeSignature timeSignature
+                >> withClef clef
+
+            let _, updatedMeasures =
+                notesByMeasures
+                |> List.fold
+                    (fun (MeasureNumber measureNumber, measures) notes ->
+                        let updatedMeasureNumber = measureNumber + 1
+
+                        let updatedMeasures =
+                            List.append measures [ createMeasure updatedMeasureNumber |> withNotes notes ]
+
+                        MeasureNumber updatedMeasureNumber, updatedMeasures)
+                    (currentMeasureNumber, [])
+
+            do!
+                updateUserState (fun s ->
+                    { s with
+                        LastMeasure = List.tryLast updatedMeasures })
+
+            return updatedMeasures
+        }
 
     // TODO: validation
     // TODO: parsing of notes

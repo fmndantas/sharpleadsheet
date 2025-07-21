@@ -33,4 +33,8 @@ let withNotes (notes: Note list) (m: Measure) : Measure =
     { m with
         Notes = List.map NoteOrPause.Note notes }
 
+let withRepeteadNote (count: int) (note: Note) (m: Measure) : Measure =
+    { m with
+        Notes = List.append m.Notes (List.replicate count (NoteOrPause.Note note)) }
+
 let withClef (clef: Clef) (m: Measure) : Measure = { m with Clef = clef }
