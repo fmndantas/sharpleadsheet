@@ -47,7 +47,7 @@ let ``parses music`` =
         [
 
           { Id = "one measure"
-            Data = openSample "one-measure.sls"
+            Data = openSample "example-1.sls"
             ExpectedResult =
               Music
                   [ { Name = "Piano"
@@ -93,7 +93,7 @@ let ``parses music`` =
 let ``parses a part definition`` =
     testCase "parses a part definition"
     <| fun () ->
-        let part = openSample "part-definition.sls"
+        let part = openSample "part-definition-1.sls"
 
         let expectedResult =
             { Id = PartId 1 |> Some
@@ -258,7 +258,7 @@ let ``parses sequences of notes`` =
                 InitialClef = Clef.G
                 LastNote = None
                 LastMeasure = None },
-              openSample "sequence-of-notes-1"
+              openSample "sequence-of-notes-1.sls"
             ExpectedResult =
               let measure =
                   aMeasure
@@ -301,7 +301,7 @@ let ``parses sequences of notes`` =
                 InitialClef = Clef.F
                 LastNote = None
                 LastMeasure = None },
-              openSample "sequence-of-notes-2"
+              openSample "sequence-of-notes-2.sls"
             ExpectedResult =
               let measure =
                   aMeasure
