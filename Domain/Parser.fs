@@ -21,48 +21,78 @@ module Types =
           TimeSignature: TimeSignature option
           KeySignature: KeySignature option }
 
+    type ParsingState =
+        { PreviousTimeSignature: TimeSignature
+          PreviousKeySignature: KeySignature
+          LastNote: Note option }
+
 module Functions =
     open Types
 
-    type private P<'a> = Parser<'a, unit>
+    type private P<'a> = Parser<'a, ParsingState>
 
     [<AutoOpen>]
-    module Helpers =
+    module private Helpers =
         let ws = spaces
         let command s = pchar ':' >>. pstring s
         let str: P<_> = many1Satisfy (System.Char.IsWhiteSpace >> not)
         let num: P<_> = pint32
 
-        let pclef: P<_> =
-            [ "f"; "g" ] |> List.map pstring |> choice
-            |>> fun v ->
-                match v with
-                | "g" -> Clef.G
-                | _ -> failwith "Unknown clef: \"{v}\""
+    let pclef: P<_> =
+        [ "f"; "g" ] |> List.map pstring |> choice
+        |>> fun v ->
+            match v with
+            | "g" -> Clef.G
+            | _ -> failwith "Unknown clef: \"{v}\""
 
-        let pNoteName: P<_> =
-            [ "c"; "d"; "e"; "f"; "g"; "a"; "b" ] |> List.map pstring |> choice
-            |>> fun v ->
-                match v with
-                | "c" -> NoteName.C
-                | "d" -> NoteName.D
-                | "e" -> NoteName.E
-                | "f" -> NoteName.F
-                | "g" -> NoteName.G
-                | "a" -> NoteName.A
-                | "b" -> NoteName.B
-                | _ -> failwith $"Unknown note name: \"{v}\""
+    let pNoteName: P<_> =
+        [ "c"; "d"; "e"; "f"; "g"; "a"; "b" ] |> List.map pstring |> choice
+        |>> fun v ->
+            match v with
+            | "c" -> NoteName.C
+            | "d" -> NoteName.D
+            | "e" -> NoteName.E
+            | "f" -> NoteName.F
+            | "g" -> NoteName.G
+            | "a" -> NoteName.A
+            | "b" -> NoteName.B
+            | _ -> failwith $"Unknown note name: \"{v}\""
 
-        let pDuration: P<_> =
-            [ "16"; "8"; "4"; "2"; "1" ] |> List.map pstring |> choice
-            |>> fun v ->
-                match v with
-                | "1" -> Duration.WholeNote
-                | "2" -> Duration.HalfNote
-                | "4" -> Duration.QuarterNote
-                | "8" -> Duration.EighthNote
-                | "16" -> Duration.SixteenthNote
-                | _ -> failwith $"Unknown duration: \"{v}\""
+    let pDuration: P<_> =
+        [ "16"; "8"; "4"; "2"; "1" ] |> List.map pstring |> choice
+        |>> fun v ->
+            match v with
+            | "1" -> Duration.WholeNote
+            | "2" -> Duration.HalfNote
+            | "4" -> Duration.QuarterNote
+            | "8" -> Duration.EighthNote
+            | "16" -> Duration.SixteenthNote
+            | _ -> failwith $"Unknown duration: \"{v}\""
+
+    let pNote: P<Note> =
+        parse {
+            let! noteName = pNoteName
+            let! duration = opt pDuration
+            let! state = getUserState
+
+            let lastNoteDuration = Option.map (_.Duration) state.LastNote
+
+            let previousTimeSignatureDuration = state.PreviousTimeSignature.Denominator
+
+            let duration =
+                duration
+                |> Option.orElse lastNoteDuration
+                |> Option.defaultValue previousTimeSignatureDuration
+
+            let note =
+                { NoteName = noteName
+                  Octave = 4
+                  Duration = duration }
+
+            do! updateUserState (fun s -> { s with LastNote = Some note })
+
+            return note
+        }
 
     let pPartDefinitionAttribute: P<_> =
         choice

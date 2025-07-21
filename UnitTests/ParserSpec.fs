@@ -18,7 +18,7 @@ open Domain.Parser.Types
 [<Literal>]
 let here = __SOURCE_DIRECTORY__
 
-let private openSharpLeadsheet (file: string) =
+let private openSample (file: string) =
     let dot = Directory.GetParent(here).FullName
     File.ReadAllText(Path.Join(dot, "Samples", file))
 
@@ -27,13 +27,25 @@ let private runAndAssert p content assertFn =
     | Success(result, _, _) -> assertFn result
     | Failure(errorMessage, _, _) -> failtest errorMessage
 
+let private runWithStateAndAssert p initialState content assertFn =
+    match runParserOnString p initialState "" content with
+    | Success(result, finalState, _) -> assertFn result finalState
+    | Failure(errorMessage, _, _) -> failtest errorMessage
+
+let private anyParsingState =
+    { PreviousKeySignature = KeySignature NoteName.C
+      PreviousTimeSignature =
+        { Numerator = 2
+          Denominator = Duration.QuarterNote }
+      LastNote = None }
+
 let ``parses music`` =
     tt
         "parses music"
         [
 
           { Id = "one measure"
-            Data = openSharpLeadsheet "one-measure.sls"
+            Data = openSample "one-measure.sls"
             ExpectedResult =
               Music
                   [ { Name = "Piano"
@@ -77,12 +89,13 @@ let ``parses music`` =
 
           ]
     <| fun (fileContent) (expectedResult: Music) ->
-        runAndAssert Parser.Functions.pMusic fileContent (equal "Parsed music is incorrect" expectedResult)
+        runWithStateAndAssert Parser.Functions.pMusic anyParsingState fileContent
+        <| fun result _ -> result |> equal "Parsed music is incorrect" expectedResult
 
 let ``parses a part definition`` =
     testCase "parses a part definition"
     <| fun () ->
-        let part = openSharpLeadsheet "part-definition.sls"
+        let part = openSample "part-definition.sls"
 
         let expectedResult =
             { Id = PartId 1 |> Some
@@ -94,8 +107,8 @@ let ``parses a part definition`` =
                       Denominator = Duration.QuarterNote }
               KeySignature = KeySignature NoteName.F |> Some }
 
-        runAndAssert Parser.Functions.pPartDefinition part (fun result ->
-            result |> equal "Part definition is incorrect" expectedResult)
+        runWithStateAndAssert Parser.Functions.pPartDefinition anyParsingState part
+        <| fun result _ -> result |> equal "Part definition is incorrect" expectedResult
 
 // TODO: sharp and flat notes
 let ``parses a note name`` =
@@ -133,8 +146,10 @@ let ``parses a note name`` =
 
           ]
     <| fun data expectedResult ->
-        runAndAssert Parser.Functions.Helpers.pNoteName data (equal "Parsed note name is incorrect" expectedResult)
+        runWithStateAndAssert Parser.Functions.pNoteName anyParsingState data
+        <| fun result _ -> result |> equal "Parsed note name is incorrect" expectedResult
 
+// TODO: dotted durations
 let ``parses a duration`` =
     tt
         "parses a duration"
@@ -162,8 +177,72 @@ let ``parses a duration`` =
 
           ]
     <| fun data expectedResult ->
-        runAndAssert Parser.Functions.Helpers.pDuration data (equal "Parsed duration is incorrect" expectedResult)
+        runWithStateAndAssert Parser.Functions.pDuration anyParsingState data
+        <| fun result _ -> result |> equal "Parsed duration is incorrect" expectedResult
 
+// TODO: define octave rule
+let ``parses a note`` =
+    let aState lastNote =
+        { PreviousKeySignature = KeySignature NoteName.C
+          PreviousTimeSignature =
+            { Numerator = 2
+              Denominator = Duration.QuarterNote }
+          LastNote = lastNote }
+
+    tt
+        "parses a note"
+        [
+
+          { Id = "c8"
+            Data = aState None, "c8"
+            ExpectedResult =
+              { NoteName = NoteName.C
+                Octave = 4
+                Duration = Duration.EighthNote } }
+
+          { Id = "f16"
+            Data = aState None, "f16"
+            ExpectedResult =
+              { NoteName = NoteName.F
+                Octave = 4
+                Duration = Duration.SixteenthNote } }
+
+          { Id = "f, there is a last note ~~> uses last note duration"
+            Data =
+              aState (
+                  Some
+                      { NoteName = NoteName.C
+                        Octave = 3
+                        Duration = Duration.WholeNote }
+              ),
+              "f"
+            ExpectedResult =
+              { NoteName = NoteName.F
+                Octave = 4
+                Duration = Duration.WholeNote } }
+
+          { Id = "f, there is not a last note ~~> uses current time signature denominator"
+            Data = aState None, "f"
+            ExpectedResult =
+              { NoteName = NoteName.F
+                Octave = 4
+                Duration = Duration.QuarterNote } }
+
+          { Id = "b1"
+            Data = aState None, "b1"
+            ExpectedResult =
+              { NoteName = NoteName.B
+                Octave = 4
+                Duration = Duration.WholeNote } }
+
+          ]
+    <| fun (initialState, content) (expectedNote) ->
+        runWithStateAndAssert Parser.Functions.pNote initialState content
+        <| fun result finalState ->
+            result |> equal "Parsed note is incorrect" expectedNote
+
+            finalState.LastNote
+            |> equal "Updated last note is incorrect" (Some expectedNote)
 [<Tests>]
 let ParserSpec =
     testList
@@ -171,4 +250,6 @@ let ParserSpec =
         [ ``parses music``
           ``parses a part definition``
           ``parses a note name``
-          ``parses a duration`` ]
+          ``parses a duration``
+          ``parses a note``
+          ]
