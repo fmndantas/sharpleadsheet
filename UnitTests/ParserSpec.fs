@@ -352,6 +352,53 @@ let ``parses sequences of notes`` =
                       Octave = 4
                       Duration = Duration.QuarterNote } ] }
 
+          { Id = "case 3"
+            Data =
+              { InitialTimeSignature =
+                  { Numerator = 4
+                    Denominator = Duration.QuarterNote }
+                InitialKeySignature = KeySignature NoteName.C
+                InitialClef = Clef.G
+                LastNote = None
+                LastMeasure = None },
+              openSample "sequence-of-notes-3.sls"
+            ExpectedResult =
+              let measure =
+                  aMeasure
+                  >> withClef Clef.G
+                  >> withCNaturalKeySignature
+                  >> withCommonTimeSignature
+
+              [ measure 1
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 4
+                      Duration = Duration.WholeNote }
+
+                measure 2
+                |> withNote
+                    { NoteName = NoteName.G
+                      Octave = 4
+                      Duration = Duration.WholeNote }
+
+                measure 3
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 4
+                      Duration = Duration.WholeNote }
+
+                measure 4
+                |> withNote
+                    { NoteName = NoteName.G
+                      Octave = 4
+                      Duration = Duration.WholeNote }
+
+                measure 5
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 4
+                      Duration = Duration.WholeNote } ] }
+
           ]
     <| fun (initialState, content) expectedResult ->
         runWithStateAndAssert Parser.Functions.pSequencesOfNotes initialState content

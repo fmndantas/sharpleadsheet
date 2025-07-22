@@ -36,18 +36,19 @@ module Functions =
     [<AutoOpen>]
     module private Helpers =
         let ws = spaces
-        let command s = pchar ':' >>. pstring s
         let str: P<_> = many1Satisfy (System.Char.IsWhiteSpace >> not)
         let num: P<_> = pint32
 
-    let pclef: P<_> =
+    let command s = pchar ':' >>. pstring s
+
+    let pclef: P<Clef> =
         [ "f"; "g" ] |> List.map pstring |> choice
         |>> fun v ->
             match v with
             | "g" -> Clef.G
             | _ -> failwith "Unknown clef: \"{v}\""
 
-    let pNoteName: P<_> =
+    let pNoteName: P<NoteName> =
         [ "c"; "d"; "e"; "f"; "g"; "a"; "b" ] |> List.map pstring |> choice
         |>> fun v ->
             match v with
@@ -60,7 +61,7 @@ module Functions =
             | "b" -> NoteName.B
             | _ -> failwith $"Unknown note name: \"{v}\""
 
-    let pDuration: P<_> =
+    let pDuration: P<Duration> =
         [ "16"; "8"; "4"; "2"; "1" ] |> List.map pstring |> choice
         |>> fun v ->
             match v with
@@ -96,7 +97,8 @@ module Functions =
             return note
         }
 
-    let pPartDefinitionAttribute: P<_> =
+    // TODO: avoid backingtrack
+    let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
         choice
             [ attempt <| command "id" .>> ws >>. num |>> PartDefinitionAttribute.Id
               attempt <| command "name" .>> ws >>. str |>> PartDefinitionAttribute.Name
@@ -109,7 +111,7 @@ module Functions =
               attempt <| command "key" .>> ws >>. pNoteName
               |>> fun v -> v |> KeySignature |> PartDefinitionAttribute.KeySignature ]
 
-    let pPartDefinition: P<_> =
+    let pPartDefinition: P<PartDefinition> =
         command "part" .>> ws >>. many (pPartDefinitionAttribute .>> ws)
         |>> (fun partDefinitionAttributes ->
             let mutable partId: PartId option = None
