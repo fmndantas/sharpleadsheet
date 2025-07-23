@@ -41,6 +41,8 @@ module Functions =
 
     let pCommand s = pchar ':' >>. pstring s
 
+    let pCommandWithBacktrack s = pchar ':' >>? pstring s
+
     let pclef: P<Clef> =
         [ "f"; "g" ] |> List.map pstring |> choice
         |>> fun v ->
@@ -99,15 +101,15 @@ module Functions =
 
     let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
         choice
-            [ attempt <| pCommand "id" .>> ws >>. num |>> PartDefinitionAttribute.Id
-              attempt <| pCommand "name" .>> ws >>. str |>> PartDefinitionAttribute.Name
-              attempt <| pCommand "clef" .>> ws >>. pclef |>> PartDefinitionAttribute.Clef
-              attempt <| pCommand "time" .>> ws >>. num .>>. spaces1 .>>. pDuration
+            [ pCommandWithBacktrack "id" .>> ws >>. num |>> PartDefinitionAttribute.Id
+              pCommandWithBacktrack "name" .>> ws >>. str |>> PartDefinitionAttribute.Name
+              pCommandWithBacktrack "clef" .>> ws >>. pclef |>> PartDefinitionAttribute.Clef
+              pCommandWithBacktrack "time" .>> ws >>. num .>>. spaces1 .>>. pDuration
               |>> fun ((numerator, _), denominator) ->
                   PartDefinitionAttribute.TimeSignature
                       { Numerator = numerator
                         Denominator = denominator }
-              attempt <| pCommand "key" .>> ws >>. pNoteName
+              pCommandWithBacktrack "key" .>> ws >>. pNoteName
               |>> fun v -> v |> KeySignature |> PartDefinitionAttribute.KeySignature ]
 
     let pPartDefinition: P<PartDefinition> =
