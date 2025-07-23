@@ -39,7 +39,7 @@ module Functions =
         let str: P<_> = many1Satisfy (System.Char.IsWhiteSpace >> not)
         let num: P<_> = pint32
 
-    let command s = pchar ':' >>. pstring s
+    let pCommand s = pchar ':' >>. pstring s
 
     let pclef: P<Clef> =
         [ "f"; "g" ] |> List.map pstring |> choice
@@ -97,22 +97,21 @@ module Functions =
             return note
         }
 
-    // TODO: avoid backingtrack
     let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
         choice
-            [ attempt <| command "id" .>> ws >>. num |>> PartDefinitionAttribute.Id
-              attempt <| command "name" .>> ws >>. str |>> PartDefinitionAttribute.Name
-              attempt <| command "clef" .>> ws >>. pclef |>> PartDefinitionAttribute.Clef
-              attempt <| command "time" .>> ws >>. num .>>. spaces1 .>>. pDuration
+            [ attempt <| pCommand "id" .>> ws >>. num |>> PartDefinitionAttribute.Id
+              attempt <| pCommand "name" .>> ws >>. str |>> PartDefinitionAttribute.Name
+              attempt <| pCommand "clef" .>> ws >>. pclef |>> PartDefinitionAttribute.Clef
+              attempt <| pCommand "time" .>> ws >>. num .>>. spaces1 .>>. pDuration
               |>> fun ((numerator, _), denominator) ->
                   PartDefinitionAttribute.TimeSignature
                       { Numerator = numerator
                         Denominator = denominator }
-              attempt <| command "key" .>> ws >>. pNoteName
+              attempt <| pCommand "key" .>> ws >>. pNoteName
               |>> fun v -> v |> KeySignature |> PartDefinitionAttribute.KeySignature ]
 
     let pPartDefinition: P<PartDefinition> =
-        command "part" .>> ws >>. many (pPartDefinitionAttribute .>> ws)
+        between (pCommand "part" .>> ws) (pCommand "endpart" .>> ws) (many (pPartDefinitionAttribute .>> ws))
         |>> (fun partDefinitionAttributes ->
             let mutable partId: PartId option = None
             let mutable name: string option = None
