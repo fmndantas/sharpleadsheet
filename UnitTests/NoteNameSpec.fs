@@ -8,7 +8,7 @@ open UnitTests.Case
 open Domain.Types
 
 let ``calculates number of semitones until reach lower c`` =
-    tt
+    testTheory2
         "calculates number of semitones until reach lower c"
         [
 

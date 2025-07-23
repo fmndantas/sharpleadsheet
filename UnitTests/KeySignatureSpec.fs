@@ -9,7 +9,7 @@ open Domain
 open Domain.Types
 
 let ``it should calculate fifths`` =
-    tt
+    testTheory2
         "it should calculate fifths"
         [
 

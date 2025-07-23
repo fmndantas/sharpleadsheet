@@ -17,7 +17,7 @@ let ``generates events between two measures`` =
         |> withNotes []
         |> withClef Clef.G
 
-    tt
+    testTheory2
         "generates events between two measures"
         [ { Id = "current measure is the first measure"
             Data = None, initialMeasure
@@ -93,7 +93,7 @@ let ``defines the number of divisions based on quarter note`` =
 
         aMeasure 1 |> withNotes notes
 
-    tt
+    testTheory2
         "defines the number of divisions based on quarter note"
         [ { Id = "Empty case"
             Data = measureWithDurations []

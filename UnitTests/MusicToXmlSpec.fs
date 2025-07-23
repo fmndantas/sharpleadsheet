@@ -19,7 +19,7 @@ let openXml (file: string) =
     File.ReadAllText(Path.Join(here, "Xmls", file))
 
 let ``converts music to xml`` =
-    tt
+    testTheory2
         "converts music to xml"
         [ { Id = "hello world"
             Data =

@@ -9,7 +9,7 @@ open Domain
 open Domain.Types
 
 let ``returns duration equivalence`` =
-    tt
+    testTheory2
         "returns duration equivalence"
         [
 

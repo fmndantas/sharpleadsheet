@@ -42,7 +42,7 @@ let private parsingStateForTest =
       LastNote = None }
 
 let ``parses music`` =
-    tt
+    testTheory2
         "parses music"
         [
 
@@ -110,7 +110,7 @@ let ``parses a part definition`` =
 
 // TODO: sharp and flat notes
 let ``parses a note name`` =
-    tt
+    testTheory2
         "parses a note name"
         [
 
@@ -149,7 +149,7 @@ let ``parses a note name`` =
 
 // TODO: dotted durations
 let ``parses a duration`` =
-    tt
+    testTheory2
         "parses a duration"
         [
 
@@ -189,7 +189,7 @@ let ``parses a note`` =
           LastNote = lastNote
           LastMeasure = None }
 
-    tt
+    testTheory2
         "parses a note"
         [
 
@@ -245,7 +245,7 @@ let ``parses a note`` =
             |> equal "Updated last note is incorrect" (Some expectedNote)
 
 let ``parses sequences of notes`` =
-    tt
+    testTheory2
         "parses sequences of notes"
         [
 
