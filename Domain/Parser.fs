@@ -14,19 +14,23 @@ module Types =
         | TimeSignature of TimeSignature
         | KeySignature of KeySignature
 
-    type PartDefinition =
+    type PartDefinitionSection =
         { Id: PartId option
           Name: string option
           Clef: Clef option
           TimeSignature: TimeSignature option
           KeySignature: KeySignature option }
 
+    type NotesSection =
+        { PartId: PartId
+          Measures: Measure list }
+
     type ParsingState =
         { InitialTimeSignature: TimeSignature
           InitialKeySignature: KeySignature
           InitialClef: Clef
           LastNote: Note option
-          LastMeasure: Measure option }
+          LastMeasureNumber: MeasureNumber option }
 
 module Functions =
     open Types
@@ -112,7 +116,7 @@ module Functions =
               pCommandWithBacktrack "key" .>> ws >>. pNoteName
               |>> fun v -> v |> KeySignature |> PartDefinitionAttribute.KeySignature ]
 
-    let pPartDefinition: P<PartDefinition> =
+    let pPartDefinitionSection: P<PartDefinitionSection> =
         between (pCommand "part" .>> ws) (pCommand "endpart" .>> ws) (many (pPartDefinitionAttribute .>> ws))
         |>> (fun partDefinitionAttributes ->
             let mutable partId: PartId option = None
@@ -142,8 +146,7 @@ module Functions =
             let! state = getUserState
 
             let currentMeasureNumber =
-                Option.map (_.MeasureNumber) state.LastMeasure
-                |> Option.defaultValue (MeasureNumber 0)
+                Option.defaultValue (MeasureNumber 0) state.LastMeasureNumber
 
             let keySignature = state.InitialKeySignature
             let timeSignature = state.InitialTimeSignature
@@ -170,49 +173,42 @@ module Functions =
             do!
                 updateUserState (fun s ->
                     { s with
-                        LastMeasure = List.tryLast updatedMeasures })
+                        LastMeasureNumber = List.tryLast updatedMeasures |> Option.map (_.MeasureNumber) })
 
             return updatedMeasures
         }
 
+    let pNotesSection: P<NotesSection> =
+        parse {
+            let! partId = pCommand "notes" >>. ws >>. pint32 .>> ws |>> PartId
+            let! sequenceOfNotes = pSequencesOfNotes
+
+            return
+                { PartId = partId
+                  Measures = sequenceOfNotes }
+        }
+
     // TODO: validation
-    // TODO: parsing of notes
     let pMusic: P<Music> =
-        pPartDefinition
-        |>> (fun partDefinition ->
-            let firstMeasure =
-                aMeasure 1
-                |> withKeySignature (Option.get partDefinition.KeySignature)
-                |> withTimeSignature (Option.get partDefinition.TimeSignature)
-                |> withClef (Option.get partDefinition.Clef)
-                |> withNote
-                    { NoteName = NoteName.C
-                      Octave = 4
-                      Duration = Duration.EighthNote }
-                |> withNote
-                    { NoteName = NoteName.D
-                      Octave = 4
-                      Duration = Duration.EighthNote }
-                |> withNote
-                    { NoteName = NoteName.E
-                      Octave = 4
-                      Duration = Duration.EighthNote }
-                |> withNote
-                    { NoteName = NoteName.D
-                      Octave = 4
-                      Duration = Duration.EighthNote }
+        parse {
+            let! partDefinition = pPartDefinitionSection
 
-            let secondMeasure =
-                aMeasure 2
-                |> withKeySignature (Option.get partDefinition.KeySignature)
-                |> withTimeSignature (Option.get partDefinition.TimeSignature)
-                |> withClef (Option.get partDefinition.Clef)
-                |> withNote
-                    { NoteName = NoteName.C
-                      Octave = 4
-                      Duration = Duration.HalfNote }
+            do!
+                setUserState
+                    { InitialTimeSignature =
+                        { Numerator = 2
+                          Denominator = Duration.QuarterNote }
+                      InitialKeySignature = KeySignature NoteName.C
+                      InitialClef = Clef.G
+                      LastNote = None
+                      LastMeasureNumber = None }
 
-            Music
-                [ { Id = Option.get partDefinition.Id
-                    Name = Option.get partDefinition.Name
-                    Measures = [ firstMeasure; secondMeasure ] } ])
+            let! notesSection = pNotesSection 
+
+            let part =
+                { Id = notesSection.PartId
+                  Name = partDefinition.Name |> Option.get
+                  Measures = notesSection.Measures }
+
+            return Music [ part ]
+        }
