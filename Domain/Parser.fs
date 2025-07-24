@@ -161,6 +161,7 @@ module Functions =
 
             let _, updatedMeasures =
                 notesByMeasures
+                |> List.filter (List.isEmpty >> not)
                 |> List.fold
                     (fun (MeasureNumber measureNumber, measures) notes ->
                         let updatedMeasureNumber = measureNumber + 1
