@@ -52,6 +52,7 @@ module Functions =
         |>> fun v ->
             match v with
             | "g" -> Clef.G
+            | "f" -> Clef.F
             | _ -> failwith "Unknown clef: \"{v}\""
 
     let pNoteName: P<NoteName> =
@@ -182,33 +183,36 @@ module Functions =
         parse {
             let! partId = pCommand "notes" >>. ws >>. pint32 .>> ws |>> PartId
             let! sequenceOfNotes = pSequencesOfNotes
+            let! _ = pCommand "endnotes" .>> ws
 
             return
                 { PartId = partId
                   Measures = sequenceOfNotes }
         }
 
-    // TODO: validation
+    // TODO: validation (to remove Option.get)
     let pMusic: P<Music> =
         parse {
             let! partDefinition = pPartDefinitionSection
 
             do!
                 setUserState
-                    { InitialTimeSignature =
-                        { Numerator = 2
-                          Denominator = Duration.QuarterNote }
-                      InitialKeySignature = KeySignature NoteName.C
-                      InitialClef = Clef.G
+                    { InitialTimeSignature = Option.get partDefinition.TimeSignature
+                      InitialKeySignature = Option.get partDefinition.KeySignature
+                      InitialClef = Option.get partDefinition.Clef
                       LastNote = None
                       LastMeasureNumber = None }
 
-            let! notesSection = pNotesSection 
+            let! notesSection = many1 pNotesSection
 
-            let part =
-                { Id = notesSection.PartId
-                  Name = partDefinition.Name |> Option.get
-                  Measures = notesSection.Measures }
+            let parts =
+                notesSection
+                |> List.groupBy _.PartId
+                |> List.map (fun (partId, notesSection) -> partId, notesSection |> List.map _.Measures |> List.concat)
+                |> List.map (fun (partId, measures) ->
+                    { Id = partId
+                      Name = Option.get partDefinition.Name
+                      Measures = measures })
 
-            return Music [ part ]
+            return Music parts
         }

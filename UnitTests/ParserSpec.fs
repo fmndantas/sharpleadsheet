@@ -42,21 +42,33 @@ let private parsingStateForTest =
       LastNote = None }
 
 let ``parses a part definition section`` =
-    testCase "parses a part definition"
-    <| fun () ->
-        let part = openSample "part-definition-1.sls"
+    testTheory2
+        "parses a part definition section"
+        [ { Id = "case 1"
+            Data = openSample "part-definition-1.sls"
+            ExpectedResult =
+              { Id = PartId 1 |> Some
+                Name = Some "Piano"
+                Clef = Some Clef.G
+                TimeSignature =
+                  Some
+                      { Numerator = 2
+                        Denominator = Duration.QuarterNote }
+                KeySignature = KeySignature NoteName.F |> Some } }
 
-        let expectedResult =
-            { Id = PartId 1 |> Some
-              Name = Some "Piano"
-              Clef = Some Clef.G
-              TimeSignature =
-                Some
-                    { Numerator = 2
-                      Denominator = Duration.QuarterNote }
-              KeySignature = KeySignature NoteName.F |> Some }
-
-        runWithStateAndAssert Parser.Functions.pPartDefinitionSection parsingStateForTest part
+          { Id = "case 2"
+            Data = openSample "part-definition-2.sls"
+            ExpectedResult =
+              { Id = PartId 1 |> Some
+                Name = Some "guitar"
+                Clef = Some Clef.G
+                TimeSignature =
+                  Some
+                      { Numerator = 1
+                        Denominator = Duration.EighthNote }
+                KeySignature = KeySignature NoteName.G |> Some } } ]
+    <| fun content expectedResult ->
+        runWithStateAndAssert Parser.Functions.pPartDefinitionSection parsingStateForTest content
         <| fun result _ -> result |> equal "Part definition section is incorrect" expectedResult
 
 // TODO: sharp and flat notes
@@ -379,11 +391,11 @@ let ``parses notes section`` =
     <| fun (currentState, content) (expectedResult, expectedFinalState) ->
         runWithStateAndAssert Parser.Functions.pNotesSection currentState content
         <| fun result finalState ->
+            result |> equal "Notes section is incorrect" expectedResult
+
             {| LastMeasureNumber = finalState.LastMeasureNumber
                LastNote = finalState.LastNote |}
             |> equal "Final state is incorrect" expectedFinalState
-
-            result |> equal "Notes section is incorrect" expectedResult
 
 let ``parses music`` =
     testTheory2
@@ -425,7 +437,54 @@ let ``parses music`` =
                           |> withNote
                               { NoteName = NoteName.C
                                 Octave = 4
-                                Duration = Duration.HalfNote } ] } ] } ]
+                                Duration = Duration.HalfNote } ] } ] }
+
+          { Id = "case 2"
+            Data = openSample "example-2.sls"
+            ExpectedResult =
+              Music
+                  [ { Id = PartId 1
+                      Name = "bass"
+                      Measures =
+                        let measure =
+                            aMeasure
+                            >> withKeySignature (KeySignature NoteName.G)
+                            >> withTimeSignature
+                                { Numerator = 1
+                                  Denominator = Duration.EighthNote }
+                            >> withClef Clef.F
+
+                        [ measure 1
+                          |> withNote
+                              { NoteName = NoteName.C
+                                Octave = 4
+                                Duration = Duration.EighthNote }
+
+                          measure 2
+                          |> withNote
+                              { NoteName = NoteName.G
+                                Octave = 4
+                                Duration = Duration.SixteenthNote }
+                          |> withNote
+                              { NoteName = NoteName.F
+                                Octave = 4
+                                Duration = Duration.SixteenthNote }
+
+                          measure 3
+                          |> withNote
+                              { NoteName = NoteName.E
+                                Octave = 4
+                                Duration = Duration.SixteenthNote }
+                          |> withNote
+                              { NoteName = NoteName.D
+                                Octave = 4
+                                Duration = Duration.SixteenthNote }
+
+                          measure 4
+                          |> withNote
+                              { NoteName = NoteName.C
+                                Octave = 4
+                                Duration = Duration.EighthNote } ] } ] } ]
     <| fun (fileContent) (expectedResult: Music) ->
         runWithStateAndAssert Parser.Functions.pMusic parsingStateForTest fileContent
         <| fun result _ -> result |> equal "Music is incorrect" expectedResult
