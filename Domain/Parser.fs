@@ -143,7 +143,7 @@ module Functions =
 
     let pSequencesOfNotes: P<Measure list> =
         parse {
-            let! notesByMeasures = sepBy (pNote .>> ws |> many) (pstring "|" .>> ws)
+            let! notesPerMeasure = sepBy (pNote .>> ws |> many) (pstring "|" .>> ws)
             let! state = getUserState
 
             let currentMeasureNumber =
@@ -160,7 +160,7 @@ module Functions =
                 >> withClef clef
 
             let _, updatedMeasures =
-                notesByMeasures
+                notesPerMeasure
                 |> List.filter (List.isEmpty >> not)
                 |> List.fold
                     (fun (MeasureNumber measureNumber, measures) notes ->
