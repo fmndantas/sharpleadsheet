@@ -9,7 +9,7 @@ let aMeasure (measureNumber: int) : Measure =
       MeasureNumber = MeasureNumber measureNumber
       TimeSignature =
         { Numerator = 4
-          Denominator = Duration.QuarterNote }
+          Denominator = Duration.Quarter }
       KeySignature = KeySignature NoteName.C
       Notes = [] }
 
@@ -22,7 +22,7 @@ let withCNaturalKeySignature (m: Measure) : Measure =
 
 let withCommonTimeSignature (m: Measure) : Measure =
     { Numerator = 4
-      Denominator = Duration.QuarterNote }
+      Denominator = Duration.Quarter }
     |> (flip2 withTimeSignature) m
 
 let withNote (note: Note) (m: Measure) : Measure =

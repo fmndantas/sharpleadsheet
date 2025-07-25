@@ -14,31 +14,31 @@ let ``returns duration equivalence`` =
         [
 
           { Id = "1-16"
-            Data = (Duration.WholeNote, Duration.SixteenthNote)
+            Data = (Duration.Whole, Duration.Sixteenth)
             ExpectedResult = DurationEquivalence.Multiple 16 }
 
           { Id = "16-16"
-            Data = (Duration.SixteenthNote, Duration.SixteenthNote)
+            Data = (Duration.Sixteenth, Duration.Sixteenth)
             ExpectedResult = DurationEquivalence.Multiple 1 }
 
           { Id = "4-16"
-            Data = (Duration.QuarterNote, Duration.SixteenthNote)
+            Data = (Duration.Quarter, Duration.Sixteenth)
             ExpectedResult = DurationEquivalence.Multiple 4 }
 
           { Id = "2-4"
-            Data = (Duration.HalfNote, Duration.QuarterNote)
+            Data = (Duration.Half, Duration.Quarter)
             ExpectedResult = DurationEquivalence.Multiple 2 }
 
           { Id = "4-2"
-            Data = (Duration.QuarterNote, Duration.HalfNote)
+            Data = (Duration.Quarter, Duration.Half)
             ExpectedResult = DurationEquivalence.Divider 2 }
 
           { Id = "16-2"
-            Data = (Duration.SixteenthNote, Duration.HalfNote)
+            Data = (Duration.Sixteenth, Duration.Half)
             ExpectedResult = DurationEquivalence.Divider 8 }
 
           { Id = "1-2"
-            Data = (Duration.WholeNote, Duration.HalfNote)
+            Data = (Duration.Whole, Duration.Half)
             ExpectedResult = DurationEquivalence.Multiple 2 }
 
           ]

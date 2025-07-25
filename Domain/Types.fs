@@ -2,11 +2,11 @@
 
 [<RequireQualifiedAccess>]
 type Duration =
-    | WholeNote
-    | HalfNote
-    | QuarterNote
-    | EighthNote
-    | SixteenthNote
+    | Whole
+    | Half
+    | Quarter
+    | Eighth
+    | Sixteenth
 
 [<RequireQualifiedAccess>]
 type DurationEquivalence =

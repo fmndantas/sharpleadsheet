@@ -72,11 +72,11 @@ module Functions =
         [ "16"; "8"; "4"; "2"; "1" ] |> List.map pstring |> choice
         |>> fun v ->
             match v with
-            | "1" -> Duration.WholeNote
-            | "2" -> Duration.HalfNote
-            | "4" -> Duration.QuarterNote
-            | "8" -> Duration.EighthNote
-            | "16" -> Duration.SixteenthNote
+            | "1" -> Duration.Whole
+            | "2" -> Duration.Half
+            | "4" -> Duration.Quarter
+            | "8" -> Duration.Eighth
+            | "16" -> Duration.Sixteenth
             | _ -> failwith $"Unknown duration: \"{v}\""
 
     let pNote: P<Note> =

@@ -3,11 +3,11 @@ module Domain.Duration
 open Domain.Types
 
 let private durations =
-    [ Duration.WholeNote
-      Duration.HalfNote
-      Duration.QuarterNote
-      Duration.EighthNote
-      Duration.SixteenthNote ]
+    [ Duration.Whole
+      Duration.Half
+      Duration.Quarter
+      Duration.Eighth
+      Duration.Sixteenth ]
 
 let private minimalDuration = List.last durations
 

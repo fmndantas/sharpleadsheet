@@ -34,7 +34,7 @@ let ``converts music to xml`` =
                           |> withNote
                               { NoteName = NoteName.C
                                 Octave = 4
-                                Duration = Duration.WholeNote } ] }
+                                Duration = Duration.Whole } ] }
 
                     ]
             ExpectedResult = openXml "helloworld.xml" } ]

@@ -25,7 +25,7 @@ let ``generates events between two measures`` =
               [ NoteName.C |> KeySignature |> MeasureEvent.DefineKeySignature
                 MeasureEvent.DefineTimeSignature
                     { Numerator = 4
-                      Denominator = Duration.QuarterNote }
+                      Denominator = Duration.Quarter }
                 MeasureEvent.DefineClef Clef.G ],
               [] }
 
@@ -38,7 +38,7 @@ let ``generates events between two measures`` =
                     [ NoteName.C |> KeySignature |> MeasureEvent.DefineKeySignature
                       MeasureEvent.DefineTimeSignature
                           { Numerator = 4
-                            Denominator = Duration.QuarterNote }
+                            Denominator = Duration.Quarter }
                       MeasureEvent.DefineClef Clef.G ] }
 
                 { Id = "current measure changes key signature"
@@ -56,11 +56,11 @@ let ``generates events between two measures`` =
                     |> withCNaturalKeySignature
                     |> withTimeSignature
                         { Numerator = 6
-                          Denominator = Duration.EighthNote }
+                          Denominator = Duration.Eighth }
                   ExpectedResult =
                     [ MeasureEvent.DefineTimeSignature
                           { Numerator = 6
-                            Denominator = Duration.EighthNote } ],
+                            Denominator = Duration.Eighth } ],
                     [] }
 
                 { Id = "current measure changes clef"
@@ -100,42 +100,42 @@ let ``defines the number of divisions based on quarter note`` =
             ExpectedResult = 1 }
 
           { Id = "w"
-            Data = measureWithDurations [ Duration.WholeNote ]
+            Data = measureWithDurations [ Duration.Whole ]
             ExpectedResult = 1 }
 
           { Id = "hh"
-            Data = measureWithDurations [ Duration.HalfNote; Duration.HalfNote ]
+            Data = measureWithDurations [ Duration.Half; Duration.Half ]
             ExpectedResult = 1 }
 
           { Id = "qqqq"
             Data =
               measureWithDurations
-                  [ Duration.QuarterNote
-                    Duration.QuarterNote
-                    Duration.QuarterNote
-                    Duration.QuarterNote ]
+                  [ Duration.Quarter
+                    Duration.Quarter
+                    Duration.Quarter
+                    Duration.Quarter ]
             ExpectedResult = 1 }
 
           { Id = "qqqee"
             Data =
               measureWithDurations
-                  [ Duration.QuarterNote
-                    Duration.QuarterNote
-                    Duration.QuarterNote
-                    Duration.EighthNote
-                    Duration.EighthNote ]
+                  [ Duration.Quarter
+                    Duration.Quarter
+                    Duration.Quarter
+                    Duration.Eighth
+                    Duration.Eighth ]
             ExpectedResult = 2 }
 
           { Id = "qeeqses"
             Data =
               measureWithDurations
-                  [ Duration.QuarterNote
-                    Duration.EighthNote
-                    Duration.EighthNote
-                    Duration.QuarterNote
-                    Duration.SixteenthNote
-                    Duration.EighthNote
-                    Duration.SixteenthNote ]
+                  [ Duration.Quarter
+                    Duration.Eighth
+                    Duration.Eighth
+                    Duration.Quarter
+                    Duration.Sixteenth
+                    Duration.Eighth
+                    Duration.Sixteenth ]
             ExpectedResult = 4 } ]
     <| fun measure expectedResult ->
         let result = Measure.defineDivisions measure

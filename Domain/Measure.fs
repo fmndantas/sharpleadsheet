@@ -32,8 +32,8 @@ let defineDivisions (measure: Measure) : int =
             |> List.minBy Duration.getEquivalenceToMinimalDuration
 
         match minimalDuration with
-        | Duration.WholeNote
-        | Duration.HalfNote
-        | Duration.QuarterNote -> 1
-        | Duration.EighthNote -> 2
-        | Duration.SixteenthNote -> 4
+        | Duration.Whole
+        | Duration.Half
+        | Duration.Quarter -> 1
+        | Duration.Eighth -> 2
+        | Duration.Sixteenth -> 4
