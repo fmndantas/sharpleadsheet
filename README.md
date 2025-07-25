@@ -8,10 +8,10 @@ Coming soon...
 ## Planned items
 
 ### Phase 1
-- [ ] Single part and staff support
-- [ ] G and F clefs
-- [ ] Arbitrary time signatures
-- [ ] Arbitrary key signatures
+- [x] Single part and staff support
+- [x] G and F clefs
+- [x] Arbitrary time signatures
+- [x] Arbitrary key signatures
 - [ ] Half, quarter, eighth, and sixteenth notes (no tuplets)
 - [ ] Sharp and flat notes
 - [ ] Final barline
