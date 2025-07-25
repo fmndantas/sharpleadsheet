@@ -374,7 +374,40 @@ let ``parses sequences of notes`` =
                 |> withNote
                     { NoteName = NoteName.C
                       Octave = 4
-                      Duration = Duration.Whole } ] } ]
+                      Duration = Duration.Whole } ] }
+
+          { Id = "case 5"
+            Data =
+              { InitialTimeSignature =
+                  { Numerator = 4
+                    Denominator = Duration.Quarter }
+                InitialKeySignature = KeySignature NoteName.C
+                InitialClef = Clef.G
+                CurrentOctave = 4
+                LastNote = None
+                LastMeasureNumber = None },
+              openSample "sequence-of-notes-5.sls"
+            ExpectedResult =
+              let measure =
+                  aMeasure
+                  >> withCommonTimeSignature
+                  >> withCNaturalKeySignature
+                  >> withClef Clef.G
+
+              [
+
+                measure 1
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 4
+                      Duration = Duration.Half }
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 5
+                      Duration = Duration.Half }
+
+
+                ] } ]
     <| fun (currentState, content) expectedResult ->
         runWithStateAndAssert Parser.Functions.pSequencesOfNotes currentState content
         <| fun result finalState -> result |> equal "Sequence of notes is incorrect" expectedResult
