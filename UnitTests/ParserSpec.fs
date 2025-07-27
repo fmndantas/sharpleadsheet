@@ -38,7 +38,7 @@ let private parsingStateForTest =
         { Numerator = 2
           Denominator = Duration.Quarter }
       InitialClef = Clef.G
-      LastMeasureNumber = None
+      LastMeasureId = None
       LastNote = None }
 
 let ``parses a part definition section`` =
@@ -141,7 +141,7 @@ let ``parses a note`` =
               Denominator = Duration.Quarter }
           InitialClef = Clef.G
           LastNote = lastNote
-          LastMeasureNumber = None }
+          LastMeasureId = None }
 
     testTheory2
         "parses a note"
@@ -205,7 +205,7 @@ let ``parses sequences of notes`` =
                 InitialKeySignature = KeySignature NoteName.C
                 InitialClef = Clef.G
                 LastNote = None
-                LastMeasureNumber = None },
+                LastMeasureId = None },
               openSample "sequence-of-notes-1.sls"
             ExpectedResult =
               let measure =
@@ -248,7 +248,7 @@ let ``parses sequences of notes`` =
                 InitialKeySignature = KeySignature NoteName.F
                 InitialClef = Clef.F
                 LastNote = None
-                LastMeasureNumber = None },
+                LastMeasureId = None },
               openSample "sequence-of-notes-2.sls"
             ExpectedResult =
               let measure =
@@ -308,7 +308,7 @@ let ``parses sequences of notes`` =
                 InitialKeySignature = KeySignature NoteName.C
                 InitialClef = Clef.G
                 LastNote = None
-                LastMeasureNumber = None },
+                LastMeasureId = None },
               openSample "sequence-of-notes-3.sls"
             ExpectedResult =
               let measure =
@@ -355,7 +355,7 @@ let ``parses sequences of notes`` =
                 InitialKeySignature = KeySignature NoteName.C
                 InitialClef = Clef.G
                 LastNote = None
-                LastMeasureNumber = None },
+                LastMeasureId = None },
               openSample "sequence-of-notes-4.sls"
             ExpectedResult =
               let measure =
@@ -385,7 +385,7 @@ let ``parses sequences of notes`` =
                 InitialClef = Clef.G
                 CurrentOctave = 4
                 LastNote = None
-                LastMeasureNumber = None },
+                LastMeasureId = None },
               openSample "sequence-of-notes-5.sls"
             ExpectedResult =
               let measure =
@@ -423,7 +423,7 @@ let ``parses notes section`` =
                 InitialKeySignature = KeySignature NoteName.C
                 InitialClef = Clef.G
                 LastNote = None
-                LastMeasureNumber = None },
+                LastMeasureId = None },
               openSample "notes-section-1.sls"
             ExpectedResult =
               { PartId = PartId 7
@@ -443,7 +443,7 @@ let ``parses notes section`` =
                         { NoteName = NoteName.C
                           Octave = 4
                           Duration = Duration.Whole } ] },
-              {| LastMeasureNumber = MeasureNumber 2 |> Some
+              {| LastMeasureId = MeasureId 2 |> Some
                  LastNote =
                   Some
                       { NoteName = NoteName.C
@@ -454,7 +454,7 @@ let ``parses notes section`` =
         <| fun result finalState ->
             result |> equal "Notes section is incorrect" expectedResult
 
-            {| LastMeasureNumber = finalState.LastMeasureNumber
+            {| LastMeasureId = finalState.LastMeasureId
                LastNote = finalState.LastNote |}
             |> equal "Final state is incorrect" expectedFinalState
 

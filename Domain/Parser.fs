@@ -30,7 +30,7 @@ module Types =
           InitialKeySignature: KeySignature
           InitialClef: Clef
           LastNote: Note option
-          LastMeasureNumber: MeasureNumber option }
+          LastMeasureId: MeasureId option }
 
 module Functions =
     open Types
@@ -146,8 +146,8 @@ module Functions =
             let! notesPerMeasure = sepBy (pNote .>> ws |> many) (pstring "|" .>> ws)
             let! state = getUserState
 
-            let currentMeasureNumber =
-                Option.defaultValue (MeasureNumber 0) state.LastMeasureNumber
+            let currentMeasureId =
+                Option.defaultValue (MeasureId 0) state.LastMeasureId
 
             let keySignature = state.InitialKeySignature
             let timeSignature = state.InitialTimeSignature
@@ -163,19 +163,19 @@ module Functions =
                 notesPerMeasure
                 |> List.filter (List.isEmpty >> not)
                 |> List.fold
-                    (fun (MeasureNumber measureNumber, measures) notes ->
-                        let updatedMeasureNumber = measureNumber + 1
+                    (fun (MeasureId id, measures) notes ->
+                        let updatedId = id + 1
 
                         let updatedMeasures =
-                            List.append measures [ createMeasure updatedMeasureNumber |> withNotes notes ]
+                            List.append measures [ createMeasure updatedId |> withNotes notes ]
 
-                        MeasureNumber updatedMeasureNumber, updatedMeasures)
-                    (currentMeasureNumber, [])
+                        MeasureId updatedId, updatedMeasures)
+                    (currentMeasureId, [])
 
             do!
                 updateUserState (fun s ->
                     { s with
-                        LastMeasureNumber = List.tryLast updatedMeasures |> Option.map (_.MeasureNumber) })
+                        LastMeasureId = List.tryLast updatedMeasures |> Option.map (_.Id) })
 
             return updatedMeasures
         }
@@ -202,7 +202,7 @@ module Functions =
                       InitialKeySignature = Option.get partDefinition.KeySignature
                       InitialClef = Option.get partDefinition.Clef
                       LastNote = None
-                      LastMeasureNumber = None }
+                      LastMeasureId = None }
 
             let! notesSection = many1 pNotesSection
 

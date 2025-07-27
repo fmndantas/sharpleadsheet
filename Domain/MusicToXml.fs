@@ -21,7 +21,7 @@ let createPartList (names: Part list) : XElement =
             [ leafElement "part-name" part.Name ])
     |> element "part-list"
 
-let measureNumber2String (MeasureNumber measureNumber) = measureNumber.ToString()
+let measureId2String (MeasureId measureId) = measureId.ToString()
 
 let calculateFifths =
     KeySignature.fifths
@@ -74,7 +74,7 @@ let createMeasure (previousMeasure: Measure option, currentMeasure: Measure) : X
 
     [ createMeasureAttributes currentMeasure events
       yield! createMeasureNotes events ]
-    |> elementWithAttributes "measure" [ currentMeasure.MeasureNumber |> measureNumber2String |> attribute "number" ]
+    |> elementWithAttributes "measure" [ currentMeasure.Id |> measureId2String |> attribute "number" ]
 
 let createPart (ps: Part list) : XElement list =
     ps

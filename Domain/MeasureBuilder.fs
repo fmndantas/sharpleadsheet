@@ -4,9 +4,9 @@ open Domain.GenericFunctions
 
 open Domain.Types
 
-let aMeasure (measureNumber: int) : Measure =
+let aMeasure (measureId: int) : Measure =
     { Clef = Clef.G
-      MeasureNumber = MeasureNumber measureNumber
+      Id = MeasureId measureId
       TimeSignature =
         { Numerator = 4
           Denominator = Duration.Quarter }

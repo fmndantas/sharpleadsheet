@@ -44,7 +44,7 @@ type TimeSignature =
 
 type KeySignature = KeySignature of NoteName
 
-type MeasureNumber = MeasureNumber of int
+type MeasureId = MeasureId of int
 
 [<RequireQualifiedAccess>]
 type NoteOrPause = Note of Note
@@ -56,7 +56,7 @@ type Clef =
 
 type Measure =
     { Clef: Clef
-      MeasureNumber: MeasureNumber
+      Id: MeasureId
       TimeSignature: TimeSignature
       KeySignature: KeySignature
       Notes: NoteOrPause list }
