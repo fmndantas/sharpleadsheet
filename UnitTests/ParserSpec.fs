@@ -33,6 +33,7 @@ let private parsingStateForTest =
         { Numerator = 2
           Denominator = Duration.Quarter }
       InitialClef = Clef.G
+      CurrentOctave = 4
       LastMeasureId = None
       LastNote = None }
 
@@ -135,6 +136,7 @@ let ``parses a note`` =
             { Numerator = 2
               Denominator = Duration.Quarter }
           InitialClef = Clef.G
+          CurrentOctave = 4
           LastNote = lastNote
           LastMeasureId = None }
 
@@ -189,9 +191,9 @@ let ``parses a note`` =
             finalState.LastNote
             |> equal "Updated last note is incorrect" (Some expectedResult)
 
-let ``parses sequences of notes`` =
+let ``parses notes section content`` =
     testTheory2
-        "parses sequences of notes"
+        "parses notes section content"
         [ { Id = "case 1"
             Data =
               { InitialTimeSignature =
@@ -199,6 +201,7 @@ let ``parses sequences of notes`` =
                     Denominator = Duration.Quarter }
                 InitialKeySignature = KeySignature NoteName.C
                 InitialClef = Clef.G
+                CurrentOctave = 4
                 LastNote = None
                 LastMeasureId = None },
               openSample "sequence-of-notes-1.sls"
@@ -242,6 +245,7 @@ let ``parses sequences of notes`` =
                     Denominator = Duration.Quarter }
                 InitialKeySignature = KeySignature NoteName.F
                 InitialClef = Clef.F
+                CurrentOctave = 4
                 LastNote = None
                 LastMeasureId = None },
               openSample "sequence-of-notes-2.sls"
@@ -302,6 +306,7 @@ let ``parses sequences of notes`` =
                     Denominator = Duration.Quarter }
                 InitialKeySignature = KeySignature NoteName.C
                 InitialClef = Clef.G
+                CurrentOctave = 4
                 LastNote = None
                 LastMeasureId = None },
               openSample "sequence-of-notes-3.sls"
@@ -349,6 +354,7 @@ let ``parses sequences of notes`` =
                     Denominator = Duration.Quarter }
                 InitialKeySignature = KeySignature NoteName.C
                 InitialClef = Clef.G
+                CurrentOctave = 4
                 LastNote = None
                 LastMeasureId = None },
               openSample "sequence-of-notes-4.sls"
@@ -389,9 +395,7 @@ let ``parses sequences of notes`` =
                   >> withCNaturalKeySignature
                   >> withClef Clef.G
 
-              [
-
-                measure 1
+              [ measure 1
                 |> withNote
                     { NoteName = NoteName.C
                       Octave = 4
@@ -401,11 +405,46 @@ let ``parses sequences of notes`` =
                       Octave = 5
                       Duration = Duration.Half }
 
+                measure 2
+                |> withNote
+                    { NoteName = NoteName.B
+                      Octave = 4
+                      Duration = Duration.Quarter }
+                |> withNote
+                    { NoteName = NoteName.G
+                      Octave = 4
+                      Duration = Duration.Eighth }
+                |> withNote
+                    { NoteName = NoteName.A
+                      Octave = 4
+                      Duration = Duration.Eighth }
+                |> withNote
+                    { NoteName = NoteName.B
+                      Octave = 4
+                      Duration = Duration.Quarter }
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 5
+                      Duration = Duration.Quarter }
 
-                ] } ]
+                measure 3
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 4
+                      Duration = Duration.Half }
+                |> withNote
+                    { NoteName = NoteName.A
+                      Octave = 4
+                      Duration = Duration.Half }
+
+                measure 4
+                |> withNote
+                    { NoteName = NoteName.G
+                      Octave = 4
+                      Duration = Duration.Whole } ] } ]
     <| fun (currentState, content) expectedResult ->
-        runWithStateAndAssert Parser.Functions.pSequencesOfNotes currentState content
-        <| fun result finalState -> result |> equal "Sequence of notes is incorrect" expectedResult
+        runWithStateAndAssert Parser.Functions.pNotesSectionContent currentState content
+        <| fun result _ -> result |> equal "Sequence of notes is incorrect" expectedResult
 
 let ``parses notes section`` =
     testTheory2
@@ -417,6 +456,7 @@ let ``parses notes section`` =
                     Denominator = Duration.Quarter }
                 InitialKeySignature = KeySignature NoteName.C
                 InitialClef = Clef.G
+                CurrentOctave = 4
                 LastNote = None
                 LastMeasureId = None },
               openSample "notes-section-1.sls"
@@ -553,6 +593,6 @@ let ParserSpec =
           ``parses a note name``
           ``parses a duration``
           ``parses a note``
-          ``parses sequences of notes``
+          ``parses notes section content``
           ``parses notes section``
           ``parses music`` ]

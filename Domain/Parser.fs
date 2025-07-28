@@ -14,6 +14,11 @@ module Types =
         | TimeSignature of TimeSignature
         | KeySignature of KeySignature
 
+    [<RequireQualifiedAccess>]
+    type NoteSectionSymbol =
+        | Note of Note
+        | OctaveManipulation of int
+
     type PartDefinitionSection =
         { Id: PartId option
           Name: string option
@@ -29,6 +34,7 @@ module Types =
         { InitialTimeSignature: TimeSignature
           InitialKeySignature: KeySignature
           InitialClef: Clef
+          CurrentOctave: int
           LastNote: Note option
           LastMeasureId: MeasureId option }
 
@@ -96,7 +102,7 @@ module Functions =
 
             let note =
                 { NoteName = noteName
-                  Octave = 4
+                  Octave = state.CurrentOctave
                   Duration = duration }
 
             do! updateUserState (fun s -> { s with LastNote = Some note })
@@ -141,13 +147,40 @@ module Functions =
               TimeSignature = timeSignature
               KeySignature = keySignature })
 
-    let pSequencesOfNotes: P<Measure list> =
+    let pOctaveManipulation: P<NoteSectionSymbol> =
         parse {
-            let! notesPerMeasure = sepBy (pNote .>> ws |> many) (pstring "|" .>> ws)
+            let! what = choice [ pchar '+'; pchar '-' ]
             let! state = getUserState
 
-            let currentMeasureId =
-                Option.defaultValue (MeasureId 0) state.LastMeasureId
+            let updatedOctave =
+                state.CurrentOctave
+                + match what with
+                  | '+' -> 1
+                  | '-' -> -1
+                  | _ -> 0
+
+            do! updateUserState (fun s -> { s with CurrentOctave = updatedOctave })
+            return NoteSectionSymbol.OctaveManipulation updatedOctave
+        }
+
+    let pNotesSectionContent: P<Measure list> =
+        parse {
+            let pSymbol: P<NoteSectionSymbol> =
+                choice [ pNote |>> NoteSectionSymbol.Note; pOctaveManipulation ]
+
+            let! symbolsPerMeasure = sepBy (pSymbol .>> ws |> many) (pstring "|" .>> ws)
+
+            let notesPerMeasure =
+                symbolsPerMeasure
+                |> List.map (
+                    List.choose (function
+                        | NoteSectionSymbol.Note note -> Some note
+                        | _ -> None)
+                )
+
+            let! state = getUserState
+
+            let currentMeasureId = Option.defaultValue (MeasureId 0) state.LastMeasureId
 
             let keySignature = state.InitialKeySignature
             let timeSignature = state.InitialTimeSignature
@@ -183,7 +216,7 @@ module Functions =
     let pNotesSection: P<NotesSection> =
         parse {
             let! partId = pCommand "notes" >>. ws >>. pint32 .>> ws |>> PartId
-            let! sequenceOfNotes = pSequencesOfNotes
+            let! sequenceOfNotes = pNotesSectionContent
             let! _ = pCommand "endnotes" .>> ws
 
             return
@@ -201,6 +234,7 @@ module Functions =
                     { InitialTimeSignature = Option.get partDefinition.TimeSignature
                       InitialKeySignature = Option.get partDefinition.KeySignature
                       InitialClef = Option.get partDefinition.Clef
+                      CurrentOctave = 4
                       LastNote = None
                       LastMeasureId = None }
 
