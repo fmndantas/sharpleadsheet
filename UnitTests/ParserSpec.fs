@@ -185,11 +185,7 @@ let ``parses a note`` =
                 Duration = Duration.Whole } } ]
     <| fun (currentState, content) expectedResult ->
         runWithStateAndAssert Parser.Functions.pNote currentState content
-        <| fun result finalState ->
-            result |> equal "Note is incorrect" expectedResult
-
-            finalState.LastNote
-            |> equal "Updated last note is incorrect" (Some expectedResult)
+        <| fun result _ -> result |> equal "Note is incorrect" expectedResult
 
 let ``parses notes section content`` =
     testTheory2
@@ -486,12 +482,7 @@ let ``parses notes section`` =
                         Duration = Duration.Whole } |} } ]
     <| fun (currentState, content) (expectedResult, expectedFinalState) ->
         runWithStateAndAssert Parser.Functions.pNotesSection currentState content
-        <| fun result finalState ->
-            result |> equal "Notes section is incorrect" expectedResult
-
-            {| LastMeasureId = finalState.LastMeasureId
-               LastNote = finalState.LastNote |}
-            |> equal "Final state is incorrect" expectedFinalState
+        <| fun result _ -> result |> equal "Notes section is incorrect" expectedResult
 
 let ``parses music`` =
     testTheory2
@@ -533,7 +524,19 @@ let ``parses music`` =
                           |> withNote
                               { NoteName = NoteName.C
                                 Octave = 4
-                                Duration = Duration.Half } ] } ] }
+                                Duration = Duration.Half } ] } ],
+              { InitialTimeSignature =
+                  { Numerator = 2
+                    Denominator = Duration.Quarter }
+                InitialKeySignature = KeySignature NoteName.C
+                InitialClef = Clef.G
+                CurrentOctave = 4
+                LastNote =
+                  Some
+                      { NoteName = NoteName.C
+                        Octave = 4
+                        Duration = Duration.Half }
+                LastMeasureId = Some << MeasureId <| 2 } }
 
           { Id = "case 2"
             Data = openSample "example-2.sls"
@@ -580,10 +583,24 @@ let ``parses music`` =
                           |> withNote
                               { NoteName = NoteName.C
                                 Octave = 4
-                                Duration = Duration.Eighth } ] } ] } ]
-    <| fun (fileContent) (expectedResult: Music) ->
-        runWithStateAndAssert Parser.Functions.pMusic parsingStateForTest fileContent
-        <| fun result _ -> result |> equal "Music is incorrect" expectedResult
+                                Duration = Duration.Eighth } ] } ],
+              { InitialTimeSignature =
+                  { Numerator = 1
+                    Denominator = Duration.Eighth }
+                InitialKeySignature = KeySignature NoteName.G
+                InitialClef = Clef.F
+                CurrentOctave = 4
+                LastNote =
+                  Some
+                      { NoteName = NoteName.C
+                        Octave = 4
+                        Duration = Duration.Eighth }
+                LastMeasureId = Some << MeasureId <| 4 } } ]
+    <| fun content (expectedResult: Music, expectedFinalState: ParsingState) ->
+        runWithStateAndAssert Parser.Functions.pMusic parsingStateForTest content
+        <| fun result finalState ->
+            result |> equal "Music is incorrect" expectedResult
+            finalState |> equal "Final state is incorrect" expectedFinalState
 
 [<Tests>]
 let ParserSpec =
