@@ -22,11 +22,6 @@ let private openSample (file: string) =
     let dot = Directory.GetParent(here).FullName
     File.ReadAllText(Path.Join(dot, "Samples", file))
 
-let private runAndAssert p content assertFn =
-    match run p content with
-    | Success(result, _, _) -> assertFn result
-    | Failure(errorMessage, _, _) -> failtest errorMessage
-
 let private runWithStateAndAssert p initialState content assertFn =
     match runParserOnString p initialState "" content with
     | Success(result, finalState, _) -> assertFn result finalState
