@@ -437,7 +437,17 @@ let ``parses notes section content`` =
                 |> withNote
                     { NoteName = NoteName.G
                       Octave = 4
-                      Duration = Duration.Whole } ] } ]
+                      Duration = Duration.Whole }
+
+                measure 5
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 2
+                      Duration = Duration.Half }
+                |> withNote
+                    { NoteName = NoteName.C
+                      Octave = 6
+                      Duration = Duration.Half } ] } ]
     <| fun (currentState, content) expectedResult ->
         runWithStateAndAssert Parser.Functions.pNotesSectionContent currentState content
         <| fun result _ -> result |> equal "Sequence of notes is incorrect" expectedResult

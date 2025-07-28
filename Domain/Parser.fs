@@ -149,14 +149,16 @@ module Functions =
 
     let pOctaveManipulation: P<NoteSectionSymbol> =
         parse {
-            let! what = choice [ pstring "o+"; pstring "o-" ]
+            let! operation, maybeDelta = choice [ pstring "o+" .>>. (opt num); pstring "o-" .>>. (opt num) ]
             let! state = getUserState
+
+            let delta = Option.defaultValue 1 maybeDelta
 
             let updatedOctave =
                 state.CurrentOctave
-                + match what with
-                  | "o+" -> 1
-                  | "o-" -> -1
+                + match operation with
+                  | "o+" -> delta
+                  | "o-" -> -delta
                   | _ -> 0
 
             do! updateUserState (fun s -> { s with CurrentOctave = updatedOctave })

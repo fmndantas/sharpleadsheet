@@ -1,4 +1,4 @@
 c2 o+ c o- |
 b4 g8 a b4 o+ c |
 o- c2 a |
-g1
+g1 | o-2 c2 o+4 c
