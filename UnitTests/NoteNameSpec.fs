@@ -1,85 +1,36 @@
-module Domain.NoteNameSpec
+module UnitTests.NoteNameSpec
 
 open Expecto
 open Expecto.Flip.Expect
 
-open UnitTests.Case
+open Case
 
+open Domain
 open Domain.Types
 
 let ``calculates number of semitones until reach lower c`` =
     testTheory2
         "calculates number of semitones until reach lower c"
-        [ { Id = "C"
-            Data = NoteName.C
-            ExpectedResult = 0 }
-
-          { Id = "C#"
-            Data = NoteName.CSharp
-            ExpectedResult = 1 }
-
-          { Id = "Db"
-            Data = NoteName.DFlat
-            ExpectedResult = 1 }
-
-          { Id = "D"
-            Data = NoteName.D
-            ExpectedResult = 2 }
-
-          { Id = "D#"
-            Data = NoteName.DSharp
-            ExpectedResult = 3 }
-
-          { Id = "Eb"
-            Data = NoteName.EFlat
-            ExpectedResult = 3 }
-
-          { Id = "E"
-            Data = NoteName.E
-            ExpectedResult = 4 }
-
-          { Id = "F"
-            Data = NoteName.F
-            ExpectedResult = 5 }
-
-          { Id = "F#"
-            Data = NoteName.FSharp
-            ExpectedResult = 6 }
-
-          { Id = "Gb"
-            Data = NoteName.GFlat
-            ExpectedResult = 6 }
-
-          { Id = "G"
-            Data = NoteName.G
-            ExpectedResult = 7 }
-
-          { Id = "G#"
-            Data = NoteName.GSharp
-            ExpectedResult = 8 }
-
-          { Id = "Ab"
-            Data = NoteName.AFlat
-            ExpectedResult = 8 }
-
-          { Id = "A"
-            Data = NoteName.A
-            ExpectedResult = 9 }
-
-          { Id = "A#"
-            Data = NoteName.ASharp
-            ExpectedResult = 10 }
-
-          { Id = "Bb"
-            Data = NoteName.BFlat
-            ExpectedResult = 10 }
-
-          { Id = "B"
-            Data = NoteName.B
-            ExpectedResult = 11 } ]
+        [ aCase "C" |> withData NoteName.C |> withExpectedResult 0 |> build
+          aCase "C#" |> withData NoteName.CSharp |> withExpectedResult 1 |> build
+          aCase "Db" |> withData NoteName.DFlat |> withExpectedResult 1 |> build
+          aCase "D" |> withData NoteName.D |> withExpectedResult 2 |> build
+          aCase "D#" |> withData NoteName.DSharp |> withExpectedResult 3 |> build
+          aCase "Eb" |> withData NoteName.EFlat |> withExpectedResult 3 |> build
+          aCase "E" |> withData NoteName.E |> withExpectedResult 4 |> build
+          aCase "F" |> withData NoteName.F |> withExpectedResult 5 |> build
+          aCase "F#" |> withData NoteName.FSharp |> withExpectedResult 6 |> build
+          aCase "Gb" |> withData NoteName.GFlat |> withExpectedResult 6 |> build
+          aCase "G" |> withData NoteName.G |> withExpectedResult 7 |> build
+          aCase "G#" |> withData NoteName.GSharp |> withExpectedResult 8 |> build
+          aCase "Ab" |> withData NoteName.AFlat |> withExpectedResult 8 |> build
+          aCase "A" |> withData NoteName.A |> withExpectedResult 9 |> build
+          aCase "A#" |> withData NoteName.ASharp |> withExpectedResult 10 |> build
+          aCase "Bb" |> withData NoteName.BFlat |> withExpectedResult 10 |> build
+          aCase "B" |> withData NoteName.B |> withExpectedResult 11 |> build ]
     <| fun noteName expectedResult ->
         let result = NoteName.semitonesToReachC noteName
-        (expectedResult, result) ||> equal "foobar"
+        (expectedResult, result) ||> equal "Result is incorrect"
 
 [<Tests>]
 let Spec =
