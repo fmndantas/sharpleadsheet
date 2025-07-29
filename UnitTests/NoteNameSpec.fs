@@ -9,25 +9,28 @@ open Domain
 open Domain.Types
 
 let ``calculates number of semitones until reach lower c`` =
+    let case (id: string) = Builder<NoteName, int>(id)
+
     testTheory2
         "calculates number of semitones until reach lower c"
-        [ aCase "C" |> withData NoteName.C |> withExpectedResult 0 |> build
-          aCase "C#" |> withData NoteName.CSharp |> withExpectedResult 1 |> build
-          aCase "Db" |> withData NoteName.DFlat |> withExpectedResult 1 |> build
-          aCase "D" |> withData NoteName.D |> withExpectedResult 2 |> build
-          aCase "D#" |> withData NoteName.DSharp |> withExpectedResult 3 |> build
-          aCase "Eb" |> withData NoteName.EFlat |> withExpectedResult 3 |> build
-          aCase "E" |> withData NoteName.E |> withExpectedResult 4 |> build
-          aCase "F" |> withData NoteName.F |> withExpectedResult 5 |> build
-          aCase "F#" |> withData NoteName.FSharp |> withExpectedResult 6 |> build
-          aCase "Gb" |> withData NoteName.GFlat |> withExpectedResult 6 |> build
-          aCase "G" |> withData NoteName.G |> withExpectedResult 7 |> build
-          aCase "G#" |> withData NoteName.GSharp |> withExpectedResult 8 |> build
-          aCase "Ab" |> withData NoteName.AFlat |> withExpectedResult 8 |> build
-          aCase "A" |> withData NoteName.A |> withExpectedResult 9 |> build
-          aCase "A#" |> withData NoteName.ASharp |> withExpectedResult 10 |> build
-          aCase "Bb" |> withData NoteName.BFlat |> withExpectedResult 10 |> build
-          aCase "B" |> withData NoteName.B |> withExpectedResult 11 |> build ]
+        [ case("C").WithData(NoteName.C).WithExpectedResult(0).Build()
+          case("C").WithData(NoteName.C).WithExpectedResult(0).Build()
+          case("C#").WithData(NoteName.CSharp).WithExpectedResult(1).Build()
+          case("Db").WithData(NoteName.DFlat).WithExpectedResult(1).Build()
+          case("D").WithData(NoteName.D).WithExpectedResult(2).Build()
+          case("D#").WithData(NoteName.DSharp).WithExpectedResult(3).Build()
+          case("Eb").WithData(NoteName.EFlat).WithExpectedResult(3).Build()
+          case("E").WithData(NoteName.E).WithExpectedResult(4).Build()
+          case("F").WithData(NoteName.F).WithExpectedResult(5).Build()
+          case("F#").WithData(NoteName.FSharp).WithExpectedResult(6).Build()
+          case("Gb").WithData(NoteName.GFlat).WithExpectedResult(6).Build()
+          case("G").WithData(NoteName.G).WithExpectedResult(7).Build()
+          case("G#").WithData(NoteName.GSharp).WithExpectedResult(8).Build()
+          case("Ab").WithData(NoteName.AFlat).WithExpectedResult(8).Build()
+          case("A").WithData(NoteName.A).WithExpectedResult(9).Build()
+          case("A#").WithData(NoteName.ASharp).WithExpectedResult(10).Build()
+          case("Bb").WithData(NoteName.BFlat).WithExpectedResult(10).Build()
+          case("B").WithData(NoteName.B).WithExpectedResult(11).Build() ]
     <| fun noteName expectedResult ->
         let result = NoteName.semitonesToReachC noteName
         (expectedResult, result) ||> equal "Result is incorrect"

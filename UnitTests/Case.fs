@@ -32,25 +32,27 @@ let ftestTheory2<'a, 'b> (name: string) (cases: Case<'a, 'b> list) (testBody: Te
              Data = data
              ExpectedResult = expectedResult } -> testBody data expectedResult
 
-[<AutoOpen>]
-module Builder =
-    type T<'a, 'b> =
-        { IdB: string
-          DataB: 'a option
-          ExpectedResultB: 'b option }
+type Builder<'a, 'b>(id: string) =
+    let mutable data: 'a option = None
+    let mutable expectedResult: 'b option = None
 
-    let aCase<'a, 'b> (id: string) : T<'a, 'b> =
-        { IdB = id
-          DataB = None
-          ExpectedResultB = None }
+    member _.Data
+        with get () = data
+        and set (v) = data <- v
 
-    let withData (data: 'a) (b: T<'a, 'b>) : T<'a, 'b> = { b with DataB = Some data }
+    member _.ExpectedResult
+        with get () = expectedResult
+        and set (v) = expectedResult <- v
 
-    let withExpectedResult (expectedResult: 'b) (b: T<'a, 'b>) : T<'a, 'b> =
-        { b with
-            ExpectedResultB = Some expectedResult }
+    member this.WithData v =
+        this.Data <- Some v
+        this
 
-    let build (b: T<'a, 'b>) : Case<'a, 'b> =
-        { Id = b.IdB
-          Data = Option.get b.DataB
-          ExpectedResult = Option.get b.ExpectedResultB }
+    member this.WithExpectedResult v =
+        this.ExpectedResult <- Some v
+        this
+
+    member this.Build() =
+        { Id = id
+          Data = Option.get this.Data
+          ExpectedResult = Option.get this.ExpectedResult }
