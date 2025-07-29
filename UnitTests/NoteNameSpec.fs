@@ -14,7 +14,6 @@ let ``calculates number of semitones until reach lower c`` =
     testTheory2
         "calculates number of semitones until reach lower c"
         [ case("C").WithData(NoteName.C).WithExpectedResult(0).Build()
-          case("C").WithData(NoteName.C).WithExpectedResult(0).Build()
           case("C#").WithData(NoteName.CSharp).WithExpectedResult(1).Build()
           case("Db").WithData(NoteName.DFlat).WithExpectedResult(1).Build()
           case("D").WithData(NoteName.D).WithExpectedResult(2).Build()
