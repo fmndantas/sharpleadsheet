@@ -11,9 +11,7 @@ open Domain.Types
 let ``returns duration equivalence`` =
     testTheory2
         "returns duration equivalence"
-        [
-
-          { Id = "1-16"
+        [ { Id = "1-16"
             Data = (Duration.Whole, Duration.Sixteenth)
             ExpectedResult = DurationEquivalence.Multiple 16 }
 
@@ -39,9 +37,7 @@ let ``returns duration equivalence`` =
 
           { Id = "1-2"
             Data = (Duration.Whole, Duration.Half)
-            ExpectedResult = DurationEquivalence.Multiple 2 }
-
-          ]
+            ExpectedResult = DurationEquivalence.Multiple 2 } ]
     <| fun (targetDuration, unitOfEquivalence) (expectedResult) ->
         let result = Duration.getEquivalence unitOfEquivalence targetDuration
         result |> equal "The calculated equivalence is incorrect" expectedResult

@@ -34,9 +34,7 @@ let ``converts music to xml`` =
                           |> withNote
                               { NoteName = NoteName.C
                                 Octave = 4
-                                Duration = Duration.Whole } ] }
-
-                    ]
+                                Duration = Duration.Whole } ] } ]
             ExpectedResult = openXml "helloworld.xml" } ]
     <| fun (music: Music) (expectedResult: string) ->
         let result = convert music

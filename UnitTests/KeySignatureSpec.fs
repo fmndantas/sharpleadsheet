@@ -11,9 +11,7 @@ open Domain.Types
 let ``it should calculate fifths`` =
     testTheory2
         "it should calculate fifths"
-        [
-
-          { Id = "C"
+        [ { Id = "C"
             Data = KeySignature NoteName.C
             ExpectedResult = Fifth.Zero }
 
@@ -43,9 +41,7 @@ let ``it should calculate fifths`` =
 
           { Id = "Ab"
             Data = KeySignature NoteName.AFlat
-            ExpectedResult = Fifth.Flat 4 }
-
-          ]
+            ExpectedResult = Fifth.Flat 4 } ]
     <| fun keySignature expectedFifth ->
         let result = KeySignature.fifths keySignature
         (expectedFifth, result) ||> equal "Calculated fifths is incorrect"

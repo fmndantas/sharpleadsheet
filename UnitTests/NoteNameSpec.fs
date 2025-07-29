@@ -10,9 +10,7 @@ open Domain.Types
 let ``calculates number of semitones until reach lower c`` =
     testTheory2
         "calculates number of semitones until reach lower c"
-        [
-
-          { Id = "C"
+        [ { Id = "C"
             Data = NoteName.C
             ExpectedResult = 0 }
 
@@ -78,12 +76,9 @@ let ``calculates number of semitones until reach lower c`` =
 
           { Id = "B"
             Data = NoteName.B
-            ExpectedResult = 11 }
-
-          ]
-    <| fun (noteName) (expectedResult) ->
+            ExpectedResult = 11 } ]
+    <| fun noteName expectedResult ->
         let result = NoteName.semitonesToReachC noteName
-
         (expectedResult, result) ||> equal "foobar"
 
 [<Tests>]
