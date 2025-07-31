@@ -9,35 +9,35 @@ open Domain
 open Domain.Types
 
 let ``returns duration equivalence`` =
-    testTheory2
+    testTheory3
         "returns duration equivalence"
-        [ { Id = "1-16"
-            Data = (Duration.Whole, Duration.Sixteenth)
-            ExpectedResult = DurationEquivalence.Multiple 16 }
+        [ case("1-16")
+              .WithData(Duration.Whole, Duration.Sixteenth)
+              .WithExpectedResult(DurationEquivalence.Multiple 16)
 
-          { Id = "16-16"
-            Data = (Duration.Sixteenth, Duration.Sixteenth)
-            ExpectedResult = DurationEquivalence.Multiple 1 }
+          case("16-16")
+              .WithData(Duration.Sixteenth, Duration.Sixteenth)
+              .WithExpectedResult(DurationEquivalence.Multiple 1)
 
-          { Id = "4-16"
-            Data = (Duration.Quarter, Duration.Sixteenth)
-            ExpectedResult = DurationEquivalence.Multiple 4 }
+          case("4-16")
+              .WithData(Duration.Quarter, Duration.Sixteenth)
+              .WithExpectedResult(DurationEquivalence.Multiple 4)
 
-          { Id = "2-4"
-            Data = (Duration.Half, Duration.Quarter)
-            ExpectedResult = DurationEquivalence.Multiple 2 }
+          case("2-4")
+              .WithData(Duration.Half, Duration.Quarter)
+              .WithExpectedResult(DurationEquivalence.Multiple 2)
 
-          { Id = "4-2"
-            Data = (Duration.Quarter, Duration.Half)
-            ExpectedResult = DurationEquivalence.Divider 2 }
+          case("4-2")
+              .WithData(Duration.Quarter, Duration.Half)
+              .WithExpectedResult(DurationEquivalence.Divider 2)
 
-          { Id = "16-2"
-            Data = (Duration.Sixteenth, Duration.Half)
-            ExpectedResult = DurationEquivalence.Divider 8 }
+          case("16-2")
+              .WithData(Duration.Sixteenth, Duration.Half)
+              .WithExpectedResult(DurationEquivalence.Divider 8)
 
-          { Id = "1-2"
-            Data = (Duration.Whole, Duration.Half)
-            ExpectedResult = DurationEquivalence.Multiple 2 } ]
+          case("1-2")
+              .WithData(Duration.Whole, Duration.Half)
+              .WithExpectedResult(DurationEquivalence.Multiple 2) ]
     <| fun (targetDuration, unitOfEquivalence) (expectedResult) ->
         let result = Duration.getEquivalence unitOfEquivalence targetDuration
         result |> equal "The calculated equivalence is incorrect" expectedResult
