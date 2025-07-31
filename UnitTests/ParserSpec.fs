@@ -85,15 +85,27 @@ let ``parses a note name`` =
         runWithStateAndAssert Parser.Functions.pNoteName parsingStateForTest data
         <| fun result _ -> result |> equal "Note name is incorrect" expectedResult
 
-// TODO: dotted durations
 let ``parses a duration`` =
     testTheory3
         "parses a duration"
         [ case("whole note").WithData("1").WithExpectedResult(Duration.Whole)
+          case("dotted whole note")
+              .WithData("1.")
+              .WithExpectedResult(Duration.WholeDotted)
           case("half note").WithData("2").WithExpectedResult(Duration.Half)
+          case("dotted half note").WithData("2.").WithExpectedResult(Duration.HalfDotted)
           case("quarter note").WithData("4").WithExpectedResult(Duration.Quarter)
+          case("dotted quarter note")
+              .WithData("4.")
+              .WithExpectedResult(Duration.QuarterDotted)
           case("eighth note").WithData("8").WithExpectedResult(Duration.Eighth)
-          case("sixteenth note").WithData("16").WithExpectedResult(Duration.Sixteenth) ]
+          case("dotted eighth note")
+              .WithData("8.")
+              .WithExpectedResult(Duration.EighthDotted)
+          case("sixteenth note").WithData("16").WithExpectedResult(Duration.Sixteenth)
+          case("dotted sixteenth note")
+              .WithData("16.")
+              .WithExpectedResult(Duration.SixteenthDotted) ]
     <| fun data expectedResult ->
         runWithStateAndAssert Parser.Functions.pDuration parsingStateForTest data
         <| fun result _ -> result |> equal "Duration is incorrect" expectedResult

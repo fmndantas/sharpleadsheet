@@ -3,10 +3,15 @@
 [<RequireQualifiedAccess>]
 type Duration =
     | Whole
+    | WholeDotted
     | Half
+    | HalfDotted
     | Quarter
+    | QuarterDotted
     | Eighth
+    | EighthDotted
     | Sixteenth
+    | SixteenthDotted
 
 [<RequireQualifiedAccess>]
 type DurationEquivalence =

@@ -75,14 +75,21 @@ module Functions =
             | _ -> failwith $"Unknown note name: \"{v}\""
 
     let pDuration: P<Duration> =
-        [ "16"; "8"; "4"; "2"; "1" ] |> List.map pstring |> choice
+        [ "16."; "16"; "8."; "8"; "4."; "4"; "2."; "2"; "1."; "1" ]
+        |> List.map pstring
+        |> choice
         |>> fun v ->
             match v with
             | "1" -> Duration.Whole
+            | "1." -> Duration.WholeDotted
             | "2" -> Duration.Half
+            | "2." -> Duration.HalfDotted
             | "4" -> Duration.Quarter
+            | "4." -> Duration.QuarterDotted
             | "8" -> Duration.Eighth
+            | "8." -> Duration.EighthDotted
             | "16" -> Duration.Sixteenth
+            | "16." -> Duration.SixteenthDotted
             | _ -> failwith $"Unknown duration: \"{v}\""
 
     let pNote: P<Note> =
