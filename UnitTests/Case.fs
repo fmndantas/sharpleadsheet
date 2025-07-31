@@ -40,6 +40,7 @@ let case (id: string) = Builder<'a, 'b>(id)
 
 type TestBody<'a, 'b> = 'a -> 'b -> unit
 
+[<System.Obsolete>]
 let testTheory2<'a, 'b> (name: string) (cases: Case<'a, 'b> list) (testBody: TestBody<'a, 'b>) =
     testTheory name cases
     <| fun
