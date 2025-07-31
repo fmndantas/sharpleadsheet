@@ -9,39 +9,22 @@ open Domain
 open Domain.Types
 
 let ``it should calculate fifths`` =
-    testTheory2
+    testTheory3
         "it should calculate fifths"
-        [ { Id = "C"
-            Data = KeySignature NoteName.C
-            ExpectedResult = Fifth.Zero }
-
-          { Id = "F"
-            Data = KeySignature NoteName.F
-            ExpectedResult = Fifth.Flat 1 }
-
-          { Id = "G"
-            Data = KeySignature NoteName.G
-            ExpectedResult = Fifth.Sharp 1 }
-
-          { Id = "B"
-            Data = KeySignature NoteName.B
-            ExpectedResult = Fifth.Sharp 5 }
-
-          { Id = "C#"
-            Data = KeySignature NoteName.CSharp
-            ExpectedResult = Fifth.Flat 5 }
-
-          { Id = "Db"
-            Data = KeySignature NoteName.DFlat
-            ExpectedResult = Fifth.Flat 5 }
-
-          { Id = "E"
-            Data = KeySignature NoteName.E
-            ExpectedResult = Fifth.Sharp 4 }
-
-          { Id = "Ab"
-            Data = KeySignature NoteName.AFlat
-            ExpectedResult = Fifth.Flat 4 } ]
+        [ case("C").WithData(KeySignature NoteName.C).WithExpectedResult(Fifth.Zero)
+          case("F").WithData(KeySignature NoteName.F).WithExpectedResult(Fifth.Flat 1)
+          case("G").WithData(KeySignature NoteName.G).WithExpectedResult(Fifth.Sharp 1)
+          case("B").WithData(KeySignature NoteName.B).WithExpectedResult(Fifth.Sharp 5)
+          case("C#")
+              .WithData(KeySignature NoteName.CSharp)
+              .WithExpectedResult(Fifth.Flat 5)
+          case("Db")
+              .WithData(KeySignature NoteName.DFlat)
+              .WithExpectedResult(Fifth.Flat 5)
+          case("E").WithData(KeySignature NoteName.E).WithExpectedResult(Fifth.Sharp 4)
+          case("Ab")
+              .WithData(KeySignature NoteName.AFlat)
+              .WithExpectedResult(Fifth.Flat 4) ]
     <| fun keySignature expectedFifth ->
         let result = KeySignature.fifths keySignature
         (expectedFifth, result) ||> equal "Calculated fifths is incorrect"
