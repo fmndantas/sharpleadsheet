@@ -65,15 +65,45 @@ module Functions =
       | _ -> failwith "Unknown clef: \"{v}\""
 
   let pNoteName: P<NoteName> =
-    [ "c"; "d"; "e"; "f"; "g"; "a"; "b" ] |> List.map pstring |> choice
+    [
+      "cs"
+      "c"
+      "df"
+      "ds"
+      "d"
+      "ef"
+      "e"
+      "fs"
+      "f"
+      "gf"
+      "gs"
+      "g"
+      "af"
+      "as"
+      "a"
+      "bf"
+      "b"
+    ]
+    |> List.map pstring
+    |> choice
     |>> fun v ->
       match v with
       | "c" -> NoteName.C
+      | "cs" -> NoteName.CSharp
+      | "df" -> NoteName.DFlat
       | "d" -> NoteName.D
+      | "ds" -> NoteName.DSharp
+      | "ef" -> NoteName.EFlat
       | "e" -> NoteName.E
       | "f" -> NoteName.F
+      | "fs" -> NoteName.FSharp
+      | "gf" -> NoteName.GFlat
       | "g" -> NoteName.G
+      | "gs" -> NoteName.GSharp
+      | "af" -> NoteName.AFlat
       | "a" -> NoteName.A
+      | "as" -> NoteName.ASharp
+      | "bf" -> NoteName.BFlat
       | "b" -> NoteName.B
       | _ -> failwith $"Unknown note name: \"{v}\""
 

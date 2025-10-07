@@ -75,16 +75,25 @@ let ``parses a part definition section`` =
     runAndAssert Parser.Functions.pPartDefinitionSection content
     <| fun result _ -> result |> equal "Part definition section is incorrect" expectedResult
 
-// TODO: sharp and flat notes
 let ``parses a note name`` =
   testTheory3 "parses a note name" [
-    case("c").WithData("c").WithExpectedResult NoteName.C
-    case("d").WithData("d").WithExpectedResult NoteName.D
-    case("e").WithData("e").WithExpectedResult NoteName.E
-    case("f").WithData("f").WithExpectedResult NoteName.F
-    case("g").WithData("g").WithExpectedResult NoteName.G
-    case("a").WithData("a").WithExpectedResult NoteName.A
-    case("b").WithData("b").WithExpectedResult NoteName.B
+    case("C").WithData("c").WithExpectedResult NoteName.C
+    case("C#").WithData("cs").WithExpectedResult NoteName.CSharp
+    case("Db").WithData("df").WithExpectedResult NoteName.DFlat
+    case("D").WithData("d").WithExpectedResult NoteName.D
+    case("D#").WithData("ds").WithExpectedResult NoteName.DSharp
+    case("Eb").WithData("ef").WithExpectedResult NoteName.EFlat
+    case("E").WithData("e").WithExpectedResult NoteName.E
+    case("F").WithData("f").WithExpectedResult NoteName.F
+    case("F#").WithData("fs").WithExpectedResult NoteName.FSharp
+    case("Gb").WithData("gf").WithExpectedResult NoteName.GFlat
+    case("G").WithData("g").WithExpectedResult NoteName.G
+    case("G#").WithData("gs").WithExpectedResult NoteName.GSharp
+    case("Ab").WithData("af").WithExpectedResult NoteName.AFlat
+    case("A").WithData("a").WithExpectedResult NoteName.A
+    case("A#").WithData("as").WithExpectedResult NoteName.ASharp
+    case("Bb").WithData("bf").WithExpectedResult NoteName.BFlat
+    case("B").WithData("b").WithExpectedResult NoteName.B
   ]
   <| fun data expectedResult ->
     runAndAssert Parser.Functions.pNoteName data
