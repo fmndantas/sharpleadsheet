@@ -16,31 +16,38 @@ open Domain.MusicToXml
 let here = __SOURCE_DIRECTORY__
 
 let openXml (file: string) =
-    File.ReadAllText(Path.Join(here, "Xmls", file))
+  File.ReadAllText(Path.Join(here, "Xmls", file))
 
 let ``converts music to xml`` =
-    testTheory2
-        "converts music to xml"
-        [ { Id = "hello world"
-            Data =
-              Music
-                  [ { Name = "Instrument Name"
-                      Id = PartId 1
-                      Measures =
-                        [ aMeasure 1
-                          |> withClef Clef.G
-                          |> withCommonTimeSignature
-                          |> withCNaturalKeySignature
-                          |> withNote
-                              { NoteName = NoteName.C
-                                Octave = 4
-                                Duration = Duration.Whole } ] } ]
-            ExpectedResult = openXml "helloworld.xml" } ]
-    <| fun (music: Music) (expectedResult: string) ->
-        let result = convert music
+  testTheory2 "converts music to xml" [
+    {
+      Id = "hello world"
+      Data =
+        Music [
+          {
+            Name = "Instrument Name"
+            Id = PartId 1
+            Measures = [
+              aMeasure 1
+              |> withClef Clef.G
+              |> withCommonTimeSignature
+              |> withCNaturalKeySignature
+              |> withNote {
+                NoteName = NoteName.C
+                Octave = 4
+                Duration = Duration.Whole
+              }
+            ]
+          }
+        ]
+      ExpectedResult = openXml "helloworld.xml"
+    }
+  ]
+  <| fun (music: Music) (expectedResult: string) ->
+    let result = convert music
 
-        (XmlWrapper.normalizeXmlText expectedResult, XmlWrapper.normalizeXml result)
-        ||> equal "Generated XML is incorrect"
+    (XmlWrapper.normalizeXmlText expectedResult, XmlWrapper.normalizeXml result)
+    ||> equal "Generated XML is incorrect"
 
 [<Tests>]
 let MusicToXmlSpec = testList "MusicToXmlSpec" [ ``converts music to xml`` ]
