@@ -22,22 +22,25 @@ let private openSample (file: string) =
   let dot = Directory.GetParent(here).FullName
   File.ReadAllText(Path.Join(dot, "Samples", file))
 
-let private runWithStateAndAssert p initialState content assertFn =
-  match runParserOnString p initialState "" content with
+let private runWithStateAndAssert parser initialState content assertFn =
+  match runParserOnString parser initialState "" content with
   | Success(result, finalState, _) -> assertFn result finalState
   | Failure(errorMessage, _, _) -> failtest errorMessage
 
-let private parsingStateForTest = {
-  InitialKeySignature = KeySignature NoteName.C
-  InitialTimeSignature = {
-    Numerator = 2
-    Denominator = Duration.Quarter
+let private runAndAssert parser content assertFn =
+  let initialState = {
+    InitialKeySignature = KeySignature NoteName.C
+    InitialTimeSignature = {
+      Numerator = 2
+      Denominator = Duration.Quarter
+    }
+    InitialClef = Clef.G
+    CurrentOctave = 4
+    LastMeasureId = None
+    LastNote = None
   }
-  InitialClef = Clef.G
-  CurrentOctave = 4
-  LastMeasureId = None
-  LastNote = None
-}
+
+  runWithStateAndAssert parser initialState content assertFn
 
 let ``parses a part definition section`` =
   let sampleCase (id, sampleName) =
@@ -69,7 +72,7 @@ let ``parses a part definition section`` =
     }
   ]
   <| fun content expectedResult ->
-    runWithStateAndAssert Parser.Functions.pPartDefinitionSection parsingStateForTest content
+    runAndAssert Parser.Functions.pPartDefinitionSection content
     <| fun result _ -> result |> equal "Part definition section is incorrect" expectedResult
 
 // TODO: sharp and flat notes
@@ -84,7 +87,7 @@ let ``parses a note name`` =
     case("b").WithData("b").WithExpectedResult NoteName.B
   ]
   <| fun data expectedResult ->
-    runWithStateAndAssert Parser.Functions.pNoteName parsingStateForTest data
+    runAndAssert Parser.Functions.pNoteName data
     <| fun result _ -> result |> equal "Note name is incorrect" expectedResult
 
 let ``parses a duration`` =
@@ -101,7 +104,7 @@ let ``parses a duration`` =
     case("dotted sixteenth note").WithData("16.").WithExpectedResult Duration.SixteenthDotted
   ]
   <| fun data expectedResult ->
-    runWithStateAndAssert Parser.Functions.pDuration parsingStateForTest data
+    runAndAssert Parser.Functions.pDuration data
     <| fun result _ -> result |> equal "Duration is incorrect" expectedResult
 
 let ``parses a note`` =
@@ -700,7 +703,7 @@ let ``parses music`` =
       )
   ]
   <| fun content (expectedResult: Music, expectedFinalState: ParsingState) ->
-    runWithStateAndAssert Parser.Functions.pMusic parsingStateForTest content
+    runAndAssert Parser.Functions.pMusic content
     <| fun result finalState ->
       result |> equal "Music is incorrect" expectedResult
       finalState |> equal "Final state is incorrect" expectedFinalState
