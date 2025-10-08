@@ -131,7 +131,7 @@ module Functions =
       let! duration = opt pDuration
       let! state = getUserState
 
-      let lastNoteDuration = Option.map (_.Duration) state.LastNote
+      let lastNoteDuration = Option.map _.Duration state.LastNote
 
       let previousTimeSignatureDuration = state.InitialTimeSignature.Denominator
 
@@ -178,7 +178,7 @@ module Functions =
       partDefinitionAttributes
       |> List.iter (fun attribute ->
         match attribute with
-        | PartDefinitionAttribute.Id v -> partId <- (v |> PartId |> Some)
+        | PartDefinitionAttribute.Id v -> partId <- v |> PartId |> Some
         | PartDefinitionAttribute.Name v -> name <- Some v
         | PartDefinitionAttribute.Clef v -> clef <- Some v
         | PartDefinitionAttribute.TimeSignature v -> timeSignature <- Some v
@@ -194,7 +194,7 @@ module Functions =
 
   let pOctaveManipulation: P<NoteSectionSymbol> =
     parse {
-      let! operation, maybeDelta = choice [ pstring "o+" .>>. (opt num); pstring "o-" .>>. (opt num) ]
+      let! operation, maybeDelta = choice [ pstring "o+" .>>. opt num; pstring "o-" .>>. opt num ]
       let! state = getUserState
 
       let delta = Option.defaultValue 1 maybeDelta
@@ -255,7 +255,7 @@ module Functions =
       do!
         updateUserState (fun s -> {
           s with
-              LastMeasureId = List.tryLast updatedMeasures |> Option.map (_.Id)
+              LastMeasureId = List.tryLast updatedMeasures |> Option.map _.Id
         })
 
       return updatedMeasures
