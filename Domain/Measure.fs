@@ -22,16 +22,16 @@ let generateEvents (previousMeasure: Measure option) (currentMeasure: Measure) :
       MeasureEvent.DefineTimeSignature currentMeasure.TimeSignature
       MeasureEvent.DefineClef currentMeasure.Clef
     ]
-  yield! List.map MeasureEvent.NoteOrPause currentMeasure.Notes
+  yield! List.map MeasureEvent.NoteOrRest currentMeasure.NotesOrRests
 ]
 
 let defineDivisions (measure: Measure) : int =
-  if List.isEmpty measure.Notes then
+  if List.isEmpty measure.NotesOrRests then
     1
   else
     let minimalDuration =
-      measure.Notes
-      |> List.map NoteOrPause.getDuration
+      measure.NotesOrRests
+      |> List.map NoteOrRest.getDuration
       |> List.minBy Duration.getEquivalenceToMinimalDuration
 
     match minimalDuration with

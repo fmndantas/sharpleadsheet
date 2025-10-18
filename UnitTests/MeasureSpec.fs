@@ -14,7 +14,6 @@ let ``generates events between two measures`` =
     aMeasure 1
     |> withCNaturalKeySignature
     |> withCommonTimeSignature
-    |> withNotes []
     |> withClef Clef.G
 
   testTheory2 "generates events between two measures" [
@@ -104,14 +103,7 @@ let ``generates events between two measures`` =
 
 let ``defines the number of divisions based on quarter note`` =
   let measureWithDurations durations =
-    let notes =
-      List.map
-        (fun d -> {
-          NoteName = NoteName.C
-          Octave = 4
-          Duration = d
-        })
-        durations
+    let notes = List.map (Note.createMiddle NoteName.C) durations
 
     aMeasure 1 |> withNotes notes
 

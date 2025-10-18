@@ -37,7 +37,8 @@ let private runAndAssert parser content assertFn =
     InitialClef = Clef.G
     CurrentOctave = 4
     LastMeasureId = None
-    LastNote = None
+    LastDuration = None
+    LastPitch = None
   }
 
   runWithStateAndAssert parser initialState content assertFn
@@ -117,67 +118,62 @@ let ``parses a duration`` =
     <| fun result _ -> result |> equal "Duration is incorrect" expectedResult
 
 let ``parses a note`` =
-  let aState lastNote = {
-    InitialKeySignature = KeySignature NoteName.C
-    InitialTimeSignature = {
-      Numerator = 2
-      Denominator = Duration.Quarter
-    }
-    InitialClef = Clef.G
-    CurrentOctave = 4
-    LastNote = lastNote
-    LastMeasureId = None
-  }
-
   testTheory3 "parses a note" [
-    case("c8").WithData(aState None, "c8").WithExpectedResult {
-      NoteName = NoteName.C
-      Octave = 4
-      Duration = Duration.Eighth
-    }
-
-    case("f16").WithData(aState None, "f16").WithExpectedResult {
-      NoteName = NoteName.F
-      Octave = 4
-      Duration = Duration.Sixteenth
-    }
+    case("c8").WithData(None, None, "c8").WithExpectedResult(Note.createMiddle NoteName.C Duration.Eighth)
+    case("f16").WithData(None, None, "f16").WithExpectedResult(Note.createMiddle NoteName.F Duration.Sixteenth)
 
     case("f, there is a last note ~~> uses last note duration")
-      .WithData(
-        aState (
-          Some {
-            NoteName = NoteName.C
-            Octave = 3
-            Duration = Duration.Whole
-          }
-        ),
-        "f"
-      )
-      .WithExpectedResult
-      {
-        NoteName = NoteName.F
-        Octave = 4
-        Duration = Duration.Whole
-      }
+      .WithData(Some Duration.Whole, Some { NoteName = NoteName.C; Octave = 3 }, "f")
+      .WithExpectedResult(Note.createMiddle NoteName.F Duration.Whole)
 
     case("f, there is not a last note ~~> uses current time signature denominator")
-      .WithData(aState None, "f")
-      .WithExpectedResult
-      {
-        NoteName = NoteName.F
-        Octave = 4
-        Duration = Duration.Quarter
-      }
+      .WithData(None, None, "f")
+      .WithExpectedResult(Note.createMiddle NoteName.F Duration.Quarter)
 
-    case("b1").WithData(aState None, "b1").WithExpectedResult {
-      NoteName = NoteName.B
-      Octave = 4
-      Duration = Duration.Whole
-    }
+    case("b1").WithData(None, None, "b1").WithExpectedResult(Note.createMiddle NoteName.B Duration.Whole)
   ]
-  <| fun (currentState, content) expectedResult ->
+  <| fun (lastDuration, lastPitch, content) expectedResult ->
+    let currentState = {
+      InitialKeySignature = KeySignature NoteName.C
+      InitialTimeSignature = {
+        Numerator = 2
+        Denominator = Duration.Quarter
+      }
+      InitialClef = Clef.G
+      CurrentOctave = 4
+      LastPitch = lastPitch
+      LastDuration = lastDuration
+      LastMeasureId = None
+    }
+
     runWithStateAndAssert Parser.Functions.pNote currentState content
     <| fun result _ -> result |> equal "Note is incorrect" expectedResult
+
+let ``parses a rest`` =
+  testTheory3 "parses a rest" [
+    case("4").WithData(None, "r4").WithExpectedResult(Rest Duration.Quarter)
+    case("8.").WithData(None, "r8.").WithExpectedResult(Rest Duration.EighthDotted)
+    case("1").WithData(None, "r1").WithExpectedResult(Rest Duration.Whole)
+    case("2.").WithData(Some Duration.HalfDotted, "r").WithExpectedResult(Rest Duration.HalfDotted)
+    case("4.").WithData(None, "r").WithExpectedResult(Rest Duration.Sixteenth)
+    case("1.").WithData(Some Duration.WholeDotted, "r16.").WithExpectedResult(Rest Duration.SixteenthDotted)
+  ]
+  <| fun (lastDuration, content) expectedResult ->
+    let state = {
+      InitialTimeSignature = {
+        Numerator = 1
+        Denominator = Duration.Sixteenth
+      }
+      InitialKeySignature = NoteName.C |> KeySignature
+      InitialClef = Clef.G
+      CurrentOctave = 4
+      LastPitch = None
+      LastDuration = lastDuration
+      LastMeasureId = None
+    }
+
+    runWithStateAndAssert Parser.Functions.pRest state content
+    <| fun result _ -> result |> equal "Rest is incorrect" expectedResult
 
 let ``parses notes section content`` =
   testTheory3 "parses notes section content" [
@@ -191,7 +187,8 @@ let ``parses notes section content`` =
           InitialKeySignature = KeySignature NoteName.C
           InitialClef = Clef.G
           CurrentOctave = 4
-          LastNote = None
+          LastPitch = None
+          LastDuration = None
           LastMeasureId = None
         },
         openSample "sequence-of-notes-1.sls"
@@ -209,37 +206,13 @@ let ``parses notes section content`` =
         [
           measure 1
           |> withNotes [
-            {
-              NoteName = NoteName.C
-              Octave = 4
-              Duration = Duration.Eighth
-            }
-
-            {
-              NoteName = NoteName.D
-              Octave = 4
-              Duration = Duration.Eighth
-            }
-
-            {
-              NoteName = NoteName.E
-              Octave = 4
-              Duration = Duration.Eighth
-            }
-
-            {
-              NoteName = NoteName.D
-              Octave = 4
-              Duration = Duration.Eighth
-            }
+            Note.createMiddle NoteName.C Duration.Eighth
+            Note.createMiddle NoteName.D Duration.Eighth
+            Note.createMiddle NoteName.E Duration.Eighth
+            Note.createMiddle NoteName.D Duration.Eighth
           ]
 
-          measure 2
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 4
-            Duration = Duration.Half
-          }
+          measure 2 |> withNote (Note.createMiddle NoteName.C Duration.Half)
         ]
       )
 
@@ -253,7 +226,8 @@ let ``parses notes section content`` =
           InitialKeySignature = KeySignature NoteName.F
           InitialClef = Clef.F
           CurrentOctave = 4
-          LastNote = None
+          LastPitch = None
+          LastDuration = None
           LastMeasureId = None
         },
         openSample "sequence-of-notes-2.sls"
@@ -271,55 +245,24 @@ let ``parses notes section content`` =
         [
           measure 1
           |> withNotes [
-            {
-              NoteName = NoteName.C
-              Octave = 4
-              Duration = Duration.Quarter
-            }
-
-            {
-              NoteName = NoteName.D
-              Octave = 4
-              Duration = Duration.Quarter
-            }
-
-            {
-              NoteName = NoteName.C
-              Octave = 4
-              Duration = Duration.Quarter
-            }
+            Note.createMiddle NoteName.C Duration.Quarter
+            Note.createMiddle NoteName.D Duration.Quarter
+            Note.createMiddle NoteName.C Duration.Quarter
           ]
 
           measure 2
-          |> withNote {
-            NoteName = NoteName.F
-            Octave = 4
-            Duration = Duration.Half
-          }
-          |> withNote {
-            NoteName = NoteName.G
-            Octave = 4
-            Duration = Duration.Quarter
-          }
+          |> withNotes [
+            Note.createMiddle NoteName.F Duration.Half
+            Note.createMiddle NoteName.G Duration.Quarter
+          ]
 
-          measure 3
-          |> withRepeteadNote 6 {
-            NoteName = NoteName.E
-            Octave = 4
-            Duration = Duration.Eighth
-          }
+          measure 3 |> withRepeteadNote 6 (Note.createMiddle NoteName.E Duration.Eighth)
 
           measure 4
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 4
-            Duration = Duration.Half
-          }
-          |> withNote {
-            NoteName = NoteName.D
-            Octave = 4
-            Duration = Duration.Quarter
-          }
+          |> withNotes [
+            Note.createMiddle NoteName.C Duration.Half
+            Note.createMiddle NoteName.D Duration.Quarter
+          ]
         ]
       )
 
@@ -333,7 +276,8 @@ let ``parses notes section content`` =
           InitialKeySignature = KeySignature NoteName.C
           InitialClef = Clef.G
           CurrentOctave = 4
-          LastNote = None
+          LastPitch = None
+          LastDuration = None
           LastMeasureId = None
         },
         openSample "sequence-of-notes-3.sls"
@@ -346,40 +290,11 @@ let ``parses notes section content`` =
           >> withCommonTimeSignature
 
         [
-          measure 1
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 4
-            Duration = Duration.Whole
-          }
-
-          measure 2
-          |> withNote {
-            NoteName = NoteName.G
-            Octave = 4
-            Duration = Duration.Whole
-          }
-
-          measure 3
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 4
-            Duration = Duration.Whole
-          }
-
-          measure 4
-          |> withNote {
-            NoteName = NoteName.G
-            Octave = 4
-            Duration = Duration.Whole
-          }
-
-          measure 5
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 4
-            Duration = Duration.Whole
-          }
+          measure 1 |> withNote (Note.createMiddle NoteName.C Duration.Whole)
+          measure 2 |> withNote (Note.createMiddle NoteName.G Duration.Whole)
+          measure 3 |> withNote (Note.createMiddle NoteName.C Duration.Whole)
+          measure 4 |> withNote (Note.createMiddle NoteName.G Duration.Whole)
+          measure 5 |> withNote (Note.createMiddle NoteName.C Duration.Whole)
         ]
       )
 
@@ -393,7 +308,8 @@ let ``parses notes section content`` =
           InitialKeySignature = KeySignature NoteName.C
           InitialClef = Clef.G
           CurrentOctave = 4
-          LastNote = None
+          LastPitch = None
+          LastDuration = None
           LastMeasureId = None
         },
         openSample "sequence-of-notes-4.sls"
@@ -406,19 +322,8 @@ let ``parses notes section content`` =
           >> withCommonTimeSignature
 
         [
-          measure 1
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 4
-            Duration = Duration.Whole
-          }
-
-          measure 2
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 4
-            Duration = Duration.Whole
-          }
+          measure 1 |> withNote (Note.createMiddle NoteName.C Duration.Whole)
+          measure 2 |> withNote (Note.createMiddle NoteName.C Duration.Whole)
         ]
       )
 
@@ -432,7 +337,8 @@ let ``parses notes section content`` =
           InitialKeySignature = KeySignature NoteName.C
           InitialClef = Clef.G
           CurrentOctave = 4
-          LastNote = None
+          LastPitch = None
+          LastDuration = None
           LastMeasureId = None
         },
         openSample "sequence-of-notes-5.sls"
@@ -446,74 +352,73 @@ let ``parses notes section content`` =
 
         [
           measure 1
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 4
-            Duration = Duration.Half
-          }
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 5
-            Duration = Duration.Half
-          }
+          |> withNote (Note.createMiddle NoteName.C Duration.Half)
+          |> withNote (Note.create NoteName.C 5 Duration.Half)
 
           measure 2
-          |> withNote {
-            NoteName = NoteName.B
-            Octave = 4
-            Duration = Duration.Quarter
-          }
-          |> withNote {
-            NoteName = NoteName.G
-            Octave = 4
-            Duration = Duration.Eighth
-          }
-          |> withNote {
-            NoteName = NoteName.A
-            Octave = 4
-            Duration = Duration.Eighth
-          }
-          |> withNote {
-            NoteName = NoteName.B
-            Octave = 4
-            Duration = Duration.Quarter
-          }
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 5
-            Duration = Duration.Quarter
-          }
+          |> withNote (Note.createMiddle NoteName.B Duration.Quarter)
+          |> withNote (Note.createMiddle NoteName.G Duration.Eighth)
+          |> withNote (Note.createMiddle NoteName.A Duration.Eighth)
+          |> withNote (Note.createMiddle NoteName.B Duration.Quarter)
+          |> withNote (Note.create NoteName.C 5 Duration.Quarter)
 
           measure 3
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 4
-            Duration = Duration.Half
-          }
-          |> withNote {
-            NoteName = NoteName.A
-            Octave = 4
-            Duration = Duration.Half
-          }
+          |> withNote (Note.createMiddle NoteName.C Duration.Half)
+          |> withNote (Note.createMiddle NoteName.A Duration.Half)
 
-          measure 4
-          |> withNote {
-            NoteName = NoteName.G
-            Octave = 4
-            Duration = Duration.Whole
-          }
+          measure 4 |> withNote (Note.createMiddle NoteName.G Duration.Whole)
 
           measure 5
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 2
-            Duration = Duration.Half
+          |> withNote (Note.create NoteName.C 2 Duration.Half)
+          |> withNote (Note.create NoteName.C 6 Duration.Half)
+        ]
+      )
+
+    caseId(6)
+      .WithData(
+        {
+          InitialTimeSignature = {
+            Numerator = 4
+            Denominator = Duration.Quarter
           }
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 6
-            Duration = Duration.Half
-          }
+          InitialKeySignature = KeySignature NoteName.C
+          InitialClef = Clef.G
+          CurrentOctave = 4
+          LastPitch = None
+          LastDuration = None
+          LastMeasureId = None
+        },
+        openSample "sequence-of-notes-6.sls"
+      )
+      .WithExpectedResult(
+        let measure =
+          aMeasure
+          >> withCommonTimeSignature
+          >> withCNaturalKeySignature
+          >> withClef Clef.G
+
+        [
+          measure 1
+          |> withRest Duration.Quarter
+          |> withRepeteadNote 2 (Note.createMiddle NoteName.C Duration.Quarter)
+          |> withNote (Note.createMiddle NoteName.D Duration.Quarter)
+
+          measure 2
+          |> withNote (Note.createMiddle NoteName.E Duration.Quarter)
+          |> withRest Duration.HalfDotted
+
+          measure 3
+          |> withRest Duration.Quarter
+          |> withNote (Note.createMiddle NoteName.E Duration.Quarter)
+          |> withNote (Note.createMiddle NoteName.F Duration.Quarter)
+          |> withRest Duration.Eighth
+          |> withNote (Note.createMiddle NoteName.E Duration.Eighth)
+
+          measure 4
+          |> withNote (Note.createMiddle NoteName.E Duration.Sixteenth)
+          |> withRest Duration.EighthDotted
+          |> withRest Duration.Quarter
+          |> withNote (Note.createMiddle NoteName.D Duration.Half)
         ]
       )
   ]
@@ -533,7 +438,8 @@ let ``parses notes section`` =
           InitialKeySignature = KeySignature NoteName.C
           InitialClef = Clef.G
           CurrentOctave = 4
-          LastNote = None
+          LastPitch = None
+          LastDuration = None
           LastMeasureId = None
         },
         openSample "notes-section-1.sls"
@@ -545,20 +451,12 @@ let ``parses notes section`` =
           aMeasure 1
           |> withCommonTimeSignature
           |> withCNaturalKeySignature
-          |> withNote {
-            NoteName = NoteName.G
-            Octave = 4
-            Duration = Duration.Whole
-          }
+          |> withNote (Note.createMiddle NoteName.G Duration.Whole)
 
           aMeasure 2
           |> withCommonTimeSignature
           |> withCNaturalKeySignature
-          |> withNote {
-            NoteName = NoteName.C
-            Octave = 4
-            Duration = Duration.Whole
-          }
+          |> withNote (Note.createMiddle NoteName.C Duration.Whole)
         ]
       }
   ]
@@ -582,26 +480,10 @@ let ``parses music`` =
                 Numerator = 2
                 Denominator = Duration.Quarter
               }
-              |> withNote {
-                NoteName = NoteName.C
-                Octave = 4
-                Duration = Duration.Eighth
-              }
-              |> withNote {
-                NoteName = NoteName.D
-                Octave = 4
-                Duration = Duration.Eighth
-              }
-              |> withNote {
-                NoteName = NoteName.E
-                Octave = 4
-                Duration = Duration.Eighth
-              }
-              |> withNote {
-                NoteName = NoteName.D
-                Octave = 4
-                Duration = Duration.Eighth
-              }
+              |> withNote (Note.createMiddle NoteName.C Duration.Eighth)
+              |> withNote (Note.createMiddle NoteName.D Duration.Eighth)
+              |> withNote (Note.createMiddle NoteName.E Duration.Eighth)
+              |> withNote (Note.createMiddle NoteName.D Duration.Eighth)
 
               aMeasure 2
               |> withCNaturalKeySignature
@@ -609,11 +491,28 @@ let ``parses music`` =
                 Numerator = 2
                 Denominator = Duration.Quarter
               }
-              |> withNote {
-                NoteName = NoteName.C
-                Octave = 4
-                Duration = Duration.Half
+              |> withNote (Note.createMiddle NoteName.C Duration.Half)
+
+              aMeasure 3
+              |> withCNaturalKeySignature
+              |> withTimeSignature {
+                Numerator = 2
+                Denominator = Duration.Quarter
               }
+              |> withNote (Note.createMiddle NoteName.E Duration.Quarter)
+              |> withRest Duration.Quarter
+
+              aMeasure 4
+              |> withCNaturalKeySignature
+              |> withTimeSignature {
+                Numerator = 2
+                Denominator = Duration.Quarter
+              }
+              |> withNote (Note.createMiddle NoteName.F Duration.Eighth)
+              |> withNote (Note.createMiddle NoteName.G Duration.Sixteenth)
+              |> withRest Duration.Sixteenth
+              |> withNote (Note.create NoteName.AFlat 5 Duration.EighthDotted)
+              |> withRest Duration.Sixteenth
             ]
           }
         ],
@@ -624,14 +523,14 @@ let ``parses music`` =
           }
           InitialKeySignature = KeySignature NoteName.C
           InitialClef = Clef.G
-          CurrentOctave = 4
-          LastNote =
+          CurrentOctave = 5
+          LastPitch =
             Some {
-              NoteName = NoteName.C
-              Octave = 4
-              Duration = Duration.Half
+              NoteName = NoteName.AFlat
+              Octave = 5
             }
-          LastMeasureId = Some << MeasureId <| 2
+          LastDuration = Some Duration.Sixteenth
+          LastMeasureId = 4 |> MeasureId |> Some
         }
       )
 
@@ -653,43 +552,17 @@ let ``parses music`` =
                 >> withClef Clef.F
 
               [
-                measure 1
-                |> withNote {
-                  NoteName = NoteName.C
-                  Octave = 4
-                  Duration = Duration.Eighth
-                }
+                measure 1 |> withNote (Note.createMiddle NoteName.C Duration.Eighth)
 
                 measure 2
-                |> withNote {
-                  NoteName = NoteName.G
-                  Octave = 4
-                  Duration = Duration.Sixteenth
-                }
-                |> withNote {
-                  NoteName = NoteName.F
-                  Octave = 4
-                  Duration = Duration.Sixteenth
-                }
+                |> withNote (Note.createMiddle NoteName.G Duration.Sixteenth)
+                |> withNote (Note.createMiddle NoteName.F Duration.Sixteenth)
 
                 measure 3
-                |> withNote {
-                  NoteName = NoteName.E
-                  Octave = 4
-                  Duration = Duration.Sixteenth
-                }
-                |> withNote {
-                  NoteName = NoteName.D
-                  Octave = 4
-                  Duration = Duration.Sixteenth
-                }
+                |> withNote (Note.createMiddle NoteName.E Duration.Sixteenth)
+                |> withNote (Note.createMiddle NoteName.D Duration.Sixteenth)
 
-                measure 4
-                |> withNote {
-                  NoteName = NoteName.C
-                  Octave = 4
-                  Duration = Duration.Eighth
-                }
+                measure 4 |> withNote (Note.createMiddle NoteName.C Duration.Eighth)
               ]
           }
         ],
@@ -701,17 +574,13 @@ let ``parses music`` =
           InitialKeySignature = KeySignature NoteName.G
           InitialClef = Clef.F
           CurrentOctave = 4
-          LastNote =
-            Some {
-              NoteName = NoteName.C
-              Octave = 4
-              Duration = Duration.Eighth
-            }
-          LastMeasureId = Some << MeasureId <| 4
+          LastPitch = Some { NoteName = NoteName.C; Octave = 4 }
+          LastDuration = Some Duration.Eighth
+          LastMeasureId = 4 |> MeasureId |> Some
         }
       )
   ]
-  <| fun content (expectedResult: Music, expectedFinalState: ParsingState) ->
+  <| fun content (expectedResult: Music, expectedFinalState: ParserState) ->
     runAndAssert Parser.Functions.pMusic content
     <| fun result finalState ->
       result |> equal "Music is incorrect" expectedResult
@@ -724,6 +593,7 @@ let ParserSpec =
     ``parses a note name``
     ``parses a duration``
     ``parses a note``
+    ``parses a rest``
     ``parses notes section content``
     ``parses notes section``
     ``parses music``

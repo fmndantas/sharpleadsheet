@@ -32,11 +32,7 @@ let ``converts music to xml`` =
               |> withClef Clef.G
               |> withCommonTimeSignature
               |> withCNaturalKeySignature
-              |> withNote {
-                NoteName = NoteName.C
-                Octave = 4
-                Duration = Duration.Whole
-              }
+              |> withNote (Note.createMiddle NoteName.C Duration.Whole)
             ]
           }
         ]
