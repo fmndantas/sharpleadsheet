@@ -38,7 +38,7 @@ module Types =
     InitialKeySignature: KeySignature
     InitialClef: Clef
     CurrentOctave: int
-    LastPitch: Pitch option
+    LastPitch: Pitch.T option
     LastDuration: Duration option
     LastMeasureId: MeasureId option
   }

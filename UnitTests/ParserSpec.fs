@@ -123,7 +123,7 @@ let ``parses a note`` =
     case("f16").WithData(None, None, "f16").WithExpectedResult(Note.createMiddle NoteName.F Duration.Sixteenth)
 
     case("f, there is a last note ~~> uses last note duration")
-      .WithData(Some Duration.Whole, Some { NoteName = NoteName.C; Octave = 3 }, "f")
+      .WithData(Some Duration.Whole, Pitch.create NoteName.C 3 |> Some, "f")
       .WithExpectedResult(Note.createMiddle NoteName.F Duration.Whole)
 
     case("f, there is not a last note ~~> uses current time signature denominator")
@@ -524,11 +524,7 @@ let ``parses music`` =
           InitialKeySignature = KeySignature NoteName.C
           InitialClef = Clef.G
           CurrentOctave = 5
-          LastPitch =
-            Some {
-              NoteName = NoteName.AFlat
-              Octave = 5
-            }
+          LastPitch = Pitch.create NoteName.AFlat 5 |> Some
           LastDuration = Some Duration.Sixteenth
           LastMeasureId = 4 |> MeasureId |> Some
         }
@@ -574,7 +570,7 @@ let ``parses music`` =
           InitialKeySignature = KeySignature NoteName.G
           InitialClef = Clef.F
           CurrentOctave = 4
-          LastPitch = Some { NoteName = NoteName.C; Octave = 4 }
+          LastPitch = Pitch.createMiddle NoteName.C |> Some
           LastDuration = Some Duration.Eighth
           LastMeasureId = 4 |> MeasureId |> Some
         }
