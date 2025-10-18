@@ -38,16 +38,24 @@ type NoteName =
   | BFlat
   | B
 
-type Pitch = { NoteName: NoteName; Octave: int }
+module Pitch =
+  type T = private {
+    NoteName: NoteName
+    Octave: int
+  }
+
+  let create noteName octave = { NoteName = noteName; Octave = octave }
+
+  let createMiddle noteName = create noteName 4
 
 module Note =
   type T = private {
-    Pitch: Pitch
+    Pitch: Pitch.T
     Duration: Duration
   }
 
   let create noteName octave duration = {
-    Pitch = { NoteName = noteName; Octave = octave }
+    Pitch = Pitch.create noteName octave
     Duration = duration
   }
 
