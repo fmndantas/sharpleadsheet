@@ -11,7 +11,7 @@
     <Compile Include="MeasureBuilder.fs"/>
     <Compile Include="NoteName.fs"/>
     <Compile Include="Duration.fs"/>
-    <Compile Include="NoteOrPause.fs"/>
+    <Compile Include="NoteOrRest.fs"/>
     <Compile Include="KeySignature.fs"/>
     <Compile Include="Measure.fs"/>
     <Compile Include="Parser.fs"/>

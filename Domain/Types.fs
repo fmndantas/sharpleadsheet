@@ -38,11 +38,26 @@ type NoteName =
   | BFlat
   | B
 
-type Note = {
-  NoteName: NoteName
-  Octave: int
-  Duration: Duration
-}
+type Pitch = { NoteName: NoteName; Octave: int }
+
+module Note =
+  type T = private {
+    Pitch: Pitch
+    Duration: Duration
+  }
+
+  let create noteName octave duration = {
+    Pitch = { NoteName = noteName; Octave = octave }
+    Duration = duration
+  }
+
+  let createMiddle noteName duration = create noteName 4 duration
+
+  let getPitch note = note.Pitch
+
+  let getDuration note = note.Duration
+
+type Rest = Rest of Duration
 
 type TimeSignature = {
   Numerator: int
@@ -54,7 +69,9 @@ type KeySignature = KeySignature of NoteName
 type MeasureId = MeasureId of int
 
 [<RequireQualifiedAccess>]
-type NoteOrPause = Note of Note
+type NoteOrRest =
+  | Note of Note.T
+  | Rest of Rest
 
 [<RequireQualifiedAccess>]
 type Clef =
@@ -66,7 +83,7 @@ type Measure = {
   Id: MeasureId
   TimeSignature: TimeSignature
   KeySignature: KeySignature
-  Notes: NoteOrPause list
+  NotesOrRests: NoteOrRest list
 }
 
 type PartId = PartId of int
@@ -84,7 +101,7 @@ type MeasureEvent =
   | DefineKeySignature of KeySignature
   | DefineTimeSignature of TimeSignature
   | DefineClef of Clef
-  | NoteOrPause of NoteOrPause
+  | NoteOrRest of NoteOrRest
 
 [<RequireQualifiedAccess>]
 type Fifth =

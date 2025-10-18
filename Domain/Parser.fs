@@ -15,8 +15,9 @@ module Types =
     | KeySignature of KeySignature
 
   [<RequireQualifiedAccess>]
-  type NoteSectionSymbol =
-    | Note of Note
+  type NotesSectionSymbol =
+    | Note of Note.T
+    | Rest of Rest
     | OctaveManipulation of int
 
   type PartDefinitionSection = {
@@ -32,19 +33,20 @@ module Types =
     Measures: Measure list
   }
 
-  type ParsingState = {
+  type ParserState = {
     InitialTimeSignature: TimeSignature
     InitialKeySignature: KeySignature
     InitialClef: Clef
     CurrentOctave: int
-    LastNote: Note option
+    LastPitch: Pitch option
+    LastDuration: Duration option
     LastMeasureId: MeasureId option
   }
 
 module Functions =
   open Types
 
-  type private P<'a> = Parser<'a, ParsingState>
+  type private P<'a> = Parser<'a, ParserState>
 
   [<AutoOpen>]
   module private Helpers =
@@ -125,30 +127,37 @@ module Functions =
       | "16." -> Duration.SixteenthDotted
       | _ -> failwith $"Unknown duration: \"{v}\""
 
-  let pNote: P<Note> =
+  let getUpdatedDuration (state: ParserState) (maybeNewDuration: Duration option) =
+    maybeNewDuration
+    |> Option.orElse state.LastDuration
+    |> Option.defaultValue state.InitialTimeSignature.Denominator
+
+  let pNote: P<Note.T> =
     parse {
       let! noteName = pNoteName
-      let! duration = opt pDuration
+      let! maybeDuration = opt pDuration
       let! state = getUserState
+      let duration = getUpdatedDuration state maybeDuration
+      let note = Note.create noteName state.CurrentOctave duration
 
-      let lastNoteDuration = Option.map _.Duration state.LastNote
-
-      let previousTimeSignatureDuration = state.InitialTimeSignature.Denominator
-
-      let duration =
-        duration
-        |> Option.orElse lastNoteDuration
-        |> Option.defaultValue previousTimeSignatureDuration
-
-      let note = {
-        NoteName = noteName
-        Octave = state.CurrentOctave
-        Duration = duration
-      }
-
-      do! updateUserState (fun s -> { s with LastNote = Some note })
+      do!
+        updateUserState (fun s -> {
+          s with
+              LastPitch = note |> Note.getPitch |> Some
+              LastDuration = note |> Note.getDuration |> Some
+        })
 
       return note
+    }
+
+  let pRest: P<Rest> =
+    parse {
+      let! state = getUserState
+      let! maybeDuration = pstring "r" >>. opt pDuration
+      let duration = getUpdatedDuration state maybeDuration
+
+      do! updateUserState (fun s -> { s with LastDuration = Some duration })
+      return Rest duration
     }
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
@@ -192,7 +201,7 @@ module Functions =
         KeySignature = keySignature
       })
 
-  let pOctaveManipulation: P<NoteSectionSymbol> =
+  let pOctaveManipulation: P<NotesSectionSymbol> =
     parse {
       let! operation, maybeDelta = choice [ pstring "o+" .>>. opt num; pstring "o-" .>>. opt num ]
       let! state = getUserState
@@ -207,21 +216,26 @@ module Functions =
           | _ -> 0
 
       do! updateUserState (fun s -> { s with CurrentOctave = updatedOctave })
-      return NoteSectionSymbol.OctaveManipulation updatedOctave
+      return NotesSectionSymbol.OctaveManipulation updatedOctave
     }
 
   let pNotesSectionContent: P<Measure list> =
     parse {
-      let pSymbol: P<NoteSectionSymbol> =
-        choice [ pNote |>> NoteSectionSymbol.Note; pOctaveManipulation ]
+      let pSymbol: P<NotesSectionSymbol> =
+        choice [
+          pNote |>> NotesSectionSymbol.Note
+          pRest |>> NotesSectionSymbol.Rest
+          pOctaveManipulation
+        ]
 
       let! symbolsPerMeasure = sepBy (pSymbol .>> ws |> many) (pstring "|" .>> ws)
 
-      let notesPerMeasure =
+      let symbolsPerMeasure: NoteOrRest list list =
         symbolsPerMeasure
         |> List.map (
           List.choose (function
-            | NoteSectionSymbol.Note note -> Some note
+            | NotesSectionSymbol.Note note -> note |> NoteOrRest.Note |> Some
+            | NotesSectionSymbol.Rest rest -> rest |> NoteOrRest.Rest |> Some
             | _ -> None)
         )
 
@@ -240,14 +254,14 @@ module Functions =
         >> withClef clef
 
       let _, updatedMeasures =
-        notesPerMeasure
+        symbolsPerMeasure
         |> List.filter (List.isEmpty >> not)
         |> List.fold
-          (fun (MeasureId id, measures) notes ->
+          (fun (MeasureId id, acc) symbols ->
             let updatedId = id + 1
 
             let updatedMeasures =
-              List.append measures [ createMeasure updatedId |> withNotes notes ]
+              List.append acc [ createMeasure updatedId |> withSymbols symbols ]
 
             MeasureId updatedId, updatedMeasures)
           (currentMeasureId, [])
@@ -284,7 +298,8 @@ module Functions =
           InitialKeySignature = Option.get partDefinition.KeySignature
           InitialClef = Option.get partDefinition.Clef
           CurrentOctave = 4
-          LastNote = None
+          LastPitch = None
+          LastDuration = None
           LastMeasureId = None
         }
 

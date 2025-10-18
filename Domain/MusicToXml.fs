@@ -37,7 +37,7 @@ let interpretClefEvent (c: Clef) : XElement =
   [ leafElement "sign" "G"; leafElement "line" "2" ] |> element "clef"
 
 // TEST: interpretNote
-let interpretNote (n: NoteOrPause) : XElement =
+let interpretNote (n: NoteOrRest) : XElement =
   [
     element "pitch" [ leafElement "step" "C"; leafElement "octave" "4" ]
     leafElement "duration" "4"
@@ -68,7 +68,7 @@ let createMeasureNotes (es: MeasureEvent list) : XElement list =
   es
   |> List.choose (fun e ->
     match e with
-    | MeasureEvent.NoteOrPause noteOrPause -> interpretNote noteOrPause |> Some
+    | MeasureEvent.NoteOrRest noteOrRest -> interpretNote noteOrRest |> Some
     | _ -> None)
 
 let createMeasure (previousMeasure: Measure option, currentMeasure: Measure) : XElement =
