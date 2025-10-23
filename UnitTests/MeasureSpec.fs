@@ -103,7 +103,7 @@ let ``generates events between two measures`` =
 
 let ``defines the number of divisions based on quarter note`` =
   let measureWithDurations durations =
-    let notes = List.map (Note.createMiddle NoteName.C) durations
+    let notes = List.map (Note.create4 NoteName.C) durations
 
     aMeasure 1 |> withNotes notes
 

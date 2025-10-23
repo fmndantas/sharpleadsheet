@@ -54,12 +54,12 @@ module Note =
     Duration: Duration
   }
 
-  let create noteName octave duration = {
+  let create octave noteName duration = {
     Pitch = Pitch.create noteName octave
     Duration = duration
   }
 
-  let createMiddle noteName duration = create noteName 4 duration
+  let create4 noteName duration = create 4 noteName duration
 
   let getPitch note = note.Pitch
 

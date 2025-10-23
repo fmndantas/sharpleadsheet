@@ -138,7 +138,7 @@ module Functions =
       let! maybeDuration = opt pDuration
       let! state = getUserState
       let duration = getUpdatedDuration state maybeDuration
-      let note = Note.create noteName state.CurrentOctave duration
+      let note = Note.create state.CurrentOctave noteName duration
 
       do!
         updateUserState (fun s -> {
