@@ -29,6 +29,8 @@ let withCommonTimeSignature (m: Measure) : Measure =
   }
   |> flip2 withTimeSignature m
 
+let withClef (clef: Clef) (m: Measure) : Measure = { m with Clef = clef }
+
 let withNote (note: Note.T) (m: Measure) : Measure = {
   m with
       NotesOrRests = List.append m.NotesOrRests [ NoteOrRest.Note note ]
@@ -44,11 +46,9 @@ let withNotes (notes: Note.T list) (m: Measure) : Measure = {
       NotesOrRests = List.map NoteOrRest.Note notes
 }
 
-let withSymbols (symbols: NoteOrRest list) (m: Measure) : Measure = { m with NotesOrRests = symbols }
-
 let withRepeteadNote (count: int) (note: Note.T) (m: Measure) : Measure = {
   m with
       NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.Note note))
 }
 
-let withClef (clef: Clef) (m: Measure) : Measure = { m with Clef = clef }
+let withSymbols (symbols: NoteOrRest list) (m: Measure) : Measure = { m with NotesOrRests = symbols }
