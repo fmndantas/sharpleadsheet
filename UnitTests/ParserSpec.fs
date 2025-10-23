@@ -419,6 +419,21 @@ let ``parses notes section content`` =
           |> withRest Duration.EighthDotted
           |> withRest Duration.Quarter
           |> withNote (Note.createMiddle NoteName.D Duration.Half)
+
+          measure 5
+          |> withRest Duration.Quarter
+          |> withNote (Note.createMiddle NoteName.D Duration.Quarter)
+          |> withNote (Note.createMiddle NoteName.D Duration.Quarter)
+          |> withNote (Note.createMiddle NoteName.D Duration.Eighth)
+          |> withNote (Note.createMiddle NoteName.E Duration.Eighth)
+
+          measure 6
+          |> withNote (Note.createMiddle NoteName.F Duration.Quarter)
+          |> withNote (Note.createMiddle NoteName.F Duration.Eighth)
+          |> withNote (Note.createMiddle NoteName.E Duration.Eighth)
+          |> withNote (Note.createMiddle NoteName.F Duration.Eighth)
+          |> withNote (Note.createMiddle NoteName.E Duration.Eighth)
+          |> withNote (Note.createMiddle NoteName.E Duration.Quarter)
         ]
       )
   ]
