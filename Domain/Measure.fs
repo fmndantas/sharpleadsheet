@@ -4,7 +4,7 @@ open Domain.Types
 
 open Operators
 
-let generateEvents (previousMeasure: Measure option) (currentMeasure: Measure) : MeasureEvent list = [
+let generateEvents (previousMeasure: UnvalidatedMeasure option) (currentMeasure: UnvalidatedMeasure) : MeasureEvent list = [
   yield!
     previousMeasure
     |> Option.map (fun p -> [
@@ -25,7 +25,7 @@ let generateEvents (previousMeasure: Measure option) (currentMeasure: Measure) :
   yield! List.map MeasureEvent.NoteOrRest currentMeasure.NotesOrRests
 ]
 
-let defineDivisions (measure: Measure) : int =
+let defineDivisions (measure: UnvalidatedMeasure) : int =
   if List.isEmpty measure.NotesOrRests then
     1
   else

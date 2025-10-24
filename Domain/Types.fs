@@ -106,23 +106,23 @@ type Clef =
   | G
   | F
 
-type Measure = {
-  Clef: Clef
+type UnvalidatedMeasure = {
   Id: MeasureId
   TimeSignature: TimeSignature
   KeySignature: KeySignature
+  Clef: Clef
   NotesOrRests: NoteOrRest list
 }
 
 type PartId = PartId of int
 
-type Part = {
+type UnvalidatedPart = {
   Id: PartId
   Name: string
-  Measures: Measure list
+  Measures: UnvalidatedMeasure list
 }
 
-type Music = Music of List<Part>
+type Music = Unvalidated of List<UnvalidatedPart>
 
 [<RequireQualifiedAccess>]
 type MeasureEvent =

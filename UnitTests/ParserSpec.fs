@@ -484,7 +484,7 @@ let ``parses music`` =
     caseId(1)
       .WithData(openSample "example-1.sls")
       .WithExpectedResult(
-        Music [
+        Unvalidated [
           {
             Name = "Piano"
             Id = PartId 1
@@ -548,7 +548,7 @@ let ``parses music`` =
     caseId(2)
       .WithData(openSample "example-2.sls")
       .WithExpectedResult(
-        Music [
+        Unvalidated [
           {
             Name = "bass"
             Id = PartId 1
