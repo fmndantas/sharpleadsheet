@@ -119,18 +119,18 @@ let ``parses a duration`` =
 
 let ``parses a note`` =
   testTheory3 "parses a note" [
-    case("c8").WithData(None, None, "c8").WithExpectedResult(Note.createMiddle NoteName.C Duration.Eighth)
-    case("f16").WithData(None, None, "f16").WithExpectedResult(Note.createMiddle NoteName.F Duration.Sixteenth)
+    case("c8").WithData(None, None, "c8").WithExpectedResult(Note.create4 NoteName.C Duration.Eighth)
+    case("f16").WithData(None, None, "f16").WithExpectedResult(Note.create4 NoteName.F Duration.Sixteenth)
 
     case("f, there is a last note ~~> uses last note duration")
       .WithData(Some Duration.Whole, Pitch.create NoteName.C 3 |> Some, "f")
-      .WithExpectedResult(Note.createMiddle NoteName.F Duration.Whole)
+      .WithExpectedResult(Note.create4 NoteName.F Duration.Whole)
 
     case("f, there is not a last note ~~> uses current time signature denominator")
       .WithData(None, None, "f")
-      .WithExpectedResult(Note.createMiddle NoteName.F Duration.Quarter)
+      .WithExpectedResult(Note.create4 NoteName.F Duration.Quarter)
 
-    case("b1").WithData(None, None, "b1").WithExpectedResult(Note.createMiddle NoteName.B Duration.Whole)
+    case("b1").WithData(None, None, "b1").WithExpectedResult(Note.create4 NoteName.B Duration.Whole)
   ]
   <| fun (lastDuration, lastPitch, content) expectedResult ->
     let currentState = {
@@ -206,13 +206,13 @@ let ``parses notes section content`` =
         [
           measure 1
           |> withNotes [
-            Note.createMiddle NoteName.C Duration.Eighth
-            Note.createMiddle NoteName.D Duration.Eighth
-            Note.createMiddle NoteName.E Duration.Eighth
-            Note.createMiddle NoteName.D Duration.Eighth
+            Note.create4 NoteName.C Duration.Eighth
+            Note.create4 NoteName.D Duration.Eighth
+            Note.create4 NoteName.E Duration.Eighth
+            Note.create4 NoteName.D Duration.Eighth
           ]
 
-          measure 2 |> withNote (Note.createMiddle NoteName.C Duration.Half)
+          measure 2 |> withNote (Note.create4 NoteName.C Duration.Half)
         ]
       )
 
@@ -245,23 +245,23 @@ let ``parses notes section content`` =
         [
           measure 1
           |> withNotes [
-            Note.createMiddle NoteName.C Duration.Quarter
-            Note.createMiddle NoteName.D Duration.Quarter
-            Note.createMiddle NoteName.C Duration.Quarter
+            Note.create4 NoteName.C Duration.Quarter
+            Note.create4 NoteName.D Duration.Quarter
+            Note.create4 NoteName.C Duration.Quarter
           ]
 
           measure 2
           |> withNotes [
-            Note.createMiddle NoteName.F Duration.Half
-            Note.createMiddle NoteName.G Duration.Quarter
+            Note.create4 NoteName.F Duration.Half
+            Note.create4 NoteName.G Duration.Quarter
           ]
 
-          measure 3 |> withRepeteadNote 6 (Note.createMiddle NoteName.E Duration.Eighth)
+          measure 3 |> withRepeteadNote 6 (Note.create4 NoteName.E Duration.Eighth)
 
           measure 4
           |> withNotes [
-            Note.createMiddle NoteName.C Duration.Half
-            Note.createMiddle NoteName.D Duration.Quarter
+            Note.create4 NoteName.C Duration.Half
+            Note.create4 NoteName.D Duration.Quarter
           ]
         ]
       )
@@ -290,11 +290,11 @@ let ``parses notes section content`` =
           >> withCommonTimeSignature
 
         [
-          measure 1 |> withNote (Note.createMiddle NoteName.C Duration.Whole)
-          measure 2 |> withNote (Note.createMiddle NoteName.G Duration.Whole)
-          measure 3 |> withNote (Note.createMiddle NoteName.C Duration.Whole)
-          measure 4 |> withNote (Note.createMiddle NoteName.G Duration.Whole)
-          measure 5 |> withNote (Note.createMiddle NoteName.C Duration.Whole)
+          measure 1 |> withNote (Note.create4 NoteName.C Duration.Whole)
+          measure 2 |> withNote (Note.create4 NoteName.G Duration.Whole)
+          measure 3 |> withNote (Note.create4 NoteName.C Duration.Whole)
+          measure 4 |> withNote (Note.create4 NoteName.G Duration.Whole)
+          measure 5 |> withNote (Note.create4 NoteName.C Duration.Whole)
         ]
       )
 
@@ -322,8 +322,8 @@ let ``parses notes section content`` =
           >> withCommonTimeSignature
 
         [
-          measure 1 |> withNote (Note.createMiddle NoteName.C Duration.Whole)
-          measure 2 |> withNote (Note.createMiddle NoteName.C Duration.Whole)
+          measure 1 |> withNote (Note.create4 NoteName.C Duration.Whole)
+          measure 2 |> withNote (Note.create4 NoteName.C Duration.Whole)
         ]
       )
 
@@ -352,25 +352,25 @@ let ``parses notes section content`` =
 
         [
           measure 1
-          |> withNote (Note.createMiddle NoteName.C Duration.Half)
-          |> withNote (Note.create NoteName.C 5 Duration.Half)
+          |> withNote (Note.create4 NoteName.C Duration.Half)
+          |> withNote (Note.create5 NoteName.C Duration.Half)
 
           measure 2
-          |> withNote (Note.createMiddle NoteName.B Duration.Quarter)
-          |> withNote (Note.createMiddle NoteName.G Duration.Eighth)
-          |> withNote (Note.createMiddle NoteName.A Duration.Eighth)
-          |> withNote (Note.createMiddle NoteName.B Duration.Quarter)
-          |> withNote (Note.create NoteName.C 5 Duration.Quarter)
+          |> withNote (Note.create4 NoteName.B Duration.Quarter)
+          |> withNote (Note.create4 NoteName.G Duration.Eighth)
+          |> withNote (Note.create4 NoteName.A Duration.Eighth)
+          |> withNote (Note.create4 NoteName.B Duration.Quarter)
+          |> withNote (Note.create5 NoteName.C Duration.Quarter)
 
           measure 3
-          |> withNote (Note.createMiddle NoteName.C Duration.Half)
-          |> withNote (Note.createMiddle NoteName.A Duration.Half)
+          |> withNote (Note.create4 NoteName.C Duration.Half)
+          |> withNote (Note.create4 NoteName.A Duration.Half)
 
-          measure 4 |> withNote (Note.createMiddle NoteName.G Duration.Whole)
+          measure 4 |> withNote (Note.create4 NoteName.G Duration.Whole)
 
           measure 5
-          |> withNote (Note.create NoteName.C 2 Duration.Half)
-          |> withNote (Note.create NoteName.C 6 Duration.Half)
+          |> withNote (Note.create2 NoteName.C Duration.Half)
+          |> withNote (Note.create6 NoteName.C Duration.Half)
         ]
       )
 
@@ -400,25 +400,40 @@ let ``parses notes section content`` =
         [
           measure 1
           |> withRest Duration.Quarter
-          |> withRepeteadNote 2 (Note.createMiddle NoteName.C Duration.Quarter)
-          |> withNote (Note.createMiddle NoteName.D Duration.Quarter)
+          |> withRepeteadNote 2 (Note.create4 NoteName.C Duration.Quarter)
+          |> withNote (Note.create4 NoteName.D Duration.Quarter)
 
           measure 2
-          |> withNote (Note.createMiddle NoteName.E Duration.Quarter)
+          |> withNote (Note.create4 NoteName.E Duration.Quarter)
           |> withRest Duration.HalfDotted
 
           measure 3
           |> withRest Duration.Quarter
-          |> withNote (Note.createMiddle NoteName.E Duration.Quarter)
-          |> withNote (Note.createMiddle NoteName.F Duration.Quarter)
+          |> withNote (Note.create4 NoteName.E Duration.Quarter)
+          |> withNote (Note.create4 NoteName.F Duration.Quarter)
           |> withRest Duration.Eighth
-          |> withNote (Note.createMiddle NoteName.E Duration.Eighth)
+          |> withNote (Note.create4 NoteName.E Duration.Eighth)
 
           measure 4
-          |> withNote (Note.createMiddle NoteName.E Duration.Sixteenth)
+          |> withNote (Note.create4 NoteName.E Duration.Sixteenth)
           |> withRest Duration.EighthDotted
           |> withRest Duration.Quarter
-          |> withNote (Note.createMiddle NoteName.D Duration.Half)
+          |> withNote (Note.create4 NoteName.D Duration.Half)
+
+          measure 5
+          |> withRest Duration.Quarter
+          |> withNote (Note.createTied4 NoteName.D Duration.Quarter)
+          |> withNote (Note.createTied4 NoteName.D Duration.Quarter)
+          |> withNote (Note.create4 NoteName.D Duration.Eighth)
+          |> withNote (Note.create4 NoteName.E Duration.Eighth)
+
+          measure 6
+          |> withNote (Note.createTied4 NoteName.F Duration.Quarter)
+          |> withNote (Note.create4 NoteName.F Duration.Eighth)
+          |> withNote (Note.create4 NoteName.E Duration.Eighth)
+          |> withNote (Note.create4 NoteName.F Duration.Eighth)
+          |> withNote (Note.createTied4 NoteName.E Duration.Eighth)
+          |> withNote (Note.create4 NoteName.E Duration.Quarter)
         ]
       )
   ]
@@ -451,12 +466,12 @@ let ``parses notes section`` =
           aMeasure 1
           |> withCommonTimeSignature
           |> withCNaturalKeySignature
-          |> withNote (Note.createMiddle NoteName.G Duration.Whole)
+          |> withNote (Note.create4 NoteName.G Duration.Whole)
 
           aMeasure 2
           |> withCommonTimeSignature
           |> withCNaturalKeySignature
-          |> withNote (Note.createMiddle NoteName.C Duration.Whole)
+          |> withNote (Note.create4 NoteName.C Duration.Whole)
         ]
       }
   ]
@@ -480,10 +495,10 @@ let ``parses music`` =
                 Numerator = 2
                 Denominator = Duration.Quarter
               }
-              |> withNote (Note.createMiddle NoteName.C Duration.Eighth)
-              |> withNote (Note.createMiddle NoteName.D Duration.Eighth)
-              |> withNote (Note.createMiddle NoteName.E Duration.Eighth)
-              |> withNote (Note.createMiddle NoteName.D Duration.Eighth)
+              |> withNote (Note.create4 NoteName.C Duration.Eighth)
+              |> withNote (Note.create4 NoteName.D Duration.Eighth)
+              |> withNote (Note.create4 NoteName.E Duration.Eighth)
+              |> withNote (Note.create4 NoteName.D Duration.Eighth)
 
               aMeasure 2
               |> withCNaturalKeySignature
@@ -491,7 +506,7 @@ let ``parses music`` =
                 Numerator = 2
                 Denominator = Duration.Quarter
               }
-              |> withNote (Note.createMiddle NoteName.C Duration.Half)
+              |> withNote (Note.create4 NoteName.C Duration.Half)
 
               aMeasure 3
               |> withCNaturalKeySignature
@@ -499,7 +514,7 @@ let ``parses music`` =
                 Numerator = 2
                 Denominator = Duration.Quarter
               }
-              |> withNote (Note.createMiddle NoteName.E Duration.Quarter)
+              |> withNote (Note.create4 NoteName.E Duration.Quarter)
               |> withRest Duration.Quarter
 
               aMeasure 4
@@ -508,10 +523,10 @@ let ``parses music`` =
                 Numerator = 2
                 Denominator = Duration.Quarter
               }
-              |> withNote (Note.createMiddle NoteName.F Duration.Eighth)
-              |> withNote (Note.createMiddle NoteName.G Duration.Sixteenth)
+              |> withNote (Note.create4 NoteName.F Duration.Eighth)
+              |> withNote (Note.create4 NoteName.G Duration.Sixteenth)
               |> withRest Duration.Sixteenth
-              |> withNote (Note.create NoteName.AFlat 5 Duration.EighthDotted)
+              |> withNote (Note.create5 NoteName.AFlat Duration.EighthDotted)
               |> withRest Duration.Sixteenth
             ]
           }
@@ -548,17 +563,17 @@ let ``parses music`` =
                 >> withClef Clef.F
 
               [
-                measure 1 |> withNote (Note.createMiddle NoteName.C Duration.Eighth)
+                measure 1 |> withNote (Note.create4 NoteName.C Duration.Eighth)
 
                 measure 2
-                |> withNote (Note.createMiddle NoteName.G Duration.Sixteenth)
-                |> withNote (Note.createMiddle NoteName.F Duration.Sixteenth)
+                |> withNote (Note.create4 NoteName.G Duration.Sixteenth)
+                |> withNote (Note.create4 NoteName.F Duration.Sixteenth)
 
                 measure 3
-                |> withNote (Note.createMiddle NoteName.E Duration.Sixteenth)
-                |> withNote (Note.createMiddle NoteName.D Duration.Sixteenth)
+                |> withNote (Note.create4 NoteName.E Duration.Sixteenth)
+                |> withNote (Note.create4 NoteName.D Duration.Sixteenth)
 
-                measure 4 |> withNote (Note.createMiddle NoteName.C Duration.Eighth)
+                measure 4 |> withNote (Note.create4 NoteName.C Duration.Eighth)
               ]
           }
         ],
