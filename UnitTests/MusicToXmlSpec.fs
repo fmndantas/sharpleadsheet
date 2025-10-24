@@ -28,11 +28,12 @@ let ``converts music to xml`` =
             Name = "Instrument Name"
             Id = PartId 1
             Measures = [
-              aMeasure 1
+              aParsedMeasure ()
               |> withClef Clef.G
               |> withCommonTimeSignature
               |> withCNaturalKeySignature
               |> withNote (Note.create4 NoteName.C Duration.Whole)
+              |> toUnvalidatedMeasure 1
             ]
           }
         ]

@@ -11,7 +11,7 @@ open Domain.MeasureBuilder
 
 let ``generates events between two measures`` =
   let initialMeasure =
-    aMeasure 1
+    aParsedMeasure ()
     |> withCNaturalKeySignature
     |> withCommonTimeSignature
     |> withClef Clef.G
@@ -36,7 +36,7 @@ let ``generates events between two measures`` =
     yield! [
       {
         Id = "current measure does not change key signature, time signature or clef"
-        Data = Some initialMeasure, aMeasure 2 |> withCNaturalKeySignature |> withCommonTimeSignature
+        Data = Some initialMeasure, aParsedMeasure () |> withCNaturalKeySignature |> withCommonTimeSignature
         ExpectedResult =
           [],
           [
@@ -53,7 +53,7 @@ let ``generates events between two measures`` =
         Id = "current measure changes key signature"
         Data =
           Some initialMeasure,
-          aMeasure 2
+          aParsedMeasure ()
           |> withKeySignature (KeySignature NoteName.D)
           |> withCommonTimeSignature
         ExpectedResult = [ NoteName.D |> KeySignature |> MeasureEvent.DefineKeySignature ], []
@@ -63,7 +63,7 @@ let ``generates events between two measures`` =
         Id = "current measure changes time signature"
         Data =
           Some initialMeasure,
-          aMeasure 2
+          aParsedMeasure ()
           |> withCNaturalKeySignature
           |> withTimeSignature {
             Numerator = 6
@@ -83,7 +83,7 @@ let ``generates events between two measures`` =
         Id = "current measure changes clef"
         Data =
           Some initialMeasure,
-          aMeasure 2
+          aParsedMeasure ()
           |> withCNaturalKeySignature
           |> withCommonTimeSignature
           |> withClef Clef.F
@@ -92,7 +92,10 @@ let ``generates events between two measures`` =
     ]
   ]
   <| fun (previousMeasure, currentMeasure) (resultShouldInclude, resultShouldNotInclude) ->
-    let events = Measure.generateEvents previousMeasure currentMeasure
+    let events =
+      Measure.generateEvents
+        (Option.map (toUnvalidatedMeasure 1) previousMeasure)
+        (toUnvalidatedMeasure 2 currentMeasure)
 
     for item in resultShouldInclude do
       events |> contains $"Expected measure event not found: \"{item}\"" item
@@ -105,7 +108,7 @@ let ``defines the number of divisions based on quarter note`` =
   let measureWithDurations durations =
     let notes = List.map (Note.create4 NoteName.C) durations
 
-    aMeasure 1 |> withNotes notes
+    aParsedMeasure () |> withNotes notes
 
   testTheory2 "defines the number of divisions based on quarter note" [
     {
@@ -161,7 +164,7 @@ let ``defines the number of divisions based on quarter note`` =
     }
   ]
   <| fun measure expectedResult ->
-    let result = Measure.defineDivisions measure
+    let result = Measure.defineDivisions (toUnvalidatedMeasure 1 measure)
     result |> equal "The calculated division is incorrect" expectedResult
 
 [<Tests>]

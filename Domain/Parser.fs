@@ -20,19 +20,6 @@ module Types =
     | Rest of Rest
     | OctaveManipulation of int
 
-  type PartDefinitionSection = {
-    Id: PartId option
-    Name: string option
-    Clef: Clef option
-    TimeSignature: TimeSignature option
-    KeySignature: KeySignature option
-  }
-
-  type NotesSection = {
-    PartId: PartId
-    Measures: UnvalidatedMeasure list
-  }
-
   type ParserState = {
     InitialTimeSignature: TimeSignature
     InitialKeySignature: KeySignature
@@ -40,7 +27,6 @@ module Types =
     CurrentOctave: int
     LastPitch: Pitch.T option
     LastDuration: Duration option
-    LastMeasureId: MeasureId option
   }
 
 module Functions =
@@ -224,7 +210,7 @@ module Functions =
       return NotesSectionSymbol.OctaveManipulation updatedOctave
     }
 
-  let pNotesSectionContent: P<UnvalidatedMeasure list> =
+  let pNotesSectionContent: P<ParsedMeasure list> =
     parse {
       let pSymbol: P<NotesSectionSymbol> =
         choice [
@@ -246,36 +232,21 @@ module Functions =
 
       let! state = getUserState
 
-      let currentMeasureId = Option.defaultValue (MeasureId 0) state.LastMeasureId
-
       let keySignature = state.InitialKeySignature
       let timeSignature = state.InitialTimeSignature
       let clef = state.InitialClef
 
-      let createMeasure =
-        aMeasure
-        >> withKeySignature keySignature
-        >> withTimeSignature timeSignature
-        >> withClef clef
+      let createMeasure symbols =
+        aParsedMeasure ()
+        |> withKeySignature keySignature
+        |> withTimeSignature timeSignature
+        |> withClef clef
+        |> withSymbols symbols
 
-      let _, updatedMeasures =
+      let updatedMeasures =
         symbolsPerMeasure
         |> List.filter (List.isEmpty >> not)
-        |> List.fold
-          (fun (MeasureId id, acc) symbols ->
-            let updatedId = id + 1
-
-            let updatedMeasures =
-              List.append acc [ createMeasure updatedId |> withSymbols symbols ]
-
-            MeasureId updatedId, updatedMeasures)
-          (currentMeasureId, [])
-
-      do!
-        updateUserState (fun s -> {
-          s with
-              LastMeasureId = List.tryLast updatedMeasures |> Option.map _.Id
-        })
+        |> List.fold (fun acc symbols -> List.append acc [ createMeasure symbols ]) []
 
       return updatedMeasures
     }
@@ -292,7 +263,6 @@ module Functions =
       }
     }
 
-  // TODO: validation (to remove Option.get)
   let pMusic: P<Music> =
     parse {
       let! partDefinition = pPartDefinitionSection
@@ -311,20 +281,19 @@ module Functions =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
-          LastMeasureId = None
         }
 
       let! notesSection = many1 pNotesSection
 
-      let parts =
-        notesSection
-        |> List.groupBy _.PartId
-        |> List.map (fun (partId, notesSection) -> partId, notesSection |> List.map _.Measures |> List.concat)
-        |> List.map (fun (partId, measures) -> {
-          Id = partId
-          Name = Option.get partDefinition.Name
-          Measures = measures
-        })
-
-      return Unvalidated parts
+      return
+        Parsed {
+          PartDefinitionSections = [ partDefinition ]
+          NotesSections =
+            notesSection
+            |> List.groupBy _.PartId
+            |> List.map (fun (partId, sections) -> {
+              PartId = partId
+              Measures = sections |> List.collect _.Measures
+            })
+        }
     }
