@@ -95,6 +95,7 @@ type TimeSignature = {
 type KeySignature = KeySignature of NoteName
 
 type MeasureId = MeasureId of int
+type PartId = PartId of int
 
 [<RequireQualifiedAccess>]
 type NoteOrRest =
@@ -106,15 +107,27 @@ type Clef =
   | G
   | F
 
-type UnvalidatedMeasure = {
-  Id: MeasureId
+type PartDefinitionSection = {
+  Id: PartId option
+  Name: string option
+  Clef: Clef option
+  TimeSignature: TimeSignature option
+  KeySignature: KeySignature option
+}
+
+type ParsedMeasure = {
   TimeSignature: TimeSignature
   KeySignature: KeySignature
   Clef: Clef
   NotesOrRests: NoteOrRest list
 }
 
-type PartId = PartId of int
+type NotesSection = {
+  PartId: PartId
+  Measures: ParsedMeasure list
+}
+
+type UnvalidatedMeasure = { Id: MeasureId; Parsed: ParsedMeasure }
 
 type UnvalidatedPart = {
   Id: PartId
@@ -122,7 +135,14 @@ type UnvalidatedPart = {
   Measures: UnvalidatedMeasure list
 }
 
-type Music = Unvalidated of List<UnvalidatedPart>
+type ParsedMusic = {
+  PartDefinitionSections: PartDefinitionSection list
+  NotesSections: NotesSection list
+}
+
+type Music =
+  | Parsed of ParsedMusic
+  | Unvalidated of List<UnvalidatedPart>
 
 [<RequireQualifiedAccess>]
 type MeasureEvent =

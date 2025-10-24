@@ -4,28 +4,32 @@ open Domain.Types
 
 open Operators
 
-let generateEvents (previousMeasure: UnvalidatedMeasure option) (currentMeasure: UnvalidatedMeasure) : MeasureEvent list = [
-  yield!
-    previousMeasure
-    |> Option.map (fun p -> [
-      if p.KeySignature <> currentMeasure.KeySignature then
+let generateEvents
+  (previousMeasure: UnvalidatedMeasure option)
+  ({ Parsed = currentMeasure }: UnvalidatedMeasure)
+  : MeasureEvent list =
+  [
+    yield!
+      previousMeasure
+      |> Option.map (fun { Parsed = p } -> [
+        if p.KeySignature <> currentMeasure.KeySignature then
+          MeasureEvent.DefineKeySignature currentMeasure.KeySignature
+
+        if p.TimeSignature <> currentMeasure.TimeSignature then
+          MeasureEvent.DefineTimeSignature currentMeasure.TimeSignature
+
+        if p.Clef <> currentMeasure.Clef then
+          MeasureEvent.DefineClef currentMeasure.Clef
+      ])
+      |> Option.defaultValue [
         MeasureEvent.DefineKeySignature currentMeasure.KeySignature
-
-      if p.TimeSignature <> currentMeasure.TimeSignature then
         MeasureEvent.DefineTimeSignature currentMeasure.TimeSignature
-
-      if p.Clef <> currentMeasure.Clef then
         MeasureEvent.DefineClef currentMeasure.Clef
-    ])
-    |> Option.defaultValue [
-      MeasureEvent.DefineKeySignature currentMeasure.KeySignature
-      MeasureEvent.DefineTimeSignature currentMeasure.TimeSignature
-      MeasureEvent.DefineClef currentMeasure.Clef
-    ]
-  yield! List.map MeasureEvent.NoteOrRest currentMeasure.NotesOrRests
-]
+      ]
+    yield! List.map MeasureEvent.NoteOrRest currentMeasure.NotesOrRests
+  ]
 
-let defineDivisions (measure: UnvalidatedMeasure) : int =
+let defineDivisions ({ Parsed = measure }: UnvalidatedMeasure) : int =
   if List.isEmpty measure.NotesOrRests then
     1
   else
