@@ -30,7 +30,7 @@ module Types =
 
   type NotesSection = {
     PartId: PartId
-    Measures: Measure list
+    Measures: UnvalidatedMeasure list
   }
 
   type ParserState = {
@@ -224,7 +224,7 @@ module Functions =
       return NotesSectionSymbol.OctaveManipulation updatedOctave
     }
 
-  let pNotesSectionContent: P<Measure list> =
+  let pNotesSectionContent: P<UnvalidatedMeasure list> =
     parse {
       let pSymbol: P<NotesSectionSymbol> =
         choice [
@@ -320,5 +320,5 @@ module Functions =
           Measures = measures
         })
 
-      return Music parts
+      return Unvalidated parts
     }

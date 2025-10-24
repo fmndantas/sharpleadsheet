@@ -4,7 +4,7 @@ open Domain.GenericFunctions
 
 open Domain.Types
 
-let aMeasure (measureId: int) : Measure = {
+let aMeasure (measureId: int) : UnvalidatedMeasure = {
   Clef = Clef.G
   Id = MeasureId measureId
   TimeSignature = {
@@ -15,40 +15,40 @@ let aMeasure (measureId: int) : Measure = {
   NotesOrRests = []
 }
 
-let withKeySignature (k: KeySignature) (m: Measure) : Measure = { m with KeySignature = k }
+let withKeySignature (k: KeySignature) (m: UnvalidatedMeasure) : UnvalidatedMeasure = { m with KeySignature = k }
 
-let withTimeSignature (t: TimeSignature) (m: Measure) : Measure = { m with TimeSignature = t }
+let withTimeSignature (t: TimeSignature) (m: UnvalidatedMeasure) : UnvalidatedMeasure = { m with TimeSignature = t }
 
-let withCNaturalKeySignature (m: Measure) : Measure =
+let withCNaturalKeySignature (m: UnvalidatedMeasure) : UnvalidatedMeasure =
   NoteName.C |> KeySignature |> flip2 withKeySignature m
 
-let withCommonTimeSignature (m: Measure) : Measure =
+let withCommonTimeSignature (m: UnvalidatedMeasure) : UnvalidatedMeasure =
   {
     Numerator = 4
     Denominator = Duration.Quarter
   }
   |> flip2 withTimeSignature m
 
-let withClef (clef: Clef) (m: Measure) : Measure = { m with Clef = clef }
+let withClef (clef: Clef) (m: UnvalidatedMeasure) : UnvalidatedMeasure = { m with Clef = clef }
 
-let withNote (note: Note.T) (m: Measure) : Measure = {
+let withNote (note: Note.T) (m: UnvalidatedMeasure) : UnvalidatedMeasure = {
   m with
       NotesOrRests = List.append m.NotesOrRests [ NoteOrRest.Note note ]
 }
 
-let withRest (duration: Duration) (m: Measure) : Measure = {
+let withRest (duration: Duration) (m: UnvalidatedMeasure) : UnvalidatedMeasure = {
   m with
       NotesOrRests = List.append m.NotesOrRests [ duration |> Rest |> NoteOrRest.Rest ]
 }
 
-let withNotes (notes: Note.T list) (m: Measure) : Measure = {
+let withNotes (notes: Note.T list) (m: UnvalidatedMeasure) : UnvalidatedMeasure = {
   m with
       NotesOrRests = List.map NoteOrRest.Note notes
 }
 
-let withRepeteadNote (count: int) (note: Note.T) (m: Measure) : Measure = {
+let withRepeteadNote (count: int) (note: Note.T) (m: UnvalidatedMeasure) : UnvalidatedMeasure = {
   m with
       NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.Note note))
 }
 
-let withSymbols (symbols: NoteOrRest list) (m: Measure) : Measure = { m with NotesOrRests = symbols }
+let withSymbols (symbols: NoteOrRest list) (m: UnvalidatedMeasure) : UnvalidatedMeasure = { m with NotesOrRests = symbols }
