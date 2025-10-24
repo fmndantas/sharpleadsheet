@@ -299,9 +299,15 @@ module Functions =
 
       do!
         setUserState {
-          InitialTimeSignature = Option.get partDefinition.TimeSignature
-          InitialKeySignature = Option.get partDefinition.KeySignature
-          InitialClef = Option.get partDefinition.Clef
+          InitialTimeSignature =
+            Option.defaultValue
+              {
+                Numerator = 4
+                Denominator = Duration.Quarter
+              }
+              partDefinition.TimeSignature
+          InitialKeySignature = Option.defaultValue (KeySignature NoteName.C) partDefinition.KeySignature
+          InitialClef = Option.defaultValue Clef.G partDefinition.Clef
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
