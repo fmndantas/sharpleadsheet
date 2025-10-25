@@ -127,22 +127,22 @@ type NotesSection = {
   Measures: ParsedMeasure list
 }
 
-type UnvalidatedMeasure = { Id: MeasureId; Parsed: ParsedMeasure }
-
-type UnvalidatedPart = {
-  Id: PartId
-  Name: string
-  Measures: UnvalidatedMeasure list
-}
-
 type ParsedMusic = {
   PartDefinitionSections: PartDefinitionSection list
   NotesSections: NotesSection list
 }
 
+type ValidatedMeasure = { Id: MeasureId; Parsed: ParsedMeasure }
+
+type ValidatedPart = {
+  Id: PartId
+  Name: string
+  Measures: ValidatedMeasure list
+}
+
 type Music =
   | Parsed of ParsedMusic
-  | Unvalidated of List<UnvalidatedPart>
+  | Validated of List<ValidatedPart>
 
 [<RequireQualifiedAccess>]
 type MeasureEvent =
