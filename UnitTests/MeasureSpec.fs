@@ -94,8 +94,8 @@ let ``generates events between two measures`` =
   <| fun (previousMeasure, currentMeasure) (resultShouldInclude, resultShouldNotInclude) ->
     let events =
       Measure.generateEvents
-        (Option.map (toUnvalidatedMeasure 1) previousMeasure)
-        (toUnvalidatedMeasure 2 currentMeasure)
+        (Option.map (toValidatedMeasure 1) previousMeasure)
+        (toValidatedMeasure 2 currentMeasure)
 
     for item in resultShouldInclude do
       events |> contains $"Expected measure event not found: \"{item}\"" item
@@ -164,7 +164,7 @@ let ``defines the number of divisions based on quarter note`` =
     }
   ]
   <| fun measure expectedResult ->
-    let result = Measure.defineDivisions (toUnvalidatedMeasure 1 measure)
+    let result = Measure.defineDivisions (toValidatedMeasure 1 measure)
     result |> equal "The calculated division is incorrect" expectedResult
 
 [<Tests>]

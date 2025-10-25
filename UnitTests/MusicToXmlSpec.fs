@@ -23,7 +23,7 @@ let ``converts music to xml`` =
     {
       Id = "hello world"
       Data =
-        Unvalidated [
+        Validated [
           {
             Name = "Instrument Name"
             Id = PartId 1
@@ -33,7 +33,7 @@ let ``converts music to xml`` =
               |> withCommonTimeSignature
               |> withCNaturalKeySignature
               |> withNote (Note.create4 NoteName.C Duration.Whole)
-              |> toUnvalidatedMeasure 1
+              |> toValidatedMeasure 1
             ]
           }
         ]

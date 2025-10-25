@@ -11,7 +11,7 @@ let partId2String (PartId partId) = $"P{partId}"
 let indexWithPartId (xs: 'a list) : list<PartId * 'a> =
   xs |> List.indexed |> List.map (fun (idx, x) -> idx + 1 |> PartId, x)
 
-let createPartList (names: UnvalidatedPart list) : XElement =
+let createPartList (names: ValidatedPart list) : XElement =
   names
   |> indexWithPartId
   |> List.map (fun (partId, part) ->
@@ -45,7 +45,7 @@ let interpretNote (n: NoteOrRest) : XElement =
   ]
   |> element "note"
 
-let createMeasureAttributes (m: UnvalidatedMeasure) (es: MeasureEvent list) : XElement =
+let createMeasureAttributes (m: ValidatedMeasure) (es: MeasureEvent list) : XElement =
   [
     m |> Measure.defineDivisions |> _.ToString() |> leafElement "divisions"
     yield!
@@ -71,7 +71,7 @@ let createMeasureNotes (es: MeasureEvent list) : XElement list =
     | MeasureEvent.NoteOrRest noteOrRest -> interpretNote noteOrRest |> Some
     | _ -> None)
 
-let createMeasure (previousMeasure: UnvalidatedMeasure option, currentMeasure: UnvalidatedMeasure) : XElement =
+let createMeasure (previousMeasure: ValidatedMeasure option, currentMeasure: ValidatedMeasure) : XElement =
   let events = Measure.generateEvents previousMeasure currentMeasure
 
   [
@@ -80,7 +80,7 @@ let createMeasure (previousMeasure: UnvalidatedMeasure option, currentMeasure: U
   ]
   |> elementWithAttributes "measure" [ currentMeasure.Id |> measureId2String |> attribute "number" ]
 
-let createPart (ps: UnvalidatedPart list) : XElement list =
+let createPart (ps: ValidatedPart list) : XElement list =
   ps
   |> indexWithPartId
   |> List.map (fun (partId, part) ->
@@ -99,7 +99,7 @@ let createPart (ps: UnvalidatedPart list) : XElement list =
 
 // TODO: add validation
 let convert (m: Music) : XDocument =
-  let (Unvalidated parts) = m
+  let (Validated parts) = m
 
   [ parts |> createPartList; yield! createPart parts ]
   |> elementWithAttributes "score-partwise" [ attribute "version" "4.0" ]

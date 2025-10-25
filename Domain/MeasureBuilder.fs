@@ -52,4 +52,4 @@ let withRepeteadNote (count: int) (note: Note.T) (m: ParsedMeasure) : ParsedMeas
 
 let withSymbols (symbols: NoteOrRest list) (m: ParsedMeasure) : ParsedMeasure = { m with NotesOrRests = symbols }
 
-let toUnvalidatedMeasure (id: int) (m: ParsedMeasure) : UnvalidatedMeasure = { Id = MeasureId id; Parsed = m }
+let toValidatedMeasure (id: int) (m: ParsedMeasure) : ValidatedMeasure = { Id = MeasureId id; Parsed = m }
