@@ -107,7 +107,7 @@ type Clef =
   | G
   | F
 
-type PartDefinitionSection = {
+type ParsedPartDefinitionSection = {
   Id: PartId option
   Name: string option
   Clef: Clef option
@@ -122,14 +122,14 @@ type ParsedMeasure = {
   NotesOrRests: NoteOrRest list
 }
 
-type NotesSection = {
+type ParsedNotesSection = {
   PartId: PartId
   Measures: ParsedMeasure list
 }
 
 type ParsedMusic = {
-  PartDefinitionSections: PartDefinitionSection list
-  NotesSections: NotesSection list
+  PartDefinitionSections: ParsedPartDefinitionSection list
+  NotesSections: ParsedNotesSection list
 }
 
 type ValidatedMeasure = { Id: MeasureId; Parsed: ParsedMeasure }

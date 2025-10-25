@@ -166,7 +166,7 @@ module Functions =
       |>> fun v -> v |> KeySignature |> PartDefinitionAttribute.KeySignature
     ]
 
-  let pPartDefinitionSection: P<PartDefinitionSection> =
+  let pPartDefinitionSection: P<ParsedPartDefinitionSection> =
     between (pCommand "part" .>> ws) (pCommand "endpart" .>> ws) (many (pPartDefinitionAttribute .>> ws))
     |>> (fun partDefinitionAttributes ->
       let mutable partId: PartId option = None
@@ -251,7 +251,7 @@ module Functions =
       return updatedMeasures
     }
 
-  let pNotesSection: P<NotesSection> =
+  let pNotesSection: P<ParsedNotesSection> =
     parse {
       let! partId = pCommand "notes" >>. ws >>. pint32 .>> ws |>> PartId
       let! sequenceOfNotes = pNotesSectionContent
