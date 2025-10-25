@@ -78,7 +78,7 @@ let createMeasure (previousMeasure: ValidatedMeasure option, currentMeasure: Val
     createMeasureAttributes currentMeasure events
     yield! createMeasureNotes events
   ]
-  |> elementWithAttributes "measure" [ currentMeasure.Id |> measureId2String |> attribute "number" ]
+  |> elementWithAttributes "measure" [ currentMeasure.MeasureId |> measureId2String |> attribute "number" ]
 
 let createPart (ps: ValidatedPart list) : XElement list =
   ps

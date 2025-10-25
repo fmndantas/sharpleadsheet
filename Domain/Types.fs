@@ -132,10 +132,10 @@ type ParsedMusic = {
   NotesSections: ParsedNotesSection list
 }
 
-type ValidatedMeasure = { Id: MeasureId; Parsed: ParsedMeasure }
+type ValidatedMeasure = { MeasureId: MeasureId; Parsed: ParsedMeasure }
 
 type ValidatedPart = {
-  Id: PartId
+  PartId: PartId
   Name: string
   Measures: ValidatedMeasure list
 }

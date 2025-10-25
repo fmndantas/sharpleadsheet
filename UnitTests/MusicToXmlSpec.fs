@@ -26,7 +26,7 @@ let ``converts music to xml`` =
         Validated [
           {
             Name = "Instrument Name"
-            Id = PartId 1
+            PartId = PartId 1
             Measures = [
               aParsedMeasure ()
               |> withClef Clef.G
