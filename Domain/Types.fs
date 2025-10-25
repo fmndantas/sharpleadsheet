@@ -140,9 +140,11 @@ type ValidatedPart = {
   Measures: ValidatedMeasure list
 }
 
+type ValidatedMusic = List<ValidatedPart>
+
 type Music =
   | Parsed of ParsedMusic
-  | Validated of List<ValidatedPart>
+  | Validated of ValidatedMusic
 
 [<RequireQualifiedAccess>]
 type MeasureEvent =
