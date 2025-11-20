@@ -263,7 +263,7 @@ module Functions =
       }
     }
 
-  let pMusic: P<Music> =
+  let pMusic: P<ParsedMusic> =
     parse {
       let! partDefinition = pPartDefinitionSection
 
@@ -285,15 +285,14 @@ module Functions =
 
       let! notesSection = many1 pNotesSection
 
-      return
-        Music.Parsed {
-          PartDefinitionSections = [ partDefinition ]
-          NotesSections =
-            notesSection
-            |> List.groupBy _.PartId
-            |> List.map (fun (partId, sections) -> {
-              PartId = partId
-              Measures = sections |> List.collect _.Measures
-            })
-        }
+      return {
+        PartDefinitionSections = [ partDefinition ]
+        NotesSections =
+          notesSection
+          |> List.groupBy _.PartId
+          |> List.map (fun (partId, sections) -> {
+            PartId = partId
+            Measures = sections |> List.collect _.Measures
+          })
+      }
     }

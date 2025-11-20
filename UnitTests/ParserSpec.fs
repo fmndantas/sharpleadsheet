@@ -471,7 +471,7 @@ let ``parses music`` =
     caseId(1)
       .WithData(openSample "example-1.sls")
       .WithExpectedResult(
-        Music.Parsed {
+        {
           PartDefinitionSections = [
             {
               Id = 1 |> PartId |> Some
@@ -536,7 +536,7 @@ let ``parses music`` =
     caseId(2)
       .WithData(openSample "example-2.sls")
       .WithExpectedResult(
-        Music.Parsed {
+        {
           PartDefinitionSections = [
             {
               Id = 2 |> PartId |> Some
@@ -592,7 +592,7 @@ let ``parses music`` =
         }
       )
   ]
-  <| fun content (expectedResult: Music, expectedFinalState: ParserState) ->
+  <| fun content (expectedResult: ParsedMusic, expectedFinalState: ParserState) ->
     runAndAssert Parser.Functions.pMusic content
     <| fun result finalState ->
       result |> equal "Music is incorrect" expectedResult
