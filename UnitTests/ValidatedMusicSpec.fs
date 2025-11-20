@@ -30,6 +30,27 @@ let ``invalidates parts with empty name`` =
         }
       )
       .WithExpectedResult(ValidationError.PartDefinitionMissingName 0)
+
+    case("no id")
+      .WithData(
+        {
+          PartDefinitionSections = [
+            {
+              Id = None
+              Name = Some "Piano"
+              Clef = Some Clef.G
+              TimeSignature =
+                Some {
+                  Numerator = 4
+                  Denominator = Duration.Quarter
+                }
+              KeySignature = NoteName.C |> KeySignature |> Some
+            }
+          ]
+          NotesSections = []
+        }
+      )
+      .WithExpectedResult(ValidationError.PartDefinitionMissingId 0)
   ]
   <| fun parsedMusic expectedError ->
     parsedMusic

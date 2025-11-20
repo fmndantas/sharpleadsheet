@@ -135,7 +135,9 @@ type ParsedMusic = {
 }
 
 [<RequireQualifiedAccess>]
-type ValidationError = PartDefinitionMissingName of partIndex: int
+type ValidationError =
+  | PartDefinitionMissingName of partIndex: int
+  | PartDefinitionMissingId of partIndex: int
 
 module ValidatedMusic =
   // TODO: move to Result
@@ -167,20 +169,22 @@ module ValidatedMusic =
   let private validatePartDefinitionSection
     (p: ParsedMusic)
     : Result<ParsedPartDefinitionSection list, ValidationError list> =
-    let erros =
-      p.PartDefinitionSections
-      |> List.indexed
-      |> List.choose (fun (idx, pd) ->
-        if Option.isNone pd.Name then
-          Some [ ValidationError.PartDefinitionMissingName idx ]
-        else
-          None)
-      |> List.concat
+    p.PartDefinitionSections
+    |> List.indexed
+    |> List.choose (fun (idx, pd) ->
+      Some [
+        if Option.isNone pd.Id then
+          ValidationError.PartDefinitionMissingId idx
 
-    if List.isEmpty erros then
-      Ok p.PartDefinitionSections
-    else
-      Error erros
+        if Option.isNone pd.Name then
+          ValidationError.PartDefinitionMissingName idx
+      ])
+    |> List.concat
+    |> fun erros ->
+        if List.isEmpty erros then
+          Ok p.PartDefinitionSections
+        else
+          Error erros
 
   let private validateNotesSections (p: ParsedMusic) : Result<ParsedNotesSection list, ValidationError list> =
     Ok p.NotesSections
