@@ -6,19 +6,24 @@ open Expecto.Flip.Expect
 open Case
 
 open Domain.Types
+open Domain.MeasureBuilder
 
 let ``invalidates parts with empty name`` =
   testTheory3 "invalidates part definitions without id" [
-    case("invalid")
+    case("no name")
       .WithData(
         {
           PartDefinitionSections = [
             {
-              Id = None
+              Id = 1 |> PartId |> Some
               Name = None
-              Clef = None
-              TimeSignature = None
-              KeySignature = None
+              Clef = Some Clef.G
+              TimeSignature =
+                Some {
+                  Numerator = 4
+                  Denominator = Duration.Quarter
+                }
+              KeySignature = NoteName.C |> KeySignature |> Some
             }
           ]
           NotesSections = []
@@ -32,6 +37,46 @@ let ``invalidates parts with empty name`` =
     |> wantError "validate should result in a error"
     |> exists "expected error was not found" ((=) expectedError)
 
+let ``creates validated music from correct parsed music`` =
+  testCase "Creates validated music from correct parsed music"
+  <| fun () ->
+    let parsedMusic = {
+      PartDefinitionSections = [
+        {
+          Id = 1 |> PartId |> Some
+          Name = Some "Piano"
+          Clef = None
+          TimeSignature = None
+          KeySignature = None
+        }
+      ]
+      NotesSections = [
+        {
+          PartId = PartId 1
+          Measures = [ aParsedMeasure () |> withNote (Note.create4 NoteName.C Duration.Whole) ]
+        }
+      ]
+    }
+
+    parsedMusic
+    |> ValidatedMusic.fromParsed
+    |> wantOk "validation should succeed"
+    |> equal "validated music is different from expected" [
+      {
+        PartId = PartId 1
+        Name = "Piano"
+        Measures = [
+          {
+            MeasureId = MeasureId 1
+            Parsed = aParsedMeasure () |> withNote (Note.create4 NoteName.C Duration.Whole)
+          }
+        ]
+      }
+    ]
+
 [<Tests>]
 let ValidatorSpec =
-  testList "ValidatorSpec" [ ``invalidates parts with empty name`` ]
+  testList "ValidatorSpec" [
+    ``invalidates parts with empty name``
+    ``creates validated music from correct parsed music``
+  ]

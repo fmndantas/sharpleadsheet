@@ -57,12 +57,14 @@ module Note =
 
   and Modifier = | Tie
 
+  /// Create a note without modifiers
   let create octave noteName duration = {
     Pitch = Pitch.create noteName octave
     Duration = duration
     Modifiers = []
   }
 
+  /// Create a note with modifiers
   let create' octave modifiers noteName duration = {
     Pitch = Pitch.create noteName octave
     Duration = duration
@@ -136,6 +138,19 @@ type ParsedMusic = {
 type ValidationError = PartDefinitionMissingName of partIndex: int
 
 module ValidatedMusic =
+  // TODO: move to Result
+  let private (<!>) f r =
+    match f, r with
+    | Ok fn, Ok v -> v |> fn |> Ok
+    | Ok _, Error es
+    | Error es, Ok _ -> Error es
+    | Error es1, Error es2 -> Error [ yield! es1; yield! es2 ]
+
+  let debug descricao x =
+    printfn "%s -> %A" descricao x
+    x
+
+  // TODO: remove "Validated"
   type T = List<ValidatedPart>
 
   and ValidatedPart = {
@@ -149,22 +164,58 @@ module ValidatedMusic =
     Parsed: ParsedMeasure
   }
 
-  let fromParsed (p: ParsedMusic) : Result<T, ValidationError list> =
-    let partsWithMissingName =
+  let private validatePartDefinitionSection
+    (p: ParsedMusic)
+    : Result<ParsedPartDefinitionSection list, ValidationError list> =
+    let erros =
       p.PartDefinitionSections
       |> List.indexed
-      |> List.choose (fun (idx, part) ->
-        if Option.isNone part.Name then
-          Some(ValidationError.PartDefinitionMissingName idx)
+      |> List.choose (fun (idx, pd) ->
+        if Option.isNone pd.Name then
+          Some [ ValidationError.PartDefinitionMissingName idx ]
         else
           None)
+      |> List.concat
 
-    let errors = [ yield! partsWithMissingName ]
-
-    if List.isEmpty errors then
-      failwith "todo"
+    if List.isEmpty erros then
+      Ok p.PartDefinitionSections
     else
-      Error errors
+      Error erros
+
+  let private validateNotesSections (p: ParsedMusic) : Result<ParsedNotesSection list, ValidationError list> =
+    Ok p.NotesSections
+
+  let private createFromValidParsedPart
+    (partDefinitionSection: ParsedPartDefinitionSection list)
+    (notesSections: ParsedNotesSection list)
+    : ValidatedPart list =
+    let measures =
+      notesSections
+      |> List.groupBy _.PartId
+      |> List.map (fun (partId, parsedNotesSections) ->
+        partId,
+        parsedNotesSections
+        |> List.collect _.Measures
+        |> List.mapi (fun measureId measure -> {
+          MeasureId = MeasureId(measureId + 1)
+          Parsed = measure
+        }))
+      |> Map.ofList
+
+    partDefinitionSection
+    |> List.map (fun partDefinition ->
+      let partId = Option.get partDefinition.Id
+
+      {
+        PartId = partId
+        Name = Option.get partDefinition.Name
+        Measures = measures |> Map.tryFind partId |> Option.defaultValue []
+      })
+
+  let fromParsed (p: ParsedMusic) : Result<T, ValidationError list> =
+    createFromValidParsedPart |> Ok
+    <!> validatePartDefinitionSection p
+    <!> validateNotesSections p
 
 [<RequireQualifiedAccess>]
 type Music =
