@@ -1,13 +1,11 @@
-module UnitTests.ValidatorSpec
+module UnitTests.ValidatedMusicSpec
 
 open Expecto
 open Expecto.Flip.Expect
 
 open Case
 
-open Domain
 open Domain.Types
-open Domain.Validator.Types
 
 let ``invalidates parts with empty name`` =
   testTheory3 "invalidates part definitions without id" [
@@ -30,8 +28,7 @@ let ``invalidates parts with empty name`` =
   ]
   <| fun parsedMusic expectedError ->
     parsedMusic
-    |> Music.Parsed
-    |> Validator.validate
+    |> ValidatedMusic.fromParsed
     |> wantError "validate should result in a error"
     |> exists "expected error was not found" ((=) expectedError)
 

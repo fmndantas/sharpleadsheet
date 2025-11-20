@@ -132,23 +132,44 @@ type ParsedMusic = {
   NotesSections: ParsedNotesSection list
 }
 
-type ValidatedMeasure = {
-  MeasureId: MeasureId
-  Parsed: ParsedMeasure
-}
+[<RequireQualifiedAccess>]
+type ValidationError = PartDefinitionMissingName of partIndex: int
 
-type ValidatedPart = {
-  PartId: PartId
-  Name: string
-  Measures: ValidatedMeasure list
-}
+module ValidatedMusic =
+  type T = List<ValidatedPart>
 
-type ValidatedMusic = List<ValidatedPart>
+  and ValidatedPart = {
+    PartId: PartId
+    Name: string
+    Measures: ValidatedMeasure list
+  }
+
+  and ValidatedMeasure = {
+    MeasureId: MeasureId
+    Parsed: ParsedMeasure
+  }
+
+  let fromParsed (p: ParsedMusic) : Result<T, ValidationError list> =
+    let partsWithMissingName =
+      p.PartDefinitionSections
+      |> List.indexed
+      |> List.choose (fun (idx, part) ->
+        if Option.isNone part.Name then
+          Some(ValidationError.PartDefinitionMissingName idx)
+        else
+          None)
+
+    let errors = [ yield! partsWithMissingName ]
+
+    if List.isEmpty errors then
+      failwith "todo"
+    else
+      Error errors
 
 [<RequireQualifiedAccess>]
 type Music =
   | Parsed of ParsedMusic
-  | Validated of ValidatedMusic
+  | Validated of ValidatedMusic.T
 
 [<RequireQualifiedAccess>]
 type MeasureEvent =
