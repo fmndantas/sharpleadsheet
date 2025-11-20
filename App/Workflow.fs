@@ -17,7 +17,12 @@ module Path =
     match v with
     | Path s -> s
 
-type ParseAndShow = Path.T -> Result<Music, string>
+[<RequireQualifiedAccess>]
+type WorkflowError =
+  | Parsing of string
+  | Validation of ValidationError
+
+type ParseAndShow = Path.T -> Result<Validated.Music, WorkflowError list>
 
 let private defaultState = {
   InitialKeySignature = KeySignature NoteName.C
@@ -31,12 +36,16 @@ let private defaultState = {
   LastPitch = None
 }
 
-let parseAndShow: ParseAndShow =
+let parse: ParseAndShow =
   fun path ->
     let pathAsString = path |> Path.getPathAsString
     let inputText = pathAsString |> File.ReadAllText
 
     match runParserOnString Parser.Functions.pMusic defaultState pathAsString inputText with
-    | Success(result, _, _) -> Result.Ok result
+    | Success(parsedMusic, _, _) -> Result.Ok parsedMusic
     | Failure(errorMessage, _, _) -> Result.Error errorMessage
-    |> Result.bind Validator.validate
+    |> Result.mapError (WorkflowError.Parsing >> List.singleton)
+    |> Result.bind (
+      Validated.musicFromParsedMusic
+      >> Result.mapError (List.map WorkflowError.Validation)
+    )
