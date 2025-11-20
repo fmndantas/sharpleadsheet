@@ -19,10 +19,9 @@ let openXml (file: string) =
   File.ReadAllText(Path.Join(here, "Xmls", file))
 
 let ``converts music to xml`` =
-  testTheory2 "converts music to xml" [
-    {
-      Id = "hello world"
-      Data =
+  testTheory3 "converts music to xml" [
+    case("hello world")
+      .WithData(
         Music.Validated [
           {
             Name = "Instrument Name"
@@ -37,8 +36,8 @@ let ``converts music to xml`` =
             ]
           }
         ]
-      ExpectedResult = openXml "helloworld.xml"
-    }
+      )
+      .WithExpectedResult(openXml "helloworld.xml")
   ]
   <| fun (music: Music) (expectedResult: string) ->
     let result = convert music

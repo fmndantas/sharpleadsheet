@@ -42,36 +42,8 @@ let case (id: string) = Builder<'a, 'b> id
 
 type TestBody<'a, 'b> = 'a -> 'b -> unit
 
-[<System.Obsolete>]
-let testTheory2<'a, 'b> (name: string) (cases: Case<'a, 'b> list) (testBody: TestBody<'a, 'b>) =
-  testTheory name cases
-  <| fun
-         {
-           Id = _
-           Data = data
-           ExpectedResult = expectedResult
-         } -> testBody data expectedResult
-
 let testTheory3<'a, 'b> (name: string) (cases: Builder<'a, 'b> list) (testBody: TestBody<'a, 'b>) =
   testTheory name (List.map (fun (builder: Builder<'a, 'b>) -> builder.Build()) cases)
-  <| fun
-         {
-           Id = _
-           Data = data
-           ExpectedResult = expectedResult
-         } -> testBody data expectedResult
-
-let ptestTheory2<'a, 'b> (name: string) (cases: Case<'a, 'b> list) (testBody: TestBody<'a, 'b>) =
-  ptestTheory name cases
-  <| fun
-         {
-           Id = _
-           Data = data
-           ExpectedResult = expectedResult
-         } -> testBody data expectedResult
-
-let ftestTheory2<'a, 'b> (name: string) (cases: Case<'a, 'b> list) (testBody: TestBody<'a, 'b>) =
-  ftestTheory name cases
   <| fun
          {
            Id = _
