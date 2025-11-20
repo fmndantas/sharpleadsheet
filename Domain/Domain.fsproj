@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Result.fs"/>
+    <Compile Include="ResultOperators.fs"/>
     <Compile Include="GenericFunctions.fs"/>
     <Compile Include="Types.fs"/>
     <Compile Include="MeasureBuilder.fs"/>

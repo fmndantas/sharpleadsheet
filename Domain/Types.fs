@@ -140,18 +140,6 @@ type ValidationError =
   | PartDefinitionMissingId of partIndex: int
 
 module ValidatedMusic =
-  // TODO: move to Result
-  let private (<!>) f r =
-    match f, r with
-    | Ok fn, Ok v -> v |> fn |> Ok
-    | Ok _, Error es
-    | Error es, Ok _ -> Error es
-    | Error es1, Error es2 -> Error [ yield! es1; yield! es2 ]
-
-  let debug description x =
-    printfn "%s -> %A" description x
-    x
-
   // TODO: remove "Validated"
   type T = List<ValidatedPart>
 
