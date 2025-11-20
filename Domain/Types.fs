@@ -132,7 +132,10 @@ type ParsedMusic = {
   NotesSections: ParsedNotesSection list
 }
 
-type ValidatedMeasure = { MeasureId: MeasureId; Parsed: ParsedMeasure }
+type ValidatedMeasure = {
+  MeasureId: MeasureId
+  Parsed: ParsedMeasure
+}
 
 type ValidatedPart = {
   PartId: PartId
@@ -142,6 +145,7 @@ type ValidatedPart = {
 
 type ValidatedMusic = List<ValidatedPart>
 
+[<RequireQualifiedAccess>]
 type Music =
   | Parsed of ParsedMusic
   | Validated of ValidatedMusic

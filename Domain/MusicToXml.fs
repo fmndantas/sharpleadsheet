@@ -99,7 +99,7 @@ let createPart (ps: ValidatedPart list) : XElement list =
 
 // TODO: add validation
 let convert (m: Music) : XDocument =
-  let (Validated parts) = m
+  let (Music.Validated parts) = m
 
   [ parts |> createPartList; yield! createPart parts ]
   |> elementWithAttributes "score-partwise" [ attribute "version" "4.0" ]

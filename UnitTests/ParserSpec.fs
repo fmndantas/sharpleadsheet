@@ -471,7 +471,7 @@ let ``parses music`` =
     caseId(1)
       .WithData(openSample "example-1.sls")
       .WithExpectedResult(
-        Parsed {
+        Music.Parsed {
           PartDefinitionSections = [
             {
               Id = 1 |> PartId |> Some
@@ -536,7 +536,7 @@ let ``parses music`` =
     caseId(2)
       .WithData(openSample "example-2.sls")
       .WithExpectedResult(
-        Parsed {
+        Music.Parsed {
           PartDefinitionSections = [
             {
               Id = 2 |> PartId |> Some

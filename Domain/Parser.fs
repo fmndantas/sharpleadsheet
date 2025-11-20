@@ -286,7 +286,7 @@ module Functions =
       let! notesSection = many1 pNotesSection
 
       return
-        Parsed {
+        Music.Parsed {
           PartDefinitionSections = [ partDefinition ]
           NotesSections =
             notesSection

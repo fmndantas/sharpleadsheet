@@ -23,7 +23,7 @@ let ``converts music to xml`` =
     {
       Id = "hello world"
       Data =
-        Validated [
+        Music.Validated [
           {
             Name = "Instrument Name"
             PartId = PartId 1
