@@ -16,11 +16,11 @@ type Builder<'a, 'b>(id: string) =
 
   member _.Data
     with get () = data
-    and set (v) = data <- v
+    and set v = data <- v
 
   member _.ExpectedResult
     with get () = expectedResult
-    and set (v) = expectedResult <- v
+    and set v = expectedResult <- v
 
   member this.WithData v =
     this.Data <- Some v
@@ -38,7 +38,7 @@ type Builder<'a, 'b>(id: string) =
 
 let caseId (id: int) = Builder<'a, 'b>(id.ToString())
 
-let case (id: string) = Builder<'a, 'b>(id)
+let case (id: string) = Builder<'a, 'b> id
 
 type TestBody<'a, 'b> = 'a -> 'b -> unit
 

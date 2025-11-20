@@ -10,7 +10,7 @@ open Domain.Types
 
 let ``it should calculate fifths`` =
   testTheory3 "it should calculate fifths" [
-    case("C").WithData(KeySignature NoteName.C).WithExpectedResult(Fifth.Zero)
+    case("C").WithData(KeySignature NoteName.C).WithExpectedResult Fifth.Zero
     case("F").WithData(KeySignature NoteName.F).WithExpectedResult(Fifth.Flat 1)
     case("G").WithData(KeySignature NoteName.G).WithExpectedResult(Fifth.Sharp 1)
     case("B").WithData(KeySignature NoteName.B).WithExpectedResult(Fifth.Sharp 5)
