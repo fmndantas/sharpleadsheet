@@ -5,8 +5,8 @@ open Domain.Types
 open Operators
 
 let generateEvents
-  (previousMeasure: ValidatedMusic.ValidatedMeasure option)
-  ({ Parsed = currentMeasure }: ValidatedMusic.ValidatedMeasure)
+  (previousMeasure: Validated.Measure option)
+  ({ Parsed = currentMeasure }: Validated.Measure)
   : MeasureEvent list =
   [
     yield!
@@ -29,7 +29,7 @@ let generateEvents
     yield! List.map MeasureEvent.NoteOrRest currentMeasure.NotesOrRests
   ]
 
-let defineDivisions ({ Parsed = measure }: ValidatedMusic.ValidatedMeasure) : int =
+let defineDivisions ({ Parsed = measure }: Validated.Measure) : int =
   if List.isEmpty measure.NotesOrRests then
     1
   else

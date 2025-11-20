@@ -54,7 +54,7 @@ let ``invalidates parts with empty name`` =
   ]
   <| fun parsedMusic expectedError ->
     parsedMusic
-    |> ValidatedMusic.fromParsed
+    |> Validated.musicFromParsedMusic
     |> wantError "validate should result in a error"
     |> exists "expected error was not found" ((=) expectedError)
 
@@ -80,7 +80,7 @@ let ``creates validated music from correct parsed music`` =
     }
 
     parsedMusic
-    |> ValidatedMusic.fromParsed
+    |> Validated.musicFromParsedMusic
     |> wantOk "validation should succeed"
     |> equal "validated music is different from expected" [
       {

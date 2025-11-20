@@ -139,17 +139,16 @@ type ValidationError =
   | PartDefinitionMissingName of partIndex: int
   | PartDefinitionMissingId of partIndex: int
 
-module ValidatedMusic =
-  // TODO: remove "Validated"
-  type T = List<ValidatedPart>
+module Validated =
+  type Music = List<Part>
 
-  and ValidatedPart = {
+  and Part = {
     PartId: PartId
     Name: string
-    Measures: ValidatedMeasure list
+    Measures: Measure list
   }
 
-  and ValidatedMeasure = {
+  and Measure = {
     MeasureId: MeasureId
     Parsed: ParsedMeasure
   }
@@ -180,7 +179,7 @@ module ValidatedMusic =
   let private createFromValidParsedPart
     (partDefinitionSection: ParsedPartDefinitionSection list)
     (notesSections: ParsedNotesSection list)
-    : ValidatedPart list =
+    : Part list =
     let measures =
       notesSections
       |> List.groupBy _.PartId
@@ -204,7 +203,7 @@ module ValidatedMusic =
         Measures = measures |> Map.tryFind partId |> Option.defaultValue []
       })
 
-  let fromParsed (p: ParsedMusic) : Result<T, ValidationError list> =
+  let musicFromParsedMusic (p: ParsedMusic) : Result<Music, ValidationError list> =
     createFromValidParsedPart |> Ok
     <!> validatePartDefinitionSection p
     <!> validateNotesSections p
@@ -212,7 +211,7 @@ module ValidatedMusic =
 [<RequireQualifiedAccess>]
 type Music =
   | Parsed of ParsedMusic
-  | Validated of ValidatedMusic.T
+  | Validated of Validated.Music
 
 [<RequireQualifiedAccess>]
 type MeasureEvent =
