@@ -1,6 +1,7 @@
 module App.Workflow
 
 open System.IO
+open System.Xml.Linq
 
 open FParsec
 
@@ -22,7 +23,8 @@ type WorkflowError =
   | Parsing of string
   | Validation of ValidationError
 
-type ParseAndShow = Path.T -> Result<Validated.Music, WorkflowError list>
+type Parse = Path.T -> Result<Validated.Music, WorkflowError list>
+type OutputMusicXml = Validated.Music -> XDocument
 
 let private defaultState = {
   InitialKeySignature = KeySignature NoteName.C
@@ -36,7 +38,7 @@ let private defaultState = {
   LastPitch = None
 }
 
-let parse: ParseAndShow =
+let parse: Parse =
   fun path ->
     let pathAsString = path |> Path.getPathAsString
     let inputText = pathAsString |> File.ReadAllText
@@ -49,3 +51,7 @@ let parse: ParseAndShow =
       Validated.musicFromParsedMusic
       >> Result.mapError (List.map WorkflowError.Validation)
     )
+
+// TODO: remove Music.Validated
+let outputXml: OutputMusicXml =
+  fun validatedMusic -> validatedMusic |> Music.Validated |> MusicToXml.convert
