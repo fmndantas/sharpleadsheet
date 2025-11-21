@@ -153,7 +153,7 @@ module Validated =
     Parsed: ParsedMeasure
   }
 
-  let private validatePartDefinitionSection
+  let private validatePartDefinitionSections
     (p: ParsedMusic)
     : Result<ParsedPartDefinitionSection list, ValidationError list> =
     p.PartDefinitionSections
@@ -177,7 +177,7 @@ module Validated =
     Ok p.NotesSections
 
   let private createFromValidParsedPart
-    (partDefinitionSection: ParsedPartDefinitionSection list)
+    (partDefinitionSections: ParsedPartDefinitionSection list)
     (notesSections: ParsedNotesSection list)
     : Part list =
     let measures =
@@ -193,7 +193,7 @@ module Validated =
         }))
       |> Map.ofList
 
-    partDefinitionSection
+    partDefinitionSections
     |> List.map (fun partDefinition ->
       let partId = Option.get partDefinition.Id
 
@@ -204,8 +204,8 @@ module Validated =
       })
 
   let musicFromParsedMusic (p: ParsedMusic) : Result<Music, ValidationError list> =
-    createFromValidParsedPart |> Ok
-    <!> validatePartDefinitionSection p
+    Ok createFromValidParsedPart
+    <!> validatePartDefinitionSections p
     <!> validateNotesSections p
 
 [<RequireQualifiedAccess>]
