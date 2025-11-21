@@ -8,8 +8,8 @@ open Case
 open Domain.Types
 open Domain.MeasureBuilder
 
-let ``invalidates parts with empty name`` =
-  testTheory3 "invalidates part definitions without id" [
+let ``invalidates wrong parsed parts`` =
+  testTheory3 "invalidates wrong parsed parts" [
     case("no name")
       .WithData(
         {
@@ -98,6 +98,6 @@ let ``creates validated music from correct parsed music`` =
 [<Tests>]
 let ValidatorSpec =
   testList "ValidatorSpec" [
-    ``invalidates parts with empty name``
+    ``invalidates wrong parsed parts``
     ``creates validated music from correct parsed music``
   ]
