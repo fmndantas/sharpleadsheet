@@ -138,6 +138,9 @@ type ParsedMusic = {
 type ValidationError =
   | PartDefinitionMissingName of partIndex: int
   | PartDefinitionMissingId of partIndex: int
+  | PartDefinitionsWithRepeatedIds of PartsWithRepeatedIds
+
+and PartsWithRepeatedIds = { PartId: PartId; Indexes: int list }
 
 module Validated =
   type Music = List<Part>
@@ -156,22 +159,41 @@ module Validated =
   let private validatePartDefinitionSections
     (p: ParsedMusic)
     : Result<ParsedPartDefinitionSection list, ValidationError list> =
-    p.PartDefinitionSections
-    |> List.indexed
-    |> List.choose (fun (idx, pd) ->
-      Some [
-        if Option.isNone pd.Id then
-          ValidationError.PartDefinitionMissingId idx
+    let perPart =
+      p.PartDefinitionSections
+      |> List.indexed
+      |> List.choose (fun (idx, pd) ->
+        Some [
+          if Option.isNone pd.Id then
+            ValidationError.PartDefinitionMissingId idx
 
-        if Option.isNone pd.Name then
-          ValidationError.PartDefinitionMissingName idx
-      ])
-    |> List.concat
-    |> fun erros ->
-        if List.isEmpty erros then
-          Ok p.PartDefinitionSections
+          if Option.isNone pd.Name then
+            ValidationError.PartDefinitionMissingName idx
+        ])
+      |> List.concat
+
+    let partsWithRepeteadIds =
+      p.PartDefinitionSections
+      |> List.indexed
+      |> List.choose (fun (idx, part) -> part.Id |> Option.map (fun partId -> partId, idx))
+      |> List.groupBy fst
+      |> List.choose (fun (partId, idxs) ->
+        if idxs.Length > 1 then
+          {
+            PartId = partId
+            Indexes = List.map snd idxs
+          }
+          |> ValidationError.PartDefinitionsWithRepeatedIds
+          |> Some
         else
-          Error erros
+          None)
+
+    let errors = [ yield! perPart; yield! partsWithRepeteadIds ]
+
+    if List.isEmpty errors then
+      Ok p.PartDefinitionSections
+    else
+      Error errors
 
   let private validateNotesSections (p: ParsedMusic) : Result<ParsedNotesSection list, ValidationError list> =
     Ok p.NotesSections
@@ -193,6 +215,7 @@ module Validated =
         }))
       |> Map.ofList
 
+    // TODO: there is any strategy I can use to mitigate Option.get?
     partDefinitionSections
     |> List.map (fun partDefinition ->
       let partId = Option.get partDefinition.Id

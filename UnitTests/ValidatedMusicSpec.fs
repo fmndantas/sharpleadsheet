@@ -9,48 +9,84 @@ open Domain.Types
 open Domain.MeasureBuilder
 
 let ``invalidates wrong parsed parts`` =
+  let aPart partId name clef timeSignature keySignature = {
+    Id = partId
+    Name = name
+    Clef = clef
+    TimeSignature = timeSignature
+    KeySignature = keySignature
+  }
+
+  let aPartWithId partId =
+    aPart
+      partId
+      (Some "Piano")
+      (Some Clef.G)
+      (Some {
+        Numerator = 4
+        Denominator = Duration.Quarter
+      })
+      (NoteName.C |> KeySignature |> Some)
+
+  let aPartWithName name =
+    aPart
+      (1 |> PartId |> Some)
+      name
+      (Some Clef.G)
+      (Some {
+        Numerator = 4
+        Denominator = Duration.Quarter
+      })
+      (NoteName.C |> KeySignature |> Some)
+
   testTheory3 "invalidates wrong parsed parts" [
     case("no name")
       .WithData(
         {
-          PartDefinitionSections = [
-            {
-              Id = 1 |> PartId |> Some
-              Name = None
-              Clef = Some Clef.G
-              TimeSignature =
-                Some {
-                  Numerator = 4
-                  Denominator = Duration.Quarter
-                }
-              KeySignature = NoteName.C |> KeySignature |> Some
-            }
-          ]
+          PartDefinitionSections = [ "Piano" |> Some |> aPartWithName; aPartWithName None ]
           NotesSections = []
         }
       )
-      .WithExpectedResult(ValidationError.PartDefinitionMissingName 0)
+      .WithExpectedResult(ValidationError.PartDefinitionMissingName 1)
 
     case("no id")
       .WithData(
         {
-          PartDefinitionSections = [
-            {
-              Id = None
-              Name = Some "Piano"
-              Clef = Some Clef.G
-              TimeSignature =
-                Some {
-                  Numerator = 4
-                  Denominator = Duration.Quarter
-                }
-              KeySignature = NoteName.C |> KeySignature |> Some
-            }
-          ]
+          PartDefinitionSections = [ aPartWithId None; 1 |> PartId |> Some |> aPartWithId ]
           NotesSections = []
         }
       )
       .WithExpectedResult(ValidationError.PartDefinitionMissingId 0)
+
+    case("repeated ids.1")
+      .WithData(
+        {
+          // 1
+          PartDefinitionSections = [ 1; 1; 2; 5; 10; 3; 4 ] |> List.map (PartId >> Some >> aPartWithId)
+          NotesSections = []
+        }
+      )
+      .WithExpectedResult(
+        ValidationError.PartDefinitionsWithRepeatedIds {
+          PartId = PartId 1
+          Indexes = [ 0; 1 ]
+        }
+      )
+
+    case("repeated ids.2")
+      .WithData(
+        {
+          // 10
+          PartDefinitionSections = [ 1; 2; 5; 10; 10; 3; 4; 10 ] |> List.map (PartId >> Some >> aPartWithId)
+          NotesSections = []
+        }
+      )
+      .WithExpectedResult(
+        ValidationError.PartDefinitionsWithRepeatedIds {
+          PartId = PartId 10
+          Indexes = [ 3; 4; 7 ]
+        }
+      )
   ]
   <| fun parsedMusic expectedError ->
     parsedMusic
