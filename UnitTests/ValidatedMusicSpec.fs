@@ -41,31 +41,15 @@ let ``invalidates wrong parsed parts`` =
 
   testTheory3 "invalidates wrong parsed parts" [
     case("no name")
-      .WithData(
-        {
-          PartDefinitionSections = [ "Piano" |> Some |> aPartWithName; aPartWithName None ]
-          NotesSections = []
-        }
-      )
+      .WithData([ "Piano" |> Some |> aPartWithName; aPartWithName None ])
       .WithExpectedResult(ValidationError.PartDefinitionMissingName 1)
 
     case("no id")
-      .WithData(
-        {
-          PartDefinitionSections = [ aPartWithId None; 1 |> PartId |> Some |> aPartWithId ]
-          NotesSections = []
-        }
-      )
+      .WithData([ aPartWithId None; 1 |> PartId |> Some |> aPartWithId ])
       .WithExpectedResult(ValidationError.PartDefinitionMissingId 0)
 
     case("repeated ids.1")
-      .WithData(
-        {
-          // 1
-          PartDefinitionSections = [ 1; 1; 2; 5; 10; 3; 4 ] |> List.map (PartId >> Some >> aPartWithId)
-          NotesSections = []
-        }
-      )
+      .WithData([ 1; 1; 2; 5; 10; 3; 4 ] |> List.map (PartId >> Some >> aPartWithId))
       .WithExpectedResult(
         ValidationError.PartDefinitionsWithRepeatedIds {
           PartId = PartId 1
@@ -74,13 +58,7 @@ let ``invalidates wrong parsed parts`` =
       )
 
     case("repeated ids.2")
-      .WithData(
-        {
-          // 10
-          PartDefinitionSections = [ 1; 2; 5; 10; 10; 3; 4; 10 ] |> List.map (PartId >> Some >> aPartWithId)
-          NotesSections = []
-        }
-      )
+      .WithData([ 1; 2; 5; 10; 10; 3; 4; 10 ] |> List.map (PartId >> Some >> aPartWithId))
       .WithExpectedResult(
         ValidationError.PartDefinitionsWithRepeatedIds {
           PartId = PartId 10
@@ -88,8 +66,11 @@ let ``invalidates wrong parsed parts`` =
         }
       )
   ]
-  <| fun parsedMusic expectedError ->
-    parsedMusic
+  <| fun partDefinitionSections expectedError ->
+    {
+      PartDefinitionSections = partDefinitionSections
+      NotesSections = []
+    }
     |> Validated.musicFromParsedMusic
     |> wantError "validate should result in a error"
     |> exists "expected error was not found" ((=) expectedError)
