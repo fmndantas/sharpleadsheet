@@ -160,7 +160,7 @@ module Validated =
   let private validatePartDefinitionSections
     (p: ParsedMusic)
     : Result<ParsedPartDefinitionSection list, ValidationError list> =
-    let perPart =
+    let errorsPerPart =
       p.PartDefinitionSections
       |> List.indexed
       |> List.choose (fun (idx, pd) ->
@@ -189,7 +189,7 @@ module Validated =
         else
           None)
 
-    let errors = [ yield! perPart; yield! partsWithRepeteadIds ]
+    let errors = [ yield! errorsPerPart; yield! partsWithRepeteadIds ]
 
     if List.isEmpty errors then
       Ok p.PartDefinitionSections
