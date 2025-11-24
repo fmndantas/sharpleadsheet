@@ -83,7 +83,7 @@ let ``invalidates wrong parsed notes sections`` =
   testTheory3 "invalidates wrong parsed notes sections" [
     case("mention of invalid part id.1")
       .WithData([ 1 |> PartId |> Some |> partWithId ], [ 2 |> PartId |> notesSectionWithId ])
-      .WithExpectedResult(ValidationError.NotesSectionReferencesInvalidPartId 0)
+      .WithExpectedResult(ValidationError.NotesSectionReferencesInvalidPartId { PartId = PartId 2; Index = 0 })
 
     case("mention of invalid part id.2")
       .WithData(
@@ -91,10 +91,10 @@ let ``invalidates wrong parsed notes sections`` =
         [
           10 |> PartId |> notesSectionWithId
           10 |> PartId |> notesSectionWithId
-          2 |> PartId |> notesSectionWithId
+          234 |> PartId |> notesSectionWithId
         ]
       )
-      .WithExpectedResult(ValidationError.NotesSectionReferencesInvalidPartId 2)
+      .WithExpectedResult(ValidationError.NotesSectionReferencesInvalidPartId { PartId = PartId 234; Index = 2 })
 
     case("mention of invalid part id.3")
       .WithData(
@@ -105,7 +105,7 @@ let ``invalidates wrong parsed notes sections`` =
           7 |> PartId |> notesSectionWithId
         ]
       )
-      .WithExpectedResult(ValidationError.NotesSectionReferencesInvalidPartId 1)
+      .WithExpectedResult(ValidationError.NotesSectionReferencesInvalidPartId { PartId = PartId 8; Index = 1 })
   ]
   <| fun (parts, notes) expectedError ->
     {

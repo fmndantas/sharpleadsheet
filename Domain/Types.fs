@@ -136,12 +136,13 @@ type ParsedMusic = {
 
 [<RequireQualifiedAccess>]
 type ValidationError =
-  | PartDefinitionMissingName of partIndex: int
-  | PartDefinitionMissingId of partIndex: int
+  | PartDefinitionMissingName of index: int
+  | PartDefinitionMissingId of index: int
   | PartDefinitionsWithRepeatedIds of PartsWithRepeatedIds
-  | NotesSectionReferencesInvalidPartId of notesSectionIndex: int
+  | NotesSectionReferencesInvalidPartId of NotesSectionReferencesInvalidPartId
 
 and PartsWithRepeatedIds = { PartId: PartId; Indexes: int list }
+and NotesSectionReferencesInvalidPartId = { PartId: PartId; Index: int }
 
 module Validated =
   type Music = List<Part>
@@ -208,7 +209,8 @@ module Validated =
       notesSections
       |> List.indexed
       |> List.filter (fun (_, n) -> partIds |> Set.contains n.PartId |> not)
-      |> List.map (fun (idx, _) -> ValidationError.NotesSectionReferencesInvalidPartId idx)
+      |> List.map (fun (idx, n) ->
+        ValidationError.NotesSectionReferencesInvalidPartId { PartId = n.PartId; Index = idx })
 
     let errors = [ yield! referencesToInvalidIds ]
 
