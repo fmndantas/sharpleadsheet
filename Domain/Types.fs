@@ -139,6 +139,7 @@ type ValidationError =
   | PartDefinitionMissingName of partIndex: int
   | PartDefinitionMissingId of partIndex: int
   | PartDefinitionsWithRepeatedIds of PartsWithRepeatedIds
+  | NotesSectionReferencesInvalidPartId of notesSectionIndex: int
 
 and PartsWithRepeatedIds = { PartId: PartId; Indexes: int list }
 
@@ -195,8 +196,26 @@ module Validated =
     else
       Error errors
 
-  let private validateNotesSections (p: ParsedMusic) : Result<ParsedNotesSection list, ValidationError list> =
-    Ok p.NotesSections
+  let private validateNotesSections
+    ({
+       PartDefinitionSections = partsSections
+       NotesSections = notesSections
+     }: ParsedMusic)
+    : Result<ParsedNotesSection list, ValidationError list> =
+    let partIds = partsSections |> List.choose _.Id |> Set.ofList
+
+    let referencesToInvalidIds =
+      notesSections
+      |> List.indexed
+      |> List.filter (fun (_, n) -> partIds |> Set.contains n.PartId |> not)
+      |> List.map (fun (idx, _) -> ValidationError.NotesSectionReferencesInvalidPartId idx)
+
+    let errors = [ yield! referencesToInvalidIds ]
+
+    if List.isEmpty errors then
+      Ok notesSections
+    else
+      Error errors
 
   let private createFromValidParsedPart
     (partDefinitionSections: ParsedPartDefinitionSection list)

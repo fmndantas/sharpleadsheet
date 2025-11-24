@@ -8,7 +8,8 @@ open Case
 open Domain.Types
 open Domain.MeasureBuilder
 
-let ``invalidates wrong parsed parts`` =
+[<AutoOpen>]
+module private ArrangeUtils =
   let aPart partId name clef timeSignature keySignature = {
     Id = partId
     Name = name
@@ -17,7 +18,7 @@ let ``invalidates wrong parsed parts`` =
     KeySignature = keySignature
   }
 
-  let aPartWithId partId =
+  let partWithId partId =
     aPart
       partId
       (Some "Piano")
@@ -28,7 +29,7 @@ let ``invalidates wrong parsed parts`` =
       })
       (NoteName.C |> KeySignature |> Some)
 
-  let aPartWithName name =
+  let partWithName name =
     aPart
       (1 |> PartId |> Some)
       name
@@ -39,17 +40,20 @@ let ``invalidates wrong parsed parts`` =
       })
       (NoteName.C |> KeySignature |> Some)
 
+  let notesSectionWithId partId = { PartId = partId; Measures = [] }
+
+let ``invalidates wrong parsed parts`` =
   testTheory3 "invalidates wrong parsed parts" [
     case("no name")
-      .WithData([ "Piano" |> Some |> aPartWithName; aPartWithName None ])
+      .WithData([ "Piano" |> Some |> partWithName; partWithName None ])
       .WithExpectedResult(ValidationError.PartDefinitionMissingName 1)
 
     case("no id")
-      .WithData([ aPartWithId None; 1 |> PartId |> Some |> aPartWithId ])
+      .WithData([ partWithId None; 1 |> PartId |> Some |> partWithId ])
       .WithExpectedResult(ValidationError.PartDefinitionMissingId 0)
 
     case("repeated ids.1")
-      .WithData([ 1; 1; 2; 5; 10; 3; 4 ] |> List.map (PartId >> Some >> aPartWithId))
+      .WithData([ 1; 1; 2; 5; 10; 3; 4 ] |> List.map (PartId >> Some >> partWithId))
       .WithExpectedResult(
         ValidationError.PartDefinitionsWithRepeatedIds {
           PartId = PartId 1
@@ -58,7 +62,7 @@ let ``invalidates wrong parsed parts`` =
       )
 
     case("repeated ids.2")
-      .WithData([ 1; 2; 5; 10; 10; 3; 4; 10 ] |> List.map (PartId >> Some >> aPartWithId))
+      .WithData([ 1; 2; 5; 10; 10; 3; 4; 10 ] |> List.map (PartId >> Some >> partWithId))
       .WithExpectedResult(
         ValidationError.PartDefinitionsWithRepeatedIds {
           PartId = PartId 10
@@ -75,8 +79,45 @@ let ``invalidates wrong parsed parts`` =
     |> wantError "validate should result in a error"
     |> exists "expected error was not found" ((=) expectedError)
 
+let ``invalidates wrong parsed notes sections`` =
+  testTheory3 "invalidates wrong parsed notes sections" [
+    case("mention of invalid part id.1")
+      .WithData([ 1 |> PartId |> Some |> partWithId ], [ 2 |> PartId |> notesSectionWithId ])
+      .WithExpectedResult(ValidationError.NotesSectionReferencesInvalidPartId 0)
+
+    case("mention of invalid part id.2")
+      .WithData(
+        [ 10 |> PartId |> Some |> partWithId ],
+        [
+          10 |> PartId |> notesSectionWithId
+          10 |> PartId |> notesSectionWithId
+          2 |> PartId |> notesSectionWithId
+        ]
+      )
+      .WithExpectedResult(ValidationError.NotesSectionReferencesInvalidPartId 2)
+
+    case("mention of invalid part id.3")
+      .WithData(
+        [ 7 |> PartId |> Some |> partWithId; 6 |> PartId |> Some |> partWithId ],
+        [
+          6 |> PartId |> notesSectionWithId
+          8 |> PartId |> notesSectionWithId
+          7 |> PartId |> notesSectionWithId
+        ]
+      )
+      .WithExpectedResult(ValidationError.NotesSectionReferencesInvalidPartId 1)
+  ]
+  <| fun (parts, notes) expectedError ->
+    {
+      PartDefinitionSections = parts
+      NotesSections = notes
+    }
+    |> Validated.musicFromParsedMusic
+    |> wantError "validate should result in a error"
+    |> exists "expected error was not found" ((=) expectedError)
+
 let ``creates validated music from correct parsed music`` =
-  testCase "Creates validated music from correct parsed music"
+  testCase "creates validated music from correct parsed music"
   <| fun () ->
     let parsedMusic = {
       PartDefinitionSections = [
@@ -114,7 +155,8 @@ let ``creates validated music from correct parsed music`` =
 
 [<Tests>]
 let ValidatorSpec =
-  testList "ValidatorSpec" [
+  testList "validator" [
     ``invalidates wrong parsed parts``
+    ``invalidates wrong parsed notes sections``
     ``creates validated music from correct parsed music``
   ]
