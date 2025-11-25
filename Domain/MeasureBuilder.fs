@@ -35,7 +35,7 @@ let withNote (note: Note.T) (m: ParsedMeasure) : ParsedMeasure = {
       NotesOrRests = List.append m.NotesOrRests [ NoteOrRest.Note note ]
 }
 
-let withRest (duration: Duration) (m: ParsedMeasure) : ParsedMeasure = {
+let withRest (duration: Duration.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
       NotesOrRests = List.append m.NotesOrRests [ duration |> Rest |> NoteOrRest.Rest ]
 }

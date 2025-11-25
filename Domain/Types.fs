@@ -1,22 +1,32 @@
 ﻿module Domain.Types
 
 [<RequireQualifiedAccess>]
-type Duration =
-  | Whole
-  | WholeDotted
-  | Half
-  | HalfDotted
-  | Quarter
-  | QuarterDotted
-  | Eighth
-  | EighthDotted
-  | Sixteenth
-  | SixteenthDotted
+module Duration =
+  type T =
+    | Whole
+    | WholeDotted
+    | Half
+    | HalfDotted
+    | Quarter
+    | QuarterDotted
+    | Eighth
+    | EighthDotted
+    | Sixteenth
+    | SixteenthDotted
 
-[<RequireQualifiedAccess>]
-type DurationEquivalence =
-  | Multiple of int
-  | Divider of int
+  type Equivalence =
+    | Multiple of int
+    | Divider of int
+
+  let private durations = [ Whole; Half; Quarter; Eighth; Sixteenth ]
+  let private minimalDuration = List.last durations
+
+  let getEquivalence (unitOfEquivalence: T) (targetDuration: T) : Equivalence =
+    let u = durations |> List.findIndex ((=) unitOfEquivalence) |> pown 2
+    let t = durations |> List.findIndex ((=) targetDuration) |> pown 2
+    if u >= t then u / t |> Multiple else t / u |> Divider
+
+  let getEquivalenceToMinimalDuration = getEquivalence minimalDuration
 
 [<RequireQualifiedAccess>]
 type NoteName =
@@ -51,7 +61,7 @@ module Pitch =
 module Note =
   type T = private {
     Pitch: Pitch.T
-    Duration: Duration
+    Duration: Duration.T
     Modifiers: Modifier list
   }
 
@@ -87,11 +97,11 @@ module Note =
 
   let getDuration note = note.Duration
 
-type Rest = Rest of Duration
+type Rest = Rest of Duration.T
 
 type TimeSignature = {
   Numerator: int
-  Denominator: Duration
+  Denominator: Duration.T
 }
 
 type KeySignature = KeySignature of NoteName

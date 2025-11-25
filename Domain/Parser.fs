@@ -26,7 +26,7 @@ module Types =
     InitialClef: Clef
     CurrentOctave: int
     LastPitch: Pitch.T option
-    LastDuration: Duration option
+    LastDuration: Duration.T option
   }
 
 module Functions =
@@ -95,7 +95,7 @@ module Functions =
       | "b" -> NoteName.B
       | _ -> failwith $"Unknown note name: \"{v}\""
 
-  let pDuration: P<Duration> =
+  let pDuration: P<Duration.T> =
     [ "16."; "16"; "8."; "8"; "4."; "4"; "2."; "2"; "1."; "1" ]
     |> List.map pstring
     |> choice
@@ -113,7 +113,7 @@ module Functions =
       | "16." -> Duration.SixteenthDotted
       | _ -> failwith $"Unknown duration: \"{v}\""
 
-  let getUpdatedDuration (state: ParserState) (maybeNewDuration: Duration option) =
+  let getUpdatedDuration (state: ParserState) (maybeNewDuration: Duration.T option) =
     maybeNewDuration
     |> Option.orElse state.LastDuration
     |> Option.defaultValue state.InitialTimeSignature.Denominator
