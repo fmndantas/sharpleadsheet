@@ -41,6 +41,19 @@ module private ArrangeUtils =
       (NoteName.C |> KeySignature |> Some)
 
   let notesSectionWithId partId = { PartId = partId; Measures = [] }
+  let c4WithDuration duration = Note.create4 NoteName.C duration
+
+  type ExpectedValidationResult =
+    | NoError
+    | ContainsError of ValidationError
+
+  let testValidation expectedResult result =
+    match expectedResult with
+    | NoError -> isOk "result is supposed to be ok" result
+    | ContainsError error ->
+      result
+      |> wantError "result is supposed to be an error"
+      |> exists "expected error not found" ((=) error)
 
 let ``invalidates wrong parsed parts`` =
   testTheory3 "invalidates wrong parsed parts" [
@@ -132,7 +145,7 @@ let ``creates validated music from correct parsed music`` =
       NotesSections = [
         {
           PartId = PartId 1
-          Measures = [ aParsedMeasure () |> withNote (Note.create4 NoteName.C Duration.Whole) ]
+          Measures = [ aParsedMeasure () |> withNote (c4WithDuration Duration.Whole) ]
         }
       ]
     }
@@ -147,23 +160,11 @@ let ``creates validated music from correct parsed music`` =
         Measures = [
           {
             MeasureId = MeasureId 1
-            Parsed = aParsedMeasure () |> withNote (Note.create4 NoteName.C Duration.Whole)
+            Parsed = aParsedMeasure () |> withNote (c4WithDuration Duration.Whole)
           }
         ]
       }
     ]
-
-type ExpectedValidationResult =
-  | NoError
-  | ContainsError of ValidationError
-
-let testValidation expectedResult result =
-  match expectedResult with
-  | NoError -> isOk "result is supposed to be ok" result
-  | ContainsError error ->
-    result
-    |> wantError "result is supposed to be an error"
-    |> exists "expected error not found" ((=) error)
 
 let ``invalidates wrong parsed measures`` =
   let measure =
@@ -178,12 +179,7 @@ let ``invalidates wrong parsed measures`` =
       case("1.ok").WithData([ correctMeasure ]).WithExpectedResult NoError
 
       case("2.error")
-        .WithData(
-          [
-            correctMeasure
-            measure |> withNote (Note.create4 NoteName.C Duration.Quarter)
-          ]
-        )
+        .WithData([ correctMeasure; measure |> withNote (c4WithDuration Duration.Quarter) ])
         .WithExpectedResult(
           (MeasureId 2, partId)
           |> ValidationError.MeasureWithInconsistentDurations
@@ -196,9 +192,9 @@ let ``invalidates wrong parsed measures`` =
             measure
             |> withNotes (
               [
-                Note.create4 NoteName.C Duration.QuarterDotted
-                Note.create4 NoteName.C Duration.QuarterDotted
-                Note.create4 NoteName.C Duration.Quarter
+                c4WithDuration Duration.QuarterDotted
+                c4WithDuration Duration.QuarterDotted
+                c4WithDuration Duration.Quarter
               ]
             )
           ]
@@ -211,13 +207,13 @@ let ``invalidates wrong parsed measures`` =
             measure
             |> withNotes (
               [
-                Note.create4 NoteName.C Duration.Sixteenth
-                Note.create4 NoteName.C Duration.Sixteenth
-                Note.create4 NoteName.C Duration.Eighth
-                Note.create4 NoteName.C Duration.Eighth
-                Note.create4 NoteName.C Duration.Eighth
-                Note.create4 NoteName.C Duration.QuarterDotted
-                Note.create4 NoteName.C Duration.Eighth
+                c4WithDuration Duration.Sixteenth
+                c4WithDuration Duration.Sixteenth
+                c4WithDuration Duration.Eighth
+                c4WithDuration Duration.Eighth
+                c4WithDuration Duration.Eighth
+                c4WithDuration Duration.QuarterDotted
+                c4WithDuration Duration.Eighth
               ]
             )
           ]
@@ -229,7 +225,7 @@ let ``invalidates wrong parsed measures`` =
           [
             correctMeasure
             correctMeasure
-            measure |> withNotes ([ Note.create4 NoteName.C Duration.WholeDotted ])
+            measure |> withNote (c4WithDuration Duration.WholeDotted)
           ]
         )
         .WithExpectedResult(
@@ -255,7 +251,7 @@ let ``invalidates wrong parsed measures`` =
 
 [<Tests>]
 let ValidatorSpec =
-  testList "validator" [
+  testList "validated music" [
     ``invalidates wrong parsed parts``
     ``invalidates wrong parsed notes sections``
     ``creates validated music from correct parsed music``
