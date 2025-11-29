@@ -20,7 +20,8 @@ let here = __SOURCE_DIRECTORY__
 
 let private openSample (file: string) =
   let dot = Directory.GetParent(here).FullName
-  File.ReadAllText(Path.Join(dot, "Samples", file))
+  let file = Path.Join(dot, "Samples", file)
+  File.ReadAllText file
 
 let private runWithStateAndAssert parser initialState content assertFn =
   match runParserOnString parser initialState "" content with

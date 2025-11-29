@@ -31,9 +31,14 @@ module Duration =
     | SixteenthDotted -> Multiple 3
     | ThirtySecond -> Multiple 1
 
-  let equivalenceToInt e =
+  let private equivalenceToInt e =
     match e with
     | Multiple v -> v
+
+  let getEquivalenceBetweenLists (listA: T list) (listB: T list) =
+    List.sumBy (getEquivalenceToMinimalDuration >> equivalenceToInt) listA = List.sumBy
+      (getEquivalenceToMinimalDuration >> equivalenceToInt)
+      listB
 
 [<RequireQualifiedAccess>]
 type NoteName =
@@ -234,23 +239,18 @@ module Validated =
         } =
       measure.Parsed.TimeSignature
 
-    let timeSignatureTotalDuration =
-      denominator
-      |> Duration.getEquivalenceToMinimalDuration
-      |> Duration.equivalenceToInt
-      |> (*) numerator
+    let noteOrRestToDuration =
+      function
+      | NoteOrRest.Note n -> Note.getDuration n
+      | NoteOrRest.Rest(Rest d) -> d
 
-    let measureTotalDuration =
-      measure.Parsed.NotesOrRests
-      |> List.map (function
-        | NoteOrRest.Note n -> n |> Note.getDuration |> Duration.getEquivalenceToMinimalDuration
-        | NoteOrRest.Rest(Rest d) -> Duration.getEquivalenceToMinimalDuration d)
-      |> List.sumBy Duration.equivalenceToInt
-
-    if measureTotalDuration <> timeSignatureTotalDuration then
-      Error [ ValidationError.MeasureWithInconsistentDurations(measure.MeasureId, partId) ]
-    else
+    if
+      (List.replicate numerator denominator, List.map noteOrRestToDuration measure.Parsed.NotesOrRests)
+      ||> Duration.getEquivalenceBetweenLists
+    then
       Ok measure
+    else
+      Error [ ValidationError.MeasureWithInconsistentDurations(measure.MeasureId, partId) ]
 
   let private validateNotesSections
     ({
