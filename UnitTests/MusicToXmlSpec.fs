@@ -8,8 +8,9 @@ open Expecto.Flip.Expect
 open UnitTests.Case
 
 open Domain
-open Domain.Types
-open Domain.MeasureBuilder
+open Domain.CommonTypes
+open Domain.ParsedMeasureBuilder
+open Domain.ValidatedMeasureBuilder
 open Domain.MusicToXml
 
 [<Literal>]

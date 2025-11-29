@@ -1,7 +1,7 @@
 ﻿// For more information see https://aka.ms/fsharp-console-apps
 open System
 
-open Domain.Types
+open Domain.CommonTypes
 
 open App.Workflow
 

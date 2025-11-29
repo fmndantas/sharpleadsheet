@@ -5,7 +5,7 @@ open Expecto.Flip.Expect
 
 open UnitTests.Case
 
-open Domain.Types
+open Domain
 
 let ``it returns duration equivalence to the minimal duration`` =
   testTheory3 "it returns duration equivalence to the minimal duration" [

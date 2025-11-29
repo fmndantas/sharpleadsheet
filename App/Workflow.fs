@@ -6,7 +6,7 @@ open System.Xml.Linq
 open FParsec
 
 open Domain
-open Domain.Types
+open Domain.CommonTypes
 open Domain.Parser.Types
 
 module Path =

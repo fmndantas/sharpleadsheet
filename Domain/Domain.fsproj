@@ -9,13 +9,19 @@
     <Compile Include="Result.fs"/>
     <Compile Include="ResultOperators.fs"/>
     <Compile Include="GenericFunctions.fs"/>
-    <Compile Include="Types.fs"/>
-    <Compile Include="MeasureBuilder.fs"/>
+    <Compile Include="Duration.fs"/>
     <Compile Include="NoteName.fs"/>
+    <Compile Include="Pitch.fs"/>
+    <Compile Include="Note.fs"/>
+    <Compile Include="CommonTypes.fs"/>
     <Compile Include="NoteOrRest.fs"/>
     <Compile Include="KeySignature.fs"/>
-    <Compile Include="Measure.fs"/>
+    <Compile Include="ParsedTypes.fs"/>
+    <Compile Include="ParsedMeasureBuilder.fs"/>
     <Compile Include="Parser.fs"/>
+    <Compile Include="Validated.fs"/>
+    <Compile Include="ValidatedMeasureBuilder.fs"/>
+    <Compile Include="Measure.fs"/>
     <Compile Include="XmlWrapper.fs"/>
     <Compile Include="MusicToXml.fs"/>
   </ItemGroup>

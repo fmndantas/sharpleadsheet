@@ -6,8 +6,9 @@ open Expecto.Flip.Expect
 open Case
 
 open Domain
-open Domain.Types
-open Domain.MeasureBuilder
+open Domain.CommonTypes
+open Domain.ParsedMeasureBuilder
+open Domain.ValidatedMeasureBuilder
 
 let ``generates events between two measures`` =
   let initialMeasure =
