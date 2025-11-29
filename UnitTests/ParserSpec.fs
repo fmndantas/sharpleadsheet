@@ -112,6 +112,7 @@ let ``parses a duration`` =
     case("dotted eighth note").WithData("8.").WithExpectedResult Duration.EighthDotted
     case("sixteenth note").WithData("16").WithExpectedResult Duration.Sixteenth
     case("dotted sixteenth note").WithData("16.").WithExpectedResult Duration.SixteenthDotted
+    case("thirty-second note").WithData("32").WithExpectedResult Duration.ThirtySecond
   ]
   <| fun data expectedResult ->
     runAndAssert Parser.Functions.pDuration data

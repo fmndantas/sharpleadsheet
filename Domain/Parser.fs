@@ -96,7 +96,7 @@ module Functions =
       | _ -> failwith $"Unknown note name: \"{v}\""
 
   let pDuration: P<Duration.T> =
-    [ "16."; "16"; "8."; "8"; "4."; "4"; "2."; "2"; "1."; "1" ]
+    [ "32"; "16."; "16"; "8."; "8"; "4."; "4"; "2."; "2"; "1."; "1" ]
     |> List.map pstring
     |> choice
     |>> fun v ->
@@ -111,6 +111,7 @@ module Functions =
       | "8." -> Duration.EighthDotted
       | "16" -> Duration.Sixteenth
       | "16." -> Duration.SixteenthDotted
+      | "32" -> Duration.ThirtySecond
       | _ -> failwith $"Unknown duration: \"{v}\""
 
   let getUpdatedDuration (state: ParserState) (maybeNewDuration: Duration.T option) =
