@@ -20,27 +20,13 @@ module Types =
     | Rest of Rest
     | OctaveManipulation of int
 
-  type PartDefinitionSection = {
-    Id: PartId option
-    Name: string option
-    Clef: Clef option
-    TimeSignature: TimeSignature option
-    KeySignature: KeySignature option
-  }
-
-  type NotesSection = {
-    PartId: PartId
-    Measures: Measure list
-  }
-
   type ParserState = {
     InitialTimeSignature: TimeSignature
     InitialKeySignature: KeySignature
     InitialClef: Clef
     CurrentOctave: int
     LastPitch: Pitch.T option
-    LastDuration: Duration option
-    LastMeasureId: MeasureId option
+    LastDuration: Duration.T option
   }
 
 module Functions =
@@ -109,8 +95,8 @@ module Functions =
       | "b" -> NoteName.B
       | _ -> failwith $"Unknown note name: \"{v}\""
 
-  let pDuration: P<Duration> =
-    [ "16."; "16"; "8."; "8"; "4."; "4"; "2."; "2"; "1."; "1" ]
+  let pDuration: P<Duration.T> =
+    [ "32"; "16."; "16"; "8."; "8"; "4."; "4"; "2."; "2"; "1."; "1" ]
     |> List.map pstring
     |> choice
     |>> fun v ->
@@ -125,9 +111,10 @@ module Functions =
       | "8." -> Duration.EighthDotted
       | "16" -> Duration.Sixteenth
       | "16." -> Duration.SixteenthDotted
+      | "32" -> Duration.ThirtySecond
       | _ -> failwith $"Unknown duration: \"{v}\""
 
-  let getUpdatedDuration (state: ParserState) (maybeNewDuration: Duration option) =
+  let getUpdatedDuration (state: ParserState) (maybeNewDuration: Duration.T option) =
     maybeNewDuration
     |> Option.orElse state.LastDuration
     |> Option.defaultValue state.InitialTimeSignature.Denominator
@@ -180,7 +167,7 @@ module Functions =
       |>> fun v -> v |> KeySignature |> PartDefinitionAttribute.KeySignature
     ]
 
-  let pPartDefinitionSection: P<PartDefinitionSection> =
+  let pPartDefinitionSection: P<ParsedPartDefinitionSection> =
     between (pCommand "part" .>> ws) (pCommand "endpart" .>> ws) (many (pPartDefinitionAttribute .>> ws))
     |>> (fun partDefinitionAttributes ->
       let mutable partId: PartId option = None
@@ -224,7 +211,7 @@ module Functions =
       return NotesSectionSymbol.OctaveManipulation updatedOctave
     }
 
-  let pNotesSectionContent: P<Measure list> =
+  let pNotesSectionContent: P<ParsedMeasure list> =
     parse {
       let pSymbol: P<NotesSectionSymbol> =
         choice [
@@ -246,41 +233,26 @@ module Functions =
 
       let! state = getUserState
 
-      let currentMeasureId = Option.defaultValue (MeasureId 0) state.LastMeasureId
-
       let keySignature = state.InitialKeySignature
       let timeSignature = state.InitialTimeSignature
       let clef = state.InitialClef
 
-      let createMeasure =
-        aMeasure
-        >> withKeySignature keySignature
-        >> withTimeSignature timeSignature
-        >> withClef clef
+      let createMeasure symbols =
+        aParsedMeasure ()
+        |> withKeySignature keySignature
+        |> withTimeSignature timeSignature
+        |> withClef clef
+        |> withSymbols symbols
 
-      let _, updatedMeasures =
+      let updatedMeasures =
         symbolsPerMeasure
         |> List.filter (List.isEmpty >> not)
-        |> List.fold
-          (fun (MeasureId id, acc) symbols ->
-            let updatedId = id + 1
-
-            let updatedMeasures =
-              List.append acc [ createMeasure updatedId |> withSymbols symbols ]
-
-            MeasureId updatedId, updatedMeasures)
-          (currentMeasureId, [])
-
-      do!
-        updateUserState (fun s -> {
-          s with
-              LastMeasureId = List.tryLast updatedMeasures |> Option.map _.Id
-        })
+        |> List.fold (fun acc symbols -> List.append acc [ createMeasure symbols ]) []
 
       return updatedMeasures
     }
 
-  let pNotesSection: P<NotesSection> =
+  let pNotesSection: P<ParsedNotesSection> =
     parse {
       let! partId = pCommand "notes" >>. ws >>. pint32 .>> ws |>> PartId
       let! sequenceOfNotes = pNotesSectionContent
@@ -292,33 +264,36 @@ module Functions =
       }
     }
 
-  // TODO: validation (to remove Option.get)
-  let pMusic: P<Music> =
+  let pMusic: P<ParsedMusic> =
     parse {
       let! partDefinition = pPartDefinitionSection
 
       do!
         setUserState {
-          InitialTimeSignature = Option.get partDefinition.TimeSignature
-          InitialKeySignature = Option.get partDefinition.KeySignature
-          InitialClef = Option.get partDefinition.Clef
+          InitialTimeSignature =
+            Option.defaultValue
+              {
+                Numerator = 4
+                Denominator = Duration.Quarter
+              }
+              partDefinition.TimeSignature
+          InitialKeySignature = Option.defaultValue (KeySignature NoteName.C) partDefinition.KeySignature
+          InitialClef = Option.defaultValue Clef.G partDefinition.Clef
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
-          LastMeasureId = None
         }
 
       let! notesSection = many1 pNotesSection
 
-      let parts =
-        notesSection
-        |> List.groupBy _.PartId
-        |> List.map (fun (partId, notesSection) -> partId, notesSection |> List.map _.Measures |> List.concat)
-        |> List.map (fun (partId, measures) -> {
-          Id = partId
-          Name = Option.get partDefinition.Name
-          Measures = measures
-        })
-
-      return Music parts
+      return {
+        PartDefinitionSections = [ partDefinition ]
+        NotesSections =
+          notesSection
+          |> List.groupBy _.PartId
+          |> List.map (fun (partId, sections) -> {
+            PartId = partId
+            Measures = sections |> List.collect _.Measures
+          })
+      }
     }

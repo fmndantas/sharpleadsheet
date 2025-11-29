@@ -3,7 +3,7 @@ module UnitTests.MeasureSpec
 open Expecto
 open Expecto.Flip.Expect
 
-open UnitTests.Case
+open Case
 
 open Domain
 open Domain.Types
@@ -11,16 +11,15 @@ open Domain.MeasureBuilder
 
 let ``generates events between two measures`` =
   let initialMeasure =
-    aMeasure 1
+    aParsedMeasure ()
     |> withCNaturalKeySignature
     |> withCommonTimeSignature
     |> withClef Clef.G
 
-  testTheory2 "generates events between two measures" [
-    {
-      Id = "current measure is the first measure"
-      Data = None, initialMeasure
-      ExpectedResult =
+  testTheory3 "generates events between two measures" [
+    case("current measure is the first measure")
+      .WithData(None, initialMeasure)
+      .WithExpectedResult(
         [
           NoteName.C |> KeySignature |> MeasureEvent.DefineKeySignature
           MeasureEvent.DefineTimeSignature {
@@ -30,14 +29,12 @@ let ``generates events between two measures`` =
           MeasureEvent.DefineClef Clef.G
         ],
         []
-    }
+      )
 
-    // Key signature, time signature and clef
     yield! [
-      {
-        Id = "current measure does not change key signature, time signature or clef"
-        Data = Some initialMeasure, aMeasure 2 |> withCNaturalKeySignature |> withCommonTimeSignature
-        ExpectedResult =
+      case("current measure does not change key signature, time signature or clef")
+        .WithData(Some initialMeasure, aParsedMeasure () |> withCNaturalKeySignature |> withCommonTimeSignature)
+        .WithExpectedResult(
           [],
           [
             NoteName.C |> KeySignature |> MeasureEvent.DefineKeySignature
@@ -45,31 +42,29 @@ let ``generates events between two measures`` =
               Numerator = 4
               Denominator = Duration.Quarter
             }
-            MeasureEvent.DefineClef Clef.G
           ]
-      }
+        )
 
-      {
-        Id = "current measure changes key signature"
-        Data =
+      case("current measure changes key signature")
+        .WithData(
           Some initialMeasure,
-          aMeasure 2
+          aParsedMeasure ()
           |> withKeySignature (KeySignature NoteName.D)
           |> withCommonTimeSignature
-        ExpectedResult = [ NoteName.D |> KeySignature |> MeasureEvent.DefineKeySignature ], []
-      }
+        )
+        .WithExpectedResult([ NoteName.D |> KeySignature |> MeasureEvent.DefineKeySignature ], [])
 
-      {
-        Id = "current measure changes time signature"
-        Data =
+      case("current measure changes time signature")
+        .WithData(
           Some initialMeasure,
-          aMeasure 2
+          aParsedMeasure ()
           |> withCNaturalKeySignature
           |> withTimeSignature {
             Numerator = 6
             Denominator = Duration.Eighth
           }
-        ExpectedResult =
+        )
+        .WithExpectedResult(
           [
             MeasureEvent.DefineTimeSignature {
               Numerator = 6
@@ -77,22 +72,22 @@ let ``generates events between two measures`` =
             }
           ],
           []
-      }
+        )
 
-      {
-        Id = "current measure changes clef"
-        Data =
+      case("current measure changes clef")
+        .WithData(
           Some initialMeasure,
-          aMeasure 2
+          aParsedMeasure ()
           |> withCNaturalKeySignature
           |> withCommonTimeSignature
           |> withClef Clef.F
-        ExpectedResult = [ MeasureEvent.DefineClef Clef.F ], []
-      }
+        )
+        .WithExpectedResult([ MeasureEvent.DefineClef Clef.F ], [])
     ]
   ]
   <| fun (previousMeasure, currentMeasure) (resultShouldInclude, resultShouldNotInclude) ->
-    let events = Measure.generateEvents previousMeasure currentMeasure
+    let events =
+      Measure.generateEvents (Option.map (toValidatedMeasure 1) previousMeasure) (toValidatedMeasure 2 currentMeasure)
 
     for item in resultShouldInclude do
       events |> contains $"Expected measure event not found: \"{item}\"" item
@@ -105,49 +100,24 @@ let ``defines the number of divisions based on quarter note`` =
   let measureWithDurations durations =
     let notes = List.map (Note.create4 NoteName.C) durations
 
-    aMeasure 1 |> withNotes notes
+    aParsedMeasure () |> withNotes notes
 
-  testTheory2 "defines the number of divisions based on quarter note" [
-    {
-      Id = "Empty case"
-      Data = measureWithDurations []
-      ExpectedResult = 1
-    }
-
-    {
-      Id = "w"
-      Data = measureWithDurations [ Duration.Whole ]
-      ExpectedResult = 1
-    }
-
-    {
-      Id = "hh"
-      Data = measureWithDurations [ Duration.Half; Duration.Half ]
-      ExpectedResult = 1
-    }
-
-    {
-      Id = "qqqq"
-      Data = measureWithDurations [ Duration.Quarter; Duration.Quarter; Duration.Quarter; Duration.Quarter ]
-      ExpectedResult = 1
-    }
-
-    {
-      Id = "qqqee"
-      Data =
+  testTheory3 "defines the number of divisions based on quarter note" [
+    case("empty case").WithData(measureWithDurations []).WithExpectedResult 1
+    case("w").WithData(measureWithDurations [ Duration.Whole ]).WithExpectedResult 1
+    case("hh").WithData(measureWithDurations [ Duration.Half; Duration.Half ]).WithExpectedResult 1
+    case("qqqq").WithData(measureWithDurations (List.replicate 4 Duration.Quarter)).WithExpectedResult 1
+    case("qqqee")
+      .WithData(
         measureWithDurations [
-          Duration.Quarter
-          Duration.Quarter
-          Duration.Quarter
-          Duration.Eighth
-          Duration.Eighth
+          yield! List.replicate 3 Duration.Quarter
+          yield! List.replicate 2 Duration.Eighth
         ]
-      ExpectedResult = 2
-    }
-
-    {
-      Id = "qeeqses"
-      Data =
+      )
+      .WithExpectedResult
+      2
+    case("qeeqses")
+      .WithData(
         measureWithDurations [
           Duration.Quarter
           Duration.Eighth
@@ -157,11 +127,12 @@ let ``defines the number of divisions based on quarter note`` =
           Duration.Eighth
           Duration.Sixteenth
         ]
-      ExpectedResult = 4
-    }
+      )
+      .WithExpectedResult
+      4
   ]
   <| fun measure expectedResult ->
-    let result = Measure.defineDivisions measure
+    let result = Measure.defineDivisions (toValidatedMeasure 1 measure)
     result |> equal "The calculated division is incorrect" expectedResult
 
 [<Tests>]

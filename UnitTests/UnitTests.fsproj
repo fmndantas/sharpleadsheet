@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="Case.fs"/>
+    <Compile Include="ResultSpec.fs"/>
     <Compile Include="NoteNameSpec.fs"/>
     <Compile Include="DurationSpec.fs"/>
     <Compile Include="KeySignatureSpec.fs"/>
@@ -16,6 +17,7 @@
     <Compile Include="XmlWrapperSpec.fs"/>
     <Compile Include="MusicToXmlSpec.fs"/>
     <Compile Include="ParserSpec.fs"/>
+    <Compile Include="ValidatedMusicSpec.fs"/>
     <Compile Include="Program.fs"/>
   </ItemGroup>
 

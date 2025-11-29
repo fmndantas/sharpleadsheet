@@ -4,9 +4,8 @@ open Domain.GenericFunctions
 
 open Domain.Types
 
-let aMeasure (measureId: int) : Measure = {
+let aParsedMeasure () : ParsedMeasure = {
   Clef = Clef.G
-  Id = MeasureId measureId
   TimeSignature = {
     Numerator = 4
     Denominator = Duration.Quarter
@@ -15,40 +14,46 @@ let aMeasure (measureId: int) : Measure = {
   NotesOrRests = []
 }
 
-let withKeySignature (k: KeySignature) (m: Measure) : Measure = { m with KeySignature = k }
+let withKeySignature (k: KeySignature) (m: ParsedMeasure) : ParsedMeasure = { m with KeySignature = k }
 
-let withTimeSignature (t: TimeSignature) (m: Measure) : Measure = { m with TimeSignature = t }
+let withTimeSignature (t: TimeSignature) (m: ParsedMeasure) : ParsedMeasure = { m with TimeSignature = t }
 
-let withCNaturalKeySignature (m: Measure) : Measure =
+let withCNaturalKeySignature (m: ParsedMeasure) : ParsedMeasure =
   NoteName.C |> KeySignature |> flip2 withKeySignature m
 
-let withCommonTimeSignature (m: Measure) : Measure =
+let withCommonTimeSignature (m: ParsedMeasure) : ParsedMeasure =
   {
     Numerator = 4
     Denominator = Duration.Quarter
   }
   |> flip2 withTimeSignature m
 
-let withClef (clef: Clef) (m: Measure) : Measure = { m with Clef = clef }
+let withClef (clef: Clef) (m: ParsedMeasure) : ParsedMeasure = { m with Clef = clef }
 
-let withNote (note: Note.T) (m: Measure) : Measure = {
+let withNote (note: Note.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
       NotesOrRests = List.append m.NotesOrRests [ NoteOrRest.Note note ]
 }
 
-let withRest (duration: Duration) (m: Measure) : Measure = {
+let withRest (duration: Duration.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
       NotesOrRests = List.append m.NotesOrRests [ duration |> Rest |> NoteOrRest.Rest ]
 }
 
-let withNotes (notes: Note.T list) (m: Measure) : Measure = {
+let withNotes (notes: Note.T list) (m: ParsedMeasure) : ParsedMeasure = {
   m with
       NotesOrRests = List.map NoteOrRest.Note notes
 }
 
-let withRepeteadNote (count: int) (note: Note.T) (m: Measure) : Measure = {
+let withRepeteadNote (count: int) (note: Note.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
       NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.Note note))
 }
 
-let withSymbols (symbols: NoteOrRest list) (m: Measure) : Measure = { m with NotesOrRests = symbols }
+let withSymbols (symbols: NoteOrRest list) (m: ParsedMeasure) : ParsedMeasure = { m with NotesOrRests = symbols }
+
+// TODO: review usage of this function
+let toValidatedMeasure (id: int) (m: ParsedMeasure) : Validated.Measure = {
+  MeasureId = MeasureId id
+  Parsed = m
+}
