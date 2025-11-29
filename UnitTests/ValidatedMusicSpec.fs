@@ -153,10 +153,111 @@ let ``creates validated music from correct parsed music`` =
       }
     ]
 
+type ExpectedValidationResult =
+  | NoError
+  | ContainsError of ValidationError
+
+let testValidation expectedResult result =
+  match expectedResult with
+  | NoError -> isOk "result is supposed to be ok" result
+  | ContainsError error ->
+    result
+    |> wantError "result is supposed to be an error"
+    |> exists "expected error not found" ((=) error)
+
+let ``invalidates wrong parsed measures`` =
+  let measure =
+    aParsedMeasure () |> withCommonTimeSignature |> withCNaturalKeySignature
+
+  let correctMeasure = measure |> withNote (Note.create4 NoteName.C Duration.Whole)
+
+  let partId = PartId 1
+
+  [
+    testTheory3 "sum of durations" [
+      case("1.ok").WithData([ correctMeasure ]).WithExpectedResult NoError
+
+      case("2.error")
+        .WithData(
+          [
+            correctMeasure
+            measure |> withNote (Note.create4 NoteName.C Duration.Quarter)
+          ]
+        )
+        .WithExpectedResult(
+          (MeasureId 2, partId)
+          |> ValidationError.MeasureWithInconsistentDurations
+          |> ContainsError
+        )
+
+      case("3.ok")
+        .WithData(
+          [
+            measure
+            |> withNotes (
+              [
+                Note.create4 NoteName.C Duration.QuarterDotted
+                Note.create4 NoteName.C Duration.QuarterDotted
+                Note.create4 NoteName.C Duration.Quarter
+              ]
+            )
+          ]
+        )
+        .WithExpectedResult(NoError)
+
+      case("4.ok")
+        .WithData(
+          [
+            measure
+            |> withNotes (
+              [
+                Note.create4 NoteName.C Duration.Sixteenth
+                Note.create4 NoteName.C Duration.Sixteenth
+                Note.create4 NoteName.C Duration.Eighth
+                Note.create4 NoteName.C Duration.Eighth
+                Note.create4 NoteName.C Duration.Eighth
+                Note.create4 NoteName.C Duration.QuarterDotted
+                Note.create4 NoteName.C Duration.Eighth
+              ]
+            )
+          ]
+        )
+        .WithExpectedResult(NoError)
+
+      case("5.error")
+        .WithData(
+          [
+            correctMeasure
+            correctMeasure
+            measure |> withNotes ([ Note.create4 NoteName.C Duration.WholeDotted ])
+          ]
+        )
+        .WithExpectedResult(
+          (MeasureId 3, partId)
+          |> ValidationError.MeasureWithInconsistentDurations
+          |> ContainsError
+        )
+    ]
+    <| fun parsedMeasures expectedResult ->
+      {
+        PartDefinitionSections = [ partId |> Some |> partWithId ]
+        NotesSections = [
+          {
+            PartId = partId
+            Measures = parsedMeasures
+          }
+        ]
+      }
+      |> Validated.musicFromParsedMusic
+      |> testValidation expectedResult
+  ]
+  |> testList "invalidates wrong parsed measures"
+
 [<Tests>]
 let ValidatorSpec =
   testList "validator" [
     ``invalidates wrong parsed parts``
     ``invalidates wrong parsed notes sections``
     ``creates validated music from correct parsed music``
+    ``invalidates wrong parsed measures``
   ]

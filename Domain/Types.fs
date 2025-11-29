@@ -13,20 +13,27 @@ module Duration =
     | EighthDotted
     | Sixteenth
     | SixteenthDotted
+    | ThirtySecond
 
-  type Equivalence =
-    | Multiple of int
-    | Divider of int
+  type Equivalence = Multiple of int
 
-  let private durations = [ Whole; Half; Quarter; Eighth; Sixteenth ]
-  let private minimalDuration = List.last durations
+  let getEquivalenceToMinimalDuration =
+    function
+    | Whole -> Multiple 32
+    | WholeDotted -> Multiple 48
+    | Half -> Multiple 16
+    | HalfDotted -> Multiple 24
+    | Quarter -> Multiple 8
+    | QuarterDotted -> Multiple 12
+    | Eighth -> Multiple 4
+    | EighthDotted -> Multiple 6
+    | Sixteenth -> Multiple 2
+    | SixteenthDotted -> Multiple 3
+    | ThirtySecond -> Multiple 1
 
-  let getEquivalence (unitOfEquivalence: T) (targetDuration: T) : Equivalence =
-    let u = durations |> List.findIndex ((=) unitOfEquivalence) |> pown 2
-    let t = durations |> List.findIndex ((=) targetDuration) |> pown 2
-    if u >= t then u / t |> Multiple else t / u |> Divider
-
-  let getEquivalenceToMinimalDuration = getEquivalence minimalDuration
+  let equivalenceToInt e =
+    match e with
+    | Multiple v -> v
 
 [<RequireQualifiedAccess>]
 type NoteName =
@@ -150,6 +157,7 @@ type ValidationError =
   | PartDefinitionMissingId of index: int
   | PartDefinitionsWithRepeatedIds of PartsWithRepeatedIds
   | NotesSectionReferencesInvalidPartId of NotesSectionReferencesInvalidPartId
+  | MeasureWithInconsistentDurations of (MeasureId * PartId)
 
 and PartsWithRepeatedIds = { PartId: PartId; Indexes: int list }
 and NotesSectionReferencesInvalidPartId = { PartId: PartId; Index: int }
@@ -207,6 +215,43 @@ module Validated =
     else
       Error errors
 
+  let private getMeasuresPerPartId (notesSections: ParsedNotesSection list) : (PartId * Measure list) list =
+    notesSections
+    |> List.groupBy _.PartId
+    |> List.map (fun (partId, parsedNotesSections) ->
+      partId,
+      parsedNotesSections
+      |> List.collect _.Measures
+      |> List.mapi (fun measureId measure -> {
+        MeasureId = MeasureId(measureId + 1)
+        Parsed = measure
+      }))
+
+  let private validateMeasure (partId: PartId, measure: Measure) : Result<Measure, ValidationError list> =
+    let {
+          Numerator = numerator
+          Denominator = denominator
+        } =
+      measure.Parsed.TimeSignature
+
+    let timeSignatureTotalDuration =
+      denominator
+      |> Duration.getEquivalenceToMinimalDuration
+      |> Duration.equivalenceToInt
+      |> (*) numerator
+
+    let measureTotalDuration =
+      measure.Parsed.NotesOrRests
+      |> List.map (function
+        | NoteOrRest.Note n -> n |> Note.getDuration |> Duration.getEquivalenceToMinimalDuration
+        | NoteOrRest.Rest(Rest d) -> Duration.getEquivalenceToMinimalDuration d)
+      |> List.sumBy Duration.equivalenceToInt
+
+    if measureTotalDuration <> timeSignatureTotalDuration then
+      Error [ ValidationError.MeasureWithInconsistentDurations(measure.MeasureId, partId) ]
+    else
+      Ok measure
+
   let private validateNotesSections
     ({
        PartDefinitionSections = partsSections
@@ -215,14 +260,24 @@ module Validated =
     : Result<ParsedNotesSection list, ValidationError list> =
     let partIds = partsSections |> List.choose _.Id |> Set.ofList
 
-    let referencesToInvalidIds =
+    let referencesToInvalidIds: ValidationError list =
       notesSections
       |> List.indexed
       |> List.filter (fun (_, n) -> partIds |> Set.contains n.PartId |> not)
       |> List.map (fun (idx, n) ->
         ValidationError.NotesSectionReferencesInvalidPartId { PartId = n.PartId; Index = idx })
 
-    let errors = [ yield! referencesToInvalidIds ]
+    let errorsPerMeasure: ValidationError list =
+      notesSections
+      |> getMeasuresPerPartId
+      |> List.collect (fun (partId, measures) -> List.map (fun measure -> partId, measure) measures)
+      |> List.map validateMeasure
+      |> Result.traverse
+      |> function
+        | Ok _ -> []
+        | Error errors -> errors
+
+    let errors = [ yield! referencesToInvalidIds; yield! errorsPerMeasure ]
 
     if List.isEmpty errors then
       Ok notesSections
@@ -233,18 +288,7 @@ module Validated =
     (partDefinitionSections: ParsedPartDefinitionSection list)
     (notesSections: ParsedNotesSection list)
     : Part list =
-    let measures =
-      notesSections
-      |> List.groupBy _.PartId
-      |> List.map (fun (partId, parsedNotesSections) ->
-        partId,
-        parsedNotesSections
-        |> List.collect _.Measures
-        |> List.mapi (fun measureId measure -> {
-          MeasureId = MeasureId(measureId + 1)
-          Parsed = measure
-        }))
-      |> Map.ofList
+    let measures = notesSections |> getMeasuresPerPartId |> Map.ofList
 
     // TODO: there is any strategy I can use to mitigate Option.get?
     partDefinitionSections
