@@ -51,7 +51,3 @@ let parse: Parse =
       Validated.musicFromParsedMusic
       >> Result.mapError (List.map WorkflowError.Validation)
     )
-
-// TODO: remove Music.Validated
-let outputXml: OutputMusicXml =
-  fun validatedMusic -> validatedMusic |> Music.Validated |> MusicToXml.convert

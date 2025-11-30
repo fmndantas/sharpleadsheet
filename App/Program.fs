@@ -9,13 +9,33 @@ open App.Workflow
 let main argv =
   let source = argv[0]
 
+  let partIdToString =
+    function
+    | PartId v -> v
+
+  let measureIdToString =
+    function
+    | MeasureId v -> v
+
   let workflowErrorToString (e: WorkflowError) =
     match e with
     | WorkflowError.Parsing s -> s
     | WorkflowError.Validation v ->
-      match v with
-      | ValidationError.PartDefinitionMissingId idx -> sprintf "Part %d: missing id" idx
-      | ValidationError.PartDefinitionMissingName idx -> sprintf "Part %d: missing name" idx
+      (match v with
+       | ValidationError.PartDefinitionMissingId index -> sprintf "Part %d: missing id" index
+       | ValidationError.PartDefinitionMissingName index -> sprintf "Part %d: missing name" index
+       | ValidationError.PartDefinitionsWithRepeatedIds { PartId = partId; Indexes = indexes } ->
+         sprintf
+           "Duplicate part definition with ID %d found at the following positions: %A"
+           (partIdToString partId)
+           indexes
+       | ValidationError.NotesSectionReferencesInvalidPartId { PartId = partId; Index = index } ->
+         sprintf "Notes section %d: reference to invalid part id \"%d\"" index (partIdToString partId)
+       | ValidationError.MeasureWithInconsistentDurations(measureId, partId) ->
+         sprintf
+           "Measure %d in part %d has inconsistent durations"
+           (measureIdToString measureId)
+           (partIdToString partId))
       |> sprintf "%2s -> %s" String.Empty
 
   let result =
@@ -25,7 +45,8 @@ let main argv =
     |> Result.mapError (List.map workflowErrorToString)
 
   match result with
-  | Ok m -> printfn "Parsing went OK!"
+  | Ok _ ->
+    printfn "Parsing went OK!"
   | Error errors ->
     printfn "Parsing generated errors :("
     errors |> List.iter (printfn "%s")
