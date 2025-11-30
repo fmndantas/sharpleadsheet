@@ -21,13 +21,13 @@ let ``it should calculate fifths`` =
   ]
   <| fun keySignature expectedFifth ->
     let result = KeySignature.fifths keySignature
-    (expectedFifth, result) ||> equal "Calculated fifths is incorrect"
+    (expectedFifth, result) ||> equal "calculated fifths is incorrect"
 
 let ``returns cicle of fifths`` =
   testCase "returns cicle of fifhts"
   <| fun () ->
     NoteName.cicleOfFifths
-    |> equal "Cicle of fifths is incorrect" [
+    |> equal "cicle of fifths is incorrect" [
       NoteName.C
       NoteName.G
       NoteName.D
@@ -46,7 +46,7 @@ let ``returns circle of fourths`` =
   testCase "returns circle of fourths"
   <| fun () ->
     NoteName.cicleOfFourths
-    |> equal "Circle of fourths is incorrect" [
+    |> equal "circle of fourths is incorrect" [
       NoteName.C
       NoteName.F
       NoteName.BFlat
@@ -62,8 +62,8 @@ let ``returns circle of fourths`` =
     ]
 
 [<Tests>]
-let MusicToXmlSpec =
-  testList "MusicToXmlSpec" [
+let KeySignatureSpec =
+  testList "key signature" [
     ``it should calculate fifths``
     ``returns cicle of fifths``
     ``returns circle of fourths``

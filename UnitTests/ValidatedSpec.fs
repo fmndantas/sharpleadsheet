@@ -1,4 +1,4 @@
-module UnitTests.ValidatedMusicSpec
+module UnitTests.ValidatedSpec
 
 open Expecto
 open Expecto.Flip.Expect
@@ -253,7 +253,7 @@ let ``invalidates wrong parsed measures`` =
 
 [<Tests>]
 let ValidatorSpec =
-  testList "validated music" [
+  testList "validated" [
     ``invalidates wrong parsed parts``
     ``invalidates wrong parsed notes sections``
     ``creates validated music from correct parsed music``

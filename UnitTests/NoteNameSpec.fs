@@ -29,8 +29,8 @@ let ``calculates number of semitones until reach lower c`` =
   ]
   <| fun noteName expectedResult ->
     let result = NoteName.semitonesToReachC noteName
-    (expectedResult, result) ||> equal "Result is incorrect"
+    (expectedResult, result) ||> equal "result is incorrect"
 
 [<Tests>]
 let Spec =
-  testList "Spec" [ ``calculates number of semitones until reach lower c`` ]
+  testList "note name" [ ``calculates number of semitones until reach lower c`` ]

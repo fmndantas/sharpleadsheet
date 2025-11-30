@@ -20,4 +20,4 @@ let ``it should create xelement with attributes`` =
 
 [<Tests>]
 let XmlWrapperSpec =
-  testList "XmlWrapperSpec" [ ``it should create xelement with attributes`` ]
+  testList "xml wrapper" [ ``it should create xelement with attributes`` ]

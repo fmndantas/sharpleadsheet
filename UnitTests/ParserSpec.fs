@@ -75,7 +75,7 @@ let ``parses a part definition section`` =
   ]
   <| fun content expectedResult ->
     runAndAssert Parser.Functions.pPartDefinitionSection content
-    <| fun result _ -> result |> equal "Part definition section is incorrect" expectedResult
+    <| fun result _ -> result |> equal "part definition section is incorrect" expectedResult
 
 let ``parses a note name`` =
   testTheory3 "parses a note name" [
@@ -99,7 +99,7 @@ let ``parses a note name`` =
   ]
   <| fun data expectedResult ->
     runAndAssert Parser.Functions.pNoteName data
-    <| fun result _ -> result |> equal "Note name is incorrect" expectedResult
+    <| fun result _ -> result |> equal "note name is incorrect" expectedResult
 
 let ``parses a duration`` =
   testTheory3 "parses a duration" [
@@ -117,7 +117,7 @@ let ``parses a duration`` =
   ]
   <| fun data expectedResult ->
     runAndAssert Parser.Functions.pDuration data
-    <| fun result _ -> result |> equal "Duration is incorrect" expectedResult
+    <| fun result _ -> result |> equal "duration is incorrect" expectedResult
 
 let ``parses a note`` =
   testTheory3 "parses a note" [
@@ -148,7 +148,7 @@ let ``parses a note`` =
     }
 
     runWithStateAndAssert Parser.Functions.pNote currentState content
-    <| fun result _ -> result |> equal "Note is incorrect" expectedResult
+    <| fun result _ -> result |> equal "note is incorrect" expectedResult
 
 let ``parses a rest`` =
   testTheory3 "parses a rest" [
@@ -173,7 +173,7 @@ let ``parses a rest`` =
     }
 
     runWithStateAndAssert Parser.Functions.pRest state content
-    <| fun result _ -> result |> equal "Rest is incorrect" expectedResult
+    <| fun result _ -> result |> equal "rest is incorrect" expectedResult
 
 let ``parses notes section content`` =
   testTheory3 "parses notes section content" [
@@ -433,7 +433,7 @@ let ``parses notes section content`` =
   ]
   <| fun (currentState, content) expectedResult ->
     runWithStateAndAssert Parser.Functions.pNotesSectionContent currentState content
-    <| fun result _ -> result |> equal "Notes section content is incorrect" expectedResult
+    <| fun result _ -> result |> equal "notes section content is incorrect" expectedResult
 
 let ``parses notes section`` =
   testTheory3 "parses notes section" [
@@ -467,7 +467,7 @@ let ``parses notes section`` =
   ]
   <| fun (currentState, content) expectedResult ->
     runWithStateAndAssert Parser.Functions.pNotesSection currentState content
-    <| fun result _ -> result |> equal "Notes section is incorrect" expectedResult
+    <| fun result _ -> result |> equal "notes section is incorrect" expectedResult
 
 let ``parses music`` =
   testTheory3 "parses music" [
@@ -598,12 +598,12 @@ let ``parses music`` =
   <| fun content (expectedResult: ParsedMusic, expectedFinalState: ParserState) ->
     runAndAssert Parser.Functions.pMusic content
     <| fun result finalState ->
-      result |> equal "Music is incorrect" expectedResult
-      finalState |> equal "Final state is incorrect" expectedFinalState
+      result |> equal "music is incorrect" expectedResult
+      finalState |> equal "final state is incorrect" expectedFinalState
 
 [<Tests>]
 let ParserSpec =
-  testList "ParserSpec" [
+  testList "parser" [
     ``parses a part definition section``
     ``parses a note name``
     ``parses a duration``
