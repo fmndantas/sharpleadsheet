@@ -91,11 +91,11 @@ let ``generates events between two measures`` =
       Measure.generateEvents (Option.map (toValidatedMeasure 1) previousMeasure) (toValidatedMeasure 2 currentMeasure)
 
     for item in resultShouldInclude do
-      events |> contains $"Expected measure event not found: \"{item}\"" item
+      events |> contains $"expected measure event not found: \"{item}\"" item
 
     for item in resultShouldNotInclude do
       List.contains item events
-      |> isFalse $"Unexpected measure event found: \"{item}\""
+      |> isFalse $"unexpected measure event found: \"{item}\""
 
 let ``defines the number of divisions based on quarter note`` =
   let measureWithDurations durations =
@@ -134,11 +134,11 @@ let ``defines the number of divisions based on quarter note`` =
   ]
   <| fun measure expectedResult ->
     let result = Measure.defineDivisions (toValidatedMeasure 1 measure)
-    result |> equal "The calculated division is incorrect" expectedResult
+    result |> equal "the calculated division is incorrect" expectedResult
 
 [<Tests>]
 let MeasureSpec =
-  testList "MeasureSpec" [
+  testList "measure" [
     ``generates events between two measures``
     ``defines the number of divisions based on quarter note``
   ]

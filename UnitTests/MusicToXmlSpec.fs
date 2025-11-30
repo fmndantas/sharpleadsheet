@@ -44,7 +44,7 @@ let ``converts music to xml`` =
     let result = convert music
 
     (XmlWrapper.normalizeXmlText expectedResult, XmlWrapper.normalizeXml result)
-    ||> equal "Generated XML is incorrect"
+    ||> equal "generated XML is incorrect"
 
 [<Tests>]
-let MusicToXmlSpec = testList "MusicToXmlSpec" [ ``converts music to xml`` ]
+let MusicToXmlSpec = testList "music to xml" [ ``converts music to xml`` ]
