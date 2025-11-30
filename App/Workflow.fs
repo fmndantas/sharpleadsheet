@@ -6,7 +6,7 @@ open System.Xml.Linq
 open FParsec
 
 open Domain
-open Domain.Types
+open Domain.CommonTypes
 open Domain.Parser.Types
 
 module Path =
@@ -51,7 +51,3 @@ let parse: Parse =
       Validated.musicFromParsedMusic
       >> Result.mapError (List.map WorkflowError.Validation)
     )
-
-// TODO: remove Music.Validated
-let outputXml: OutputMusicXml =
-  fun validatedMusic -> validatedMusic |> Music.Validated |> MusicToXml.convert

@@ -10,8 +10,9 @@ open FParsec
 open Case
 
 open Domain
-open Domain.Types
-open Domain.MeasureBuilder
+open Domain.CommonTypes
+open Domain.ParsedTypes
+open Domain.ParsedMeasureBuilder
 
 open Domain.Parser.Types
 

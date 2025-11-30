@@ -6,11 +6,8 @@ open Expecto.Flip.Expect
 open Case
 
 open Domain
-open Domain.Types
 
 let ``calculates number of semitones until reach lower c`` =
-  let case (id: string) = Builder<NoteName, int> id
-
   testTheory3 "calculates number of semitones until reach lower c" [
     case("C").WithData(NoteName.C).WithExpectedResult 0
     case("C#").WithData(NoteName.CSharp).WithExpectedResult 1

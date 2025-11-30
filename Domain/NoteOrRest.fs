@@ -1,6 +1,6 @@
 module Domain.NoteOrRest
 
-open Domain.Types
+open Domain.CommonTypes
 
 let getDuration (n: NoteOrRest) : Duration.T =
   match n with

@@ -1,6 +1,6 @@
 module Domain.Measure
 
-open Domain.Types
+open Domain.CommonTypes
 
 open Operators
 

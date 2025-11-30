@@ -1,8 +1,9 @@
-module Domain.MeasureBuilder
+module Domain.ParsedMeasureBuilder
 
 open Domain.GenericFunctions
 
-open Domain.Types
+open Domain.CommonTypes
+open Domain.ParsedTypes
 
 let aParsedMeasure () : ParsedMeasure = {
   Clef = Clef.G
@@ -51,9 +52,3 @@ let withRepeteadNote (count: int) (note: Note.T) (m: ParsedMeasure) : ParsedMeas
 }
 
 let withSymbols (symbols: NoteOrRest list) (m: ParsedMeasure) : ParsedMeasure = { m with NotesOrRests = symbols }
-
-// TODO: review usage of this function
-let toValidatedMeasure (id: int) (m: ParsedMeasure) : Validated.Measure = {
-  MeasureId = MeasureId id
-  Parsed = m
-}

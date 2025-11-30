@@ -4,7 +4,14 @@ open System.Xml.Linq
 
 open Domain.XmlWrapper
 
-open Domain.Types
+open Domain.CommonTypes
+open Domain.ParsedTypes
+
+[<RequireQualifiedAccess>]
+[<System.Obsolete>]
+type Music =
+  | Parsed of ParsedMusic
+  | Validated of Validated.Music
 
 let partId2String (PartId partId) = $"P{partId}"
 
@@ -71,9 +78,7 @@ let createMeasureNotes (es: MeasureEvent list) : XElement list =
     | MeasureEvent.NoteOrRest noteOrRest -> interpretNote noteOrRest |> Some
     | _ -> None)
 
-let createMeasure
-  (previousMeasure: Validated.Measure option, currentMeasure: Validated.Measure)
-  : XElement =
+let createMeasure (previousMeasure: Validated.Measure option, currentMeasure: Validated.Measure) : XElement =
   let events = Measure.generateEvents previousMeasure currentMeasure
 
   [

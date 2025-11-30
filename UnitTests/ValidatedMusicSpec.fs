@@ -5,8 +5,10 @@ open Expecto.Flip.Expect
 
 open Case
 
-open Domain.Types
-open Domain.MeasureBuilder
+open Domain
+open Domain.CommonTypes
+open Domain.ParsedTypes
+open Domain.ParsedMeasureBuilder
 
 [<AutoOpen>]
 module private ArrangeUtils =

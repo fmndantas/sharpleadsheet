@@ -1,6 +1,6 @@
 module Domain.KeySignature
 
-open Domain.Types
+open Domain.CommonTypes
 
 type T = KeySignature
 

@@ -2,8 +2,9 @@ module Domain.Parser
 
 open FParsec
 
-open Domain.Types
-open Domain.MeasureBuilder
+open Domain.CommonTypes
+open Domain.ParsedTypes
+open Domain.ParsedMeasureBuilder
 
 module Types =
   [<RequireQualifiedAccess>]
@@ -52,7 +53,7 @@ module Functions =
       | "f" -> Clef.F
       | _ -> failwith "Unknown clef: \"{v}\""
 
-  let pNoteName: P<NoteName> =
+  let pNoteName: P<NoteName.T> =
     [
       "cs"
       "c"
