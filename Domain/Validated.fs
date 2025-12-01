@@ -37,11 +37,11 @@ let private validatePartDefinitionSections
     |> List.indexed
     |> List.choose (fun (idx, part) -> part.Id |> Option.map (fun partId -> partId, idx))
     |> List.groupBy fst
-    |> List.choose (fun (partId, idxs) ->
-      if idxs.Length > 1 then
+    |> List.choose (fun (partId, group) ->
+      if group.Length > 1 then
         {
           PartId = partId
-          Indexes = List.map snd idxs
+          Indexes = List.map snd group
         }
         |> ValidationError.PartDefinitionsWithRepeatedIds
         |> Some
@@ -67,7 +67,7 @@ let private getMeasuresPerPartId (notesSections: ParsedNotesSection list) : (Par
       Parsed = measure
     }))
 
-let private validateMeasure (partId: PartId, measure: Measure) : Result<Measure, ValidationError list> =
+let private validateMeasure (partId: PartId) (measure: Measure) : Result<Measure, ValidationError list> =
   let {
         Numerator = numerator
         Denominator = denominator
@@ -104,8 +104,7 @@ let private validateNotesSections
   let errorsPerMeasure: ValidationError list =
     notesSections
     |> getMeasuresPerPartId
-    |> List.collect (fun (partId, measures) -> List.map (fun measure -> partId, measure) measures)
-    |> List.map validateMeasure
+    |> List.collect (fun (partId, measures) -> List.map (validateMeasure partId) measures)
     |> Result.traverse
     |> function
       | Ok _ -> []
