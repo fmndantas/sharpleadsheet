@@ -46,5 +46,29 @@ let ``converts music to xml`` =
     (XmlWrapper.normalizeXmlText expectedResult, XmlWrapper.normalizeXml result)
     ||> equal "generated XML is incorrect"
 
+let ``converts note or rest to xml`` =
+  testTheory3 "converts note or rest to xml" [
+    caseId(1)
+      .WithData(Note.create4 NoteName.C Duration.Whole |> NoteOrRest.Note)
+      .WithExpectedResult(
+        "
+        <note>
+          <pitch>
+            <step>C</step>
+            <octave>4</octave>
+          </pitch>
+          <duration>4</duration>
+          <type>whole</type>
+        </note>
+      "
+      )
+  ]
+  <| fun noteOrRest expectedResult ->
+    let result = MusicToXml.interpretNote noteOrRest
+
+    (XmlWrapper.normalizeXmlText expectedResult, XmlWrapper.minifyXElement result)
+    ||> equal "generated XML is incorrect"
+
 [<Tests>]
-let MusicToXmlSpec = testList "music to xml" [ ``converts music to xml`` ]
+let MusicToXmlSpec =
+  testList "music to xml" [ ``converts music to xml``; ``converts note or rest to xml`` ]

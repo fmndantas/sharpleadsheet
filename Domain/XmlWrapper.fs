@@ -16,5 +16,8 @@ let document (root: XElement) : XDocument = XDocument root
 let normalizeXml (xml: XDocument) : string =
   xml.ToString SaveOptions.DisableFormatting
 
+let minifyXElement (v: XElement) : string =
+  v.ToString SaveOptions.DisableFormatting
+
 let normalizeXmlText (xmlText: string) : string =
   XDocument.Parse xmlText |> normalizeXml
