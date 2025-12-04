@@ -74,13 +74,8 @@ let private validateMeasure (partId: PartId) (measure: Measure) : Result<Measure
       } =
     measure.Parsed.TimeSignature
 
-  let noteOrRestToDuration =
-    function
-    | NoteOrRest.Note n -> Note.getDuration n
-    | NoteOrRest.Rest(Rest d) -> d
-
   if
-    (List.replicate numerator denominator, List.map noteOrRestToDuration measure.Parsed.NotesOrRests)
+    (List.replicate numerator denominator, List.map NoteOrRest.getDuration measure.Parsed.NotesOrRests)
     ||> Duration.getEquivalenceBetweenLists
   then
     Ok measure
