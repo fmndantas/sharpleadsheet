@@ -62,6 +62,8 @@ let ``converts note or rest to xml`` =
         </note>
       "
       )
+
+    // TODO: add another cases
   ]
   <| fun noteOrRest expectedResult ->
     let result = MusicToXml.interpretNote noteOrRest

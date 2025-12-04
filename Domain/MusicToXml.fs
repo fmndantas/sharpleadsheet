@@ -55,7 +55,7 @@ let createMeasureAttributes (m: Validated.Measure) (es: MeasureEvent list) : XEl
             t |> calculateBeatType |> leafElement "beat-type"
           ]
           |> Some
-        | MeasureEvent.DefineClef c -> interpretClefEvent >> Some <| c
+        | MeasureEvent.DefineClef c -> c |> interpretClefEvent |> Some
         | _ -> None)
   ]
   |> element "attributes"
@@ -64,7 +64,7 @@ let createMeasureNotes (es: MeasureEvent list) : XElement list =
   es
   |> List.choose (fun e ->
     match e with
-    | MeasureEvent.NoteOrRest noteOrRest -> interpretNote noteOrRest |> Some
+    | MeasureEvent.NoteOrRest noteOrRest -> noteOrRest |> interpretNote |> Some
     | _ -> None)
 
 let createMeasure (previousMeasure: Validated.Measure option, currentMeasure: Validated.Measure) : XElement =
