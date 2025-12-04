@@ -97,7 +97,6 @@ let createPart (ps: Validated.Part list) : XElement list =
     |> List.map createMeasure
     |> elementWithAttributes "part" [ partId |> partId2String |> attribute "id" ])
 
-// TODO: add validation
 let convert (m: Validated.Music) : XDocument =
   [ m |> createPartList; yield! createPart m ]
   |> elementWithAttributes "score-partwise" [ attribute "version" "4.0" ]
