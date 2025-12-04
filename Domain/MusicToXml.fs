@@ -5,13 +5,6 @@ open System.Xml.Linq
 open Domain.XmlWrapper
 
 open Domain.CommonTypes
-open Domain.ParsedTypes
-
-[<RequireQualifiedAccess>]
-[<System.Obsolete>]
-type Music =
-  | Parsed of ParsedMusic
-  | Validated of Validated.Music
 
 let partId2String (PartId partId) = $"P{partId}"
 
@@ -105,9 +98,7 @@ let createPart (ps: Validated.Part list) : XElement list =
     |> elementWithAttributes "part" [ partId |> partId2String |> attribute "id" ])
 
 // TODO: add validation
-let convert (m: Music) : XDocument =
-  let (Music.Validated parts) = m
-
-  [ parts |> createPartList; yield! createPart parts ]
+let convert (m: Validated.Music) : XDocument =
+  [ m |> createPartList; yield! createPart m ]
   |> elementWithAttributes "score-partwise" [ attribute "version" "4.0" ]
   |> document

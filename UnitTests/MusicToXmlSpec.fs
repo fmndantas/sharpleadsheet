@@ -10,8 +10,8 @@ open UnitTests.Case
 open Domain
 open Domain.CommonTypes
 open Domain.ParsedMeasureBuilder
+open Domain.Validated
 open Domain.ValidatedMeasureBuilder
-open Domain.MusicToXml
 
 [<Literal>]
 let here = __SOURCE_DIRECTORY__
@@ -23,7 +23,7 @@ let ``converts music to xml`` =
   testTheory3 "converts music to xml" [
     case("hello world")
       .WithData(
-        Music.Validated [
+        [
           {
             Name = "Instrument Name"
             PartId = PartId 1
@@ -40,8 +40,8 @@ let ``converts music to xml`` =
       )
       .WithExpectedResult(openXml "helloworld.xml")
   ]
-  <| fun (music: Music) (expectedResult: string) ->
-    let result = convert music
+  <| fun (music: Validated.Music) (expectedResult: string) ->
+    let result = MusicToXml.convert music
 
     (XmlWrapper.normalizeXmlText expectedResult, XmlWrapper.normalizeXml result)
     ||> equal "generated XML is incorrect"
