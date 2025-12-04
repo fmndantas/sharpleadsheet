@@ -1,10 +1,10 @@
 <score-partwise version="4.0">
   <part-list>
-    <score-part id="P1">
+    <score-part id="P10">
       <part-name>Instrument Name</part-name>
     </score-part>
   </part-list>
-  <part id="P1">
+  <part id="P10">
     <measure number="1">
       <attributes>
         <divisions>1</divisions>

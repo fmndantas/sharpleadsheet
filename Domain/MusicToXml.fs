@@ -8,14 +8,10 @@ open Domain.CommonTypes
 
 let partId2String (PartId partId) = $"P{partId}"
 
-let indexWithPartId (xs: 'a list) : list<PartId * 'a> =
-  xs |> List.indexed |> List.map (fun (idx, x) -> idx + 1 |> PartId, x)
-
 let createPartList (names: Validated.Part list) : XElement =
   names
-  |> indexWithPartId
-  |> List.map (fun (partId, part) ->
-    elementWithAttributes "score-part" [ partId |> partId2String |> attribute "id" ] [
+  |> List.map (fun part ->
+    elementWithAttributes "score-part" [ part.PartId |> partId2String |> attribute "id" ] [
       leafElement "part-name" part.Name
     ])
   |> element "part-list"
@@ -82,8 +78,7 @@ let createMeasure (previousMeasure: Validated.Measure option, currentMeasure: Va
 
 let createPart (ps: Validated.Part list) : XElement list =
   ps
-  |> indexWithPartId
-  |> List.map (fun (partId, part) ->
+  |> List.map (fun part ->
     let measures = part.Measures
 
     let pairsOfMeasures =
@@ -95,7 +90,7 @@ let createPart (ps: Validated.Part list) : XElement list =
 
     pairsOfMeasures
     |> List.map createMeasure
-    |> elementWithAttributes "part" [ partId |> partId2String |> attribute "id" ])
+    |> elementWithAttributes "part" [ part.PartId |> partId2String |> attribute "id" ])
 
 let convert (m: Validated.Music) : XDocument =
   [ m |> createPartList; yield! createPart m ]
