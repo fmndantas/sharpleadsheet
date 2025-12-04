@@ -33,14 +33,23 @@ let defineDivisions ({ Parsed = measure }: Validated.Measure) : int =
   if List.isEmpty measure.NotesOrRests then
     1
   else
-    let minimalDuration =
-      measure.NotesOrRests
-      |> List.map NoteOrRest.getDuration
-      |> List.minBy Duration.getEquivalenceToMinimalDuration
+    let dottedToStraight =
+      function
+      | Duration.WholeDotted -> Duration.Half
+      | Duration.HalfDotted -> Duration.Quarter
+      | Duration.QuarterDotted -> Duration.Eighth
+      | Duration.EighthDotted -> Duration.Sixteenth
+      | Duration.SixteenthDotted -> Duration.ThirtySecond
+      | v -> v
 
-    match minimalDuration with
-    | Duration.Whole
-    | Duration.Half
-    | Duration.Quarter -> 1
-    | Duration.Eighth -> 2
-    | Duration.Sixteenth -> 4
+    measure.NotesOrRests
+    |> List.map (NoteOrRest.getDuration >> dottedToStraight)
+    |> List.minBy Duration.getEquivalenceToMinimalDuration
+    |> function
+      | Duration.Whole
+      | Duration.Half
+      | Duration.Quarter -> 1
+      | Duration.Eighth -> 2
+      | Duration.Sixteenth -> 4
+      | Duration.ThirtySecond -> 8
+      | s -> failwith $"defineDivisions could not handle case {s}"

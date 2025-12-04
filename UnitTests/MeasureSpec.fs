@@ -131,6 +131,26 @@ let ``defines the number of divisions based on quarter note`` =
       )
       .WithExpectedResult
       4
+    case("w.").WithData(measureWithDurations [ Duration.WholeDotted ]).WithExpectedResult 1
+    case("h.").WithData(measureWithDurations [ Duration.HalfDotted ]).WithExpectedResult 1
+    case("q.").WithData(measureWithDurations [ Duration.QuarterDotted ]).WithExpectedResult 2
+    case("e.").WithData(measureWithDurations [ Duration.EighthDotted ]).WithExpectedResult 4
+    case("s.").WithData(measureWithDurations [ Duration.SixteenthDotted ]).WithExpectedResult 8
+    case("e.ssh.")
+      .WithData(
+        measureWithDurations [
+          Duration.EighthDotted
+          Duration.Sixteenth
+          Duration.Sixteenth
+          Duration.HalfDotted
+        ]
+      )
+      .WithExpectedResult
+      4
+    case("s.e.h.")
+      .WithData(measureWithDurations [ Duration.SixteenthDotted; Duration.EighthDotted; Duration.HalfDotted ])
+      .WithExpectedResult
+      8
   ]
   <| fun measure expectedResult ->
     let result = Measure.defineDivisions (toValidatedMeasure 1 measure)
