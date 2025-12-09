@@ -116,7 +116,7 @@ let ``converts duration to xml`` =
     |> equal
       "generated xml is incorrect"
       (if hasDot then
-         sprintf "<duration>%d</duration><type>%s</type><dot />" expectedDuration expectedType
+         sprintf "<duration>%d</duration><type>%s</type><dot/>" expectedDuration expectedType
        else
          sprintf "<duration>%d</duration><type>%s</type>" expectedDuration expectedType)
 
