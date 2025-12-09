@@ -104,10 +104,10 @@ let ``defines the number of divisions based on quarter note`` =
     aParsedMeasure () |> withNotes notes
 
   testTheory3 "defines the number of divisions based on quarter note" [
-    case("empty case").WithData(measureWithDurations []).WithExpectedResult 1
-    case("w").WithData(measureWithDurations [ Duration.Whole ]).WithExpectedResult 1
-    case("hh").WithData(measureWithDurations [ Duration.Half; Duration.Half ]).WithExpectedResult 1
-    case("qqqq").WithData(measureWithDurations (List.replicate 4 Duration.Quarter)).WithExpectedResult 1
+    case("empty case").WithData(measureWithDurations []).WithExpectedResult Duration.Quarter
+    case("w").WithData(measureWithDurations [ Duration.Whole ]).WithExpectedResult Duration.Quarter
+    case("hh").WithData(measureWithDurations [ Duration.Half; Duration.Half ]).WithExpectedResult Duration.Quarter
+    case("qqqq").WithData(measureWithDurations (List.replicate 4 Duration.Quarter)).WithExpectedResult Duration.Quarter
     case("qqqee")
       .WithData(
         measureWithDurations [
@@ -116,7 +116,7 @@ let ``defines the number of divisions based on quarter note`` =
         ]
       )
       .WithExpectedResult
-      2
+      Duration.Eighth
     case("qeeqses")
       .WithData(
         measureWithDurations [
@@ -130,12 +130,12 @@ let ``defines the number of divisions based on quarter note`` =
         ]
       )
       .WithExpectedResult
-      4
-    case("w.").WithData(measureWithDurations [ Duration.WholeDotted ]).WithExpectedResult 1
-    case("h.").WithData(measureWithDurations [ Duration.HalfDotted ]).WithExpectedResult 1
-    case("q.").WithData(measureWithDurations [ Duration.QuarterDotted ]).WithExpectedResult 2
-    case("e.").WithData(measureWithDurations [ Duration.EighthDotted ]).WithExpectedResult 4
-    case("s.").WithData(measureWithDurations [ Duration.SixteenthDotted ]).WithExpectedResult 8
+      Duration.Sixteenth
+    case("w.").WithData(measureWithDurations [ Duration.WholeDotted ]).WithExpectedResult Duration.Quarter
+    case("h.").WithData(measureWithDurations [ Duration.HalfDotted ]).WithExpectedResult Duration.Quarter
+    case("q.").WithData(measureWithDurations [ Duration.QuarterDotted ]).WithExpectedResult Duration.Eighth
+    case("e.").WithData(measureWithDurations [ Duration.EighthDotted ]).WithExpectedResult Duration.Sixteenth
+    case("s.").WithData(measureWithDurations [ Duration.SixteenthDotted ]).WithExpectedResult Duration.ThirtySecond
     case("e.ssh.")
       .WithData(
         measureWithDurations [
@@ -146,15 +146,17 @@ let ``defines the number of divisions based on quarter note`` =
         ]
       )
       .WithExpectedResult
-      4
+      Duration.Sixteenth
     case("s.e.h.")
       .WithData(measureWithDurations [ Duration.SixteenthDotted; Duration.EighthDotted; Duration.HalfDotted ])
       .WithExpectedResult
-      8
+      Duration.ThirtySecond
   ]
   <| fun measure expectedResult ->
-    let result = Measure.defineDivisions (toValidatedMeasure 1 measure)
-    result |> equal "the calculated division is incorrect" expectedResult
+    measure
+    |> toValidatedMeasure 1
+    |> Measure.defineDivisions
+    |> equal "the calculated division is incorrect" expectedResult
 
 [<Tests>]
 let MeasureSpec =

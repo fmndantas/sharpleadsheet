@@ -29,9 +29,9 @@ let generateEvents
     yield! List.map MeasureEvent.NoteOrRest currentMeasure.NotesOrRests
   ]
 
-let defineDivisions ({ Parsed = measure }: Validated.Measure) : int =
+let defineDivisions ({ Parsed = measure }: Validated.Measure) : Duration.T =
   if List.isEmpty measure.NotesOrRests then
-    1
+    Duration.Quarter
   else
     let dottedToStraight =
       function
@@ -48,8 +48,5 @@ let defineDivisions ({ Parsed = measure }: Validated.Measure) : int =
     |> function
       | Duration.Whole
       | Duration.Half
-      | Duration.Quarter -> 1
-      | Duration.Eighth -> 2
-      | Duration.Sixteenth -> 4
-      | Duration.ThirtySecond -> 8
-      | s -> failwith $"defineDivisions could not handle case {s}"
+      | Duration.Quarter -> Duration.Quarter
+      | v -> v
