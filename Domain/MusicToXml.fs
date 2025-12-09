@@ -25,12 +25,24 @@ let calculateFifths =
     | Fifth.Flat flat -> $"{-flat}"
     | Fifth.Sharp sharp -> $"{sharp}"
 
-// TEST: calculateBeatType
-let calculateBeatType (t: TimeSignature) : string = "4"
+let calculateBeatType (t: TimeSignature) : string =
+  match t.Denominator with
+  | Duration.Whole -> 1
+  | Duration.Half -> 2
+  | Duration.Quarter -> 4
+  | Duration.Eighth -> 8
+  | Duration.Sixteenth -> 16
+  | Duration.ThirtySecond -> 32
+  | _ -> failwith "unsupported duration for beat type"
+  |> toString
 
-// TEST: interpretClefEvent
 let interpretClefEvent (c: Clef) : XElement =
-  [ leafElement "sign" "G"; leafElement "line" "2" ] |> element "clef"
+  let sign, line =
+    match c with
+    | Clef.G -> "G", "2"
+    | Clef.F -> "F", "4"
+
+  [ leafElement "sign" sign; leafElement "line" line ] |> element "clef"
 
 let interpretDuration (divisions: Duration.T) (d: Duration.T) : XElement list =
   let duration =
