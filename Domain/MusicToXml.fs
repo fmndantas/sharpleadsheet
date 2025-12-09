@@ -32,18 +32,76 @@ let calculateBeatType (t: TimeSignature) : string = "4"
 let interpretClefEvent (c: Clef) : XElement =
   [ leafElement "sign" "G"; leafElement "line" "2" ] |> element "clef"
 
-// TEST: interpretNote
-let interpretNote (n: NoteOrRest) : XElement =
+let interpretDuration (divisions: Duration.T) (d: Duration.T) : XElement list =
+  let duration =
+    match Duration.getEquivalenceToMinimalDuration divisions, Duration.getEquivalenceToMinimalDuration d with
+    | Duration.Equivalence.Multiple den, Duration.Equivalence.Multiple num -> num / den
+
+  let durationType =
+    match d with
+    | Duration.Whole -> "whole"
+    | Duration.WholeDotted -> "whole"
+    | Duration.Half -> "half"
+    | Duration.HalfDotted -> "half"
+    | Duration.Quarter -> "quarter"
+    | Duration.QuarterDotted -> "quarter"
+    | Duration.Eighth -> "eighth"
+    | Duration.EighthDotted -> "eighth"
+    | Duration.Sixteenth -> "16th"
+    | Duration.SixteenthDotted -> "16th"
+    | Duration.ThirtySecond -> "32nd"
+
+  let isDotted = d.ToString().ToLower().Contains "dotted"
+
   [
-    element "pitch" [ leafElement "step" "C"; leafElement "octave" "4" ]
-    leafElement "duration" "4"
-    leafElement "type" "whole"
+    leafElement "duration" (duration.ToString())
+    leafElement "type" durationType
+    if isDotted then
+      selfEnclosingElement "dot"
   ]
-  |> element "note"
+
+let interpretPitch (p: Pitch.T) : XElement =
+  let noteName = Pitch.getNoteName p
+  let stringNoteName = noteName.ToString()
+  let octave = Pitch.getOctave p
+  let step = noteName.ToString()[0]
+
+  let alter =
+    let lowerStringNoteName = stringNoteName.ToLower()
+
+    if lowerStringNoteName.Contains "flat" then -1
+    elif lowerStringNoteName.Contains "sharp" then 1
+    else 0
+
+  element "pitch" [
+    leafElement "step" (step.ToString())
+    leafElement "octave" (octave.ToString())
+    if alter <> 0 then
+      leafElement "alter" (sprintf "%+d" alter)
+  ]
+
+let interpretNote (divisions: Duration.T) (n: NoteOrRest) : XElement =
+  match n with
+  | NoteOrRest.Note note ->
+    [
+      note |> Note.getPitch |> interpretPitch
+      yield! n |> NoteOrRest.getDuration |> interpretDuration divisions
+    ]
+    |> element "note"
+  | NoteOrRest.Rest(Rest d) -> d |> interpretDuration divisions |> element "rest"
 
 let createMeasureAttributes (m: Validated.Measure) (es: MeasureEvent list) : XElement =
   [
-    m |> Measure.defineDivisions |> _.ToString() |> leafElement "divisions"
+    m
+    |> Measure.defineDivisions
+    |> function
+      | Duration.Quarter -> 1
+      | Duration.Eighth -> 2
+      | Duration.Sixteenth -> 4
+      | Duration.ThirtySecond -> 8
+      | _ -> failwith "unsupported duration for divisions"
+    |> _.ToString()
+    |> leafElement "divisions"
     yield!
       es
       |> List.choose (fun e ->
@@ -55,16 +113,16 @@ let createMeasureAttributes (m: Validated.Measure) (es: MeasureEvent list) : XEl
             t |> calculateBeatType |> leafElement "beat-type"
           ]
           |> Some
-        | MeasureEvent.DefineClef c -> interpretClefEvent >> Some <| c
+        | MeasureEvent.DefineClef c -> c |> interpretClefEvent |> Some
         | _ -> None)
   ]
   |> element "attributes"
 
-let createMeasureNotes (es: MeasureEvent list) : XElement list =
+let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement list =
   es
   |> List.choose (fun e ->
     match e with
-    | MeasureEvent.NoteOrRest noteOrRest -> interpretNote noteOrRest |> Some
+    | MeasureEvent.NoteOrRest noteOrRest -> (Measure.defineDivisions m, noteOrRest) ||> interpretNote |> Some
     | _ -> None)
 
 let createMeasure (previousMeasure: Validated.Measure option, currentMeasure: Validated.Measure) : XElement =
@@ -72,7 +130,7 @@ let createMeasure (previousMeasure: Validated.Measure option, currentMeasure: Va
 
   [
     createMeasureAttributes currentMeasure events
-    yield! createMeasureNotes events
+    yield! createMeasureNotes currentMeasure events
   ]
   |> elementWithAttributes "measure" [ currentMeasure.MeasureId |> measureId2String |> attribute "number" ]
 
