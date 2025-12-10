@@ -86,16 +86,17 @@ let ``generates events between two measures`` =
         .WithExpectedResult([ MeasureEvent.DefineClef Clef.F ], [])
     ]
   ]
-  <| fun (previousMeasure, currentMeasure) (resultShouldInclude, resultShouldNotInclude) ->
+  <| fun (previousMeasure, currentMeasure) (eventsShouldInclude, eventsShouldNotInclude) ->
     let events =
       Measure.generateEvents (Option.map (toValidatedMeasure 1) previousMeasure) (toValidatedMeasure 2 currentMeasure)
 
-    for item in resultShouldInclude do
-      events |> contains $"expected measure event not found: \"{item}\"" item
+    for item in eventsShouldInclude do
+      events
+      |> contains (sprintf "expected measure event not found: \"%A\"" item) item
 
-    for item in resultShouldNotInclude do
+    for item in eventsShouldNotInclude do
       List.contains item events
-      |> isFalse $"unexpected measure event found: \"{item}\""
+      |> isFalse (sprintf "unexpected measure event found: \"%A\"" item)
 
 let ``defines the number of divisions based on quarter note`` =
   let measureWithDurations durations =
