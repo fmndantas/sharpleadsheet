@@ -13,20 +13,20 @@ let generateEvents
       previousMeasure
       |> Option.map (fun { Parsed = p } -> [
         if p.KeySignature <> currentMeasure.KeySignature then
-          MeasureEvent.DefineKeySignature currentMeasure.KeySignature
+          DefineKeySignatureEvent currentMeasure.KeySignature
 
         if p.TimeSignature <> currentMeasure.TimeSignature then
-          MeasureEvent.DefineTimeSignature currentMeasure.TimeSignature
+          DefineTimeSignatureEvent currentMeasure.TimeSignature
 
         if p.Clef <> currentMeasure.Clef then
-          MeasureEvent.DefineClef currentMeasure.Clef
+          DefineClefEvent currentMeasure.Clef
       ])
       |> Option.defaultValue [
-        MeasureEvent.DefineKeySignature currentMeasure.KeySignature
-        MeasureEvent.DefineTimeSignature currentMeasure.TimeSignature
-        MeasureEvent.DefineClef currentMeasure.Clef
+        DefineKeySignatureEvent currentMeasure.KeySignature
+        DefineTimeSignatureEvent currentMeasure.TimeSignature
+        DefineClefEvent currentMeasure.Clef
       ]
-    yield! List.map MeasureEvent.NoteOrRest currentMeasure.NotesOrRests
+    yield! List.map NoteOrRestEvent currentMeasure.NotesOrRests
   ]
 
 let defineDivisions ({ Parsed = measure }: Validated.Measure) : Duration.T =

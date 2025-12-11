@@ -118,14 +118,14 @@ let createMeasureAttributes (m: Validated.Measure) (es: MeasureEvent list) : XEl
       es
       |> List.choose (fun e ->
         match e with
-        | MeasureEvent.DefineKeySignature k -> element "key" [ k |> calculateFifths |> leafElement "fifths" ] |> Some
-        | MeasureEvent.DefineTimeSignature t ->
+        | DefineKeySignatureEvent k -> element "key" [ k |> calculateFifths |> leafElement "fifths" ] |> Some
+        | DefineTimeSignatureEvent t ->
           element "time" [
             leafElement "beats" (t.Numerator.ToString())
             t |> calculateBeatType |> leafElement "beat-type"
           ]
           |> Some
-        | MeasureEvent.DefineClef c -> c |> interpretClefEvent |> Some
+        | DefineClefEvent c -> c |> interpretClefEvent |> Some
         | _ -> None)
   ]
   |> element "attributes"
@@ -134,7 +134,7 @@ let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement
   es
   |> List.choose (fun e ->
     match e with
-    | MeasureEvent.NoteOrRest noteOrRest -> (Measure.defineDivisions m, noteOrRest) ||> interpretNote |> Some
+    | NoteOrRestEvent noteOrRest -> (Measure.defineDivisions m, noteOrRest) ||> interpretNote |> Some
     | _ -> None)
 
 let createMeasure (previousMeasure: Validated.Measure option, currentMeasure: Validated.Measure) : XElement =

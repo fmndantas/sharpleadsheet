@@ -33,12 +33,11 @@ type ValidationError =
 and PartsWithRepeatedIds = { PartId: PartId; Indexes: int list }
 and NotesSectionReferencesInvalidPartId = { PartId: PartId; Index: int }
 
-[<RequireQualifiedAccess>]
 type MeasureEvent =
-  | DefineKeySignature of KeySignature
-  | DefineTimeSignature of TimeSignature
-  | DefineClef of Clef
-  | NoteOrRest of NoteOrRest
+  | DefineKeySignatureEvent of KeySignature
+  | DefineTimeSignatureEvent of TimeSignature
+  | DefineClefEvent of Clef
+  | NoteOrRestEvent of NoteOrRest
 
 [<RequireQualifiedAccess>]
 type Fifth =

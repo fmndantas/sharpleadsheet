@@ -22,12 +22,12 @@ let ``generates events between two measures`` =
       .WithData(None, initialMeasure)
       .WithExpectedResult(
         [
-          NoteName.C |> KeySignature |> MeasureEvent.DefineKeySignature
-          MeasureEvent.DefineTimeSignature {
+          NoteName.C |> KeySignature |> DefineKeySignatureEvent
+          DefineTimeSignatureEvent {
             Numerator = 4
             Denominator = Duration.Quarter
           }
-          MeasureEvent.DefineClef Clef.G
+          DefineClefEvent Clef.G
         ],
         []
       )
@@ -38,8 +38,8 @@ let ``generates events between two measures`` =
         .WithExpectedResult(
           [],
           [
-            NoteName.C |> KeySignature |> MeasureEvent.DefineKeySignature
-            MeasureEvent.DefineTimeSignature {
+            NoteName.C |> KeySignature |> DefineKeySignatureEvent
+            DefineTimeSignatureEvent {
               Numerator = 4
               Denominator = Duration.Quarter
             }
@@ -53,7 +53,7 @@ let ``generates events between two measures`` =
           |> withKeySignature (KeySignature NoteName.D)
           |> withCommonTimeSignature
         )
-        .WithExpectedResult([ NoteName.D |> KeySignature |> MeasureEvent.DefineKeySignature ], [])
+        .WithExpectedResult([ NoteName.D |> KeySignature |> DefineKeySignatureEvent ], [])
 
       case("current measure changes time signature")
         .WithData(
@@ -67,7 +67,7 @@ let ``generates events between two measures`` =
         )
         .WithExpectedResult(
           [
-            MeasureEvent.DefineTimeSignature {
+            DefineTimeSignatureEvent {
               Numerator = 6
               Denominator = Duration.Eighth
             }
@@ -83,7 +83,7 @@ let ``generates events between two measures`` =
           |> withCommonTimeSignature
           |> withClef Clef.F
         )
-        .WithExpectedResult([ MeasureEvent.DefineClef Clef.F ], [])
+        .WithExpectedResult([ DefineClefEvent Clef.F ], [])
     ]
   ]
   <| fun (previousMeasure, currentMeasure) (eventsShouldInclude, eventsShouldNotInclude) ->
