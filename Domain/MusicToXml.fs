@@ -2,9 +2,10 @@ module Domain.MusicToXml
 
 open System.Xml.Linq
 
-open Domain.XmlWrapper
+open XmlWrapper
 
-open Domain.CommonTypes
+open CommonTypes
+open Measure.Types
 
 let partId2String (PartId partId) = $"P{partId}"
 
@@ -134,33 +135,31 @@ let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement
   es
   |> List.choose (fun e ->
     match e with
-    | NoteOrRestEvent noteOrRest -> (Measure.defineDivisions m, noteOrRest) ||> interpretNote |> Some
+    | NoteOrRestEvent { NoteOrRest = noteOrRest } -> (Measure.defineDivisions m, noteOrRest) ||> interpretNote |> Some
     | _ -> None)
 
-let createMeasure (previousMeasure: Validated.Measure option, currentMeasure: Validated.Measure) : XElement =
-  let events = Measure.generateEvents previousMeasure currentMeasure
-
-  [
-    createMeasureAttributes currentMeasure events
-    yield! createMeasureNotes currentMeasure events
-  ]
-  |> elementWithAttributes "measure" [ currentMeasure.MeasureId |> measureId2String |> attribute "number" ]
+let createMeasure (m: Validated.Measure, es: MeasureEvent list) : XElement =
+  [ createMeasureAttributes m es; yield! createMeasureNotes m es ]
+  |> elementWithAttributes "measure" [ m.MeasureId |> measureId2String |> attribute "number" ]
 
 let createPart (ps: Validated.Part list) : XElement list =
   ps
-  |> List.map (fun part ->
-    let measures = part.Measures
-
-    let pairsOfMeasures =
-      if List.isEmpty measures then
-        []
-      else
-        (None, List.head measures)
-        :: (measures |> List.pairwise |> List.map (fun (a, b) -> Some a, b))
-
-    pairsOfMeasures
+  |> List.map (fun { PartId = partId; Measures = measures } ->
+    measures
+    |> List.mapFold Measure.generateEvents {
+      IsFirstMeasure = true
+      IsTieStarted = false
+      CurrentKeySignature = KeySignature NoteName.C
+      CurrentTimeSignature = {
+        Numerator = 4
+        Denominator = Duration.Quarter
+      }
+      CurrentClef = Clef.G
+    }
+    |> fst
+    |> List.zip measures
     |> List.map createMeasure
-    |> elementWithAttributes "part" [ part.PartId |> partId2String |> attribute "id" ])
+    |> elementWithAttributes "part" [ partId |> partId2String |> attribute "id" ])
 
 let convert (m: Validated.Music) : XDocument =
   [ m |> createPartList; yield! createPart m ]
