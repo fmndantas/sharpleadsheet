@@ -139,9 +139,13 @@ let ``creates validated music from correct parsed music`` =
         {
           Id = 1 |> PartId |> Some
           Name = Some "Piano"
-          Clef = None
-          TimeSignature = None
-          KeySignature = None
+          Clef = Some Clef.F
+          TimeSignature =
+            Some {
+              Numerator = 7
+              Denominator = Duration.Sixteenth
+            }
+          KeySignature = NoteName.CSharp |> KeySignature |> Some
         }
       ]
       NotesSections = [
@@ -159,6 +163,12 @@ let ``creates validated music from correct parsed music`` =
       {
         PartId = PartId 1
         Name = "Piano"
+        Clef = Clef.F
+        TimeSignature = {
+          Numerator = 7
+          Denominator = Duration.Sixteenth
+        }
+        KeySignature = KeySignature NoteName.CSharp
         Measures = [
           {
             MeasureId = MeasureId 1

@@ -6,21 +6,43 @@ open Expecto.Flip.Expect
 open Case
 
 open Domain
-open Domain.CommonTypes
-open Domain.ParsedMeasureBuilder
-open Domain.ValidatedMeasureBuilder
+open CommonTypes
+open ParsedMeasureBuilder
+open ValidatedMeasureBuilder
+open Measure.Types
 
-let ``generates events between two measures`` =
-  let initialMeasure =
+let ``generates measure events`` =
+  let emptyMeasure =
     aParsedMeasure ()
     |> withCNaturalKeySignature
     |> withCommonTimeSignature
     |> withClef Clef.G
 
-  testTheory3 "generates events between two measures" [
+  let measureContext = {
+    IsFirstMeasure = false
+    IsTieStarted = false
+    CurrentKeySignature = KeySignature NoteName.C
+    CurrentTimeSignature = {
+      Numerator = 4
+      Denominator = Duration.Quarter
+    }
+    CurrentClef = Clef.G
+  }
+
+  testTheory3 "generates measure events" [
     case("current measure is the first measure")
-      .WithData(None, initialMeasure)
+      .WithData(
+        {
+          measureContext with
+              IsFirstMeasure = true
+        },
+        emptyMeasure
+      )
       .WithExpectedResult(
+        {
+          measureContext with
+              IsFirstMeasure = false
+        },
         [
           NoteName.C |> KeySignature |> DefineKeySignatureEvent
           DefineTimeSignatureEvent {
@@ -34,38 +56,61 @@ let ``generates events between two measures`` =
 
     yield! [
       case("current measure does not change key signature, time signature or clef")
-        .WithData(Some initialMeasure, aParsedMeasure () |> withCNaturalKeySignature |> withCommonTimeSignature)
+        .WithData(measureContext, emptyMeasure)
         .WithExpectedResult(
+          measureContext,
           [],
           [
             NoteName.C |> KeySignature |> DefineKeySignatureEvent
-            DefineTimeSignatureEvent {
+            {
               Numerator = 4
               Denominator = Duration.Quarter
             }
+            |> DefineTimeSignatureEvent
+            Clef.G |> DefineClefEvent
           ]
         )
 
       case("current measure changes key signature")
         .WithData(
-          Some initialMeasure,
-          aParsedMeasure ()
-          |> withKeySignature (KeySignature NoteName.D)
-          |> withCommonTimeSignature
+          {
+            measureContext with
+                CurrentKeySignature = KeySignature NoteName.BFlat
+          },
+          emptyMeasure |> withKeySignature (KeySignature NoteName.FSharp)
         )
-        .WithExpectedResult([ NoteName.D |> KeySignature |> DefineKeySignatureEvent ], [])
+        .WithExpectedResult(
+          {
+            measureContext with
+                CurrentKeySignature = KeySignature NoteName.FSharp
+          },
+          [ NoteName.FSharp |> KeySignature |> DefineKeySignatureEvent ],
+          []
+        )
 
       case("current measure changes time signature")
         .WithData(
-          Some initialMeasure,
-          aParsedMeasure ()
-          |> withCNaturalKeySignature
+          {
+            measureContext with
+                CurrentTimeSignature = {
+                  Numerator = 4
+                  Denominator = Duration.Quarter
+                }
+          },
+          emptyMeasure
           |> withTimeSignature {
             Numerator = 6
             Denominator = Duration.Eighth
           }
         )
         .WithExpectedResult(
+          {
+            measureContext with
+                CurrentTimeSignature = {
+                  Numerator = 6
+                  Denominator = Duration.Eighth
+                }
+          },
           [
             DefineTimeSignatureEvent {
               Numerator = 6
@@ -77,26 +122,109 @@ let ``generates events between two measures`` =
 
       case("current measure changes clef")
         .WithData(
-          Some initialMeasure,
-          aParsedMeasure ()
-          |> withCNaturalKeySignature
-          |> withCommonTimeSignature
-          |> withClef Clef.F
+          {
+            measureContext with
+                CurrentClef = Clef.G
+          },
+          emptyMeasure |> withClef Clef.F
         )
-        .WithExpectedResult([ DefineClefEvent Clef.F ], [])
+        .WithExpectedResult(
+          {
+            measureContext with
+                CurrentClef = Clef.F
+          },
+          [ DefineClefEvent Clef.F ],
+          []
+        )
     ]
+
+    case("notes without modifiers")
+      .WithData(measureContext, emptyMeasure |> withRepeteadNote 4 (Note.create4 NoteName.C Duration.Quarter))
+      .WithExpectedResult(
+        measureContext,
+        List.replicate
+          4
+          (Note.create4 NoteName.C Duration.Quarter
+           |> NoteOrRest.Note
+           |> Measure.CreateEvent.noteOrRestEvent),
+        []
+      )
+
+    case("starting tie note")
+      .WithData(measureContext, emptyMeasure |> withNote (Note.createTied4 NoteName.C Duration.Whole))
+      .WithExpectedResult(
+        {
+          measureContext with
+              IsTieStarted = true
+        },
+        [
+          Note.createTied4 NoteName.C Duration.Whole
+          |> NoteOrRest.Note
+          |> Measure.CreateEvent.noteOrRestEventWithExtra [ StartTie ]
+        ],
+        []
+      )
+
+    case("ending tie note")
+      .WithData(
+        {
+          measureContext with
+              IsTieStarted = true
+        },
+        emptyMeasure |> withNote (Note.create4 NoteName.C Duration.Whole)
+      )
+      .WithExpectedResult(
+        {
+          measureContext with
+              IsTieStarted = false
+        },
+        [
+          Note.create4 NoteName.C Duration.Whole
+          |> NoteOrRest.Note
+          |> Measure.CreateEvent.noteOrRestEventWithExtra [ StopTie ]
+        ],
+        []
+      )
+
+    case("sequence of tied notes")
+      .WithData(
+        measureContext,
+        emptyMeasure
+        |> withRepeteadNote 3 (Note.createTied4 NoteName.C Duration.Quarter)
+        |> withNote (Note.create4 NoteName.C Duration.Quarter)
+      )
+      .WithExpectedResult(
+        measureContext,
+        [
+          Note.createTied4 NoteName.C Duration.Quarter
+          |> NoteOrRest.Note
+          |> Measure.CreateEvent.noteOrRestEventWithExtra [ StartTie ]
+
+          Note.createTied4 NoteName.C Duration.Quarter
+          |> NoteOrRest.Note
+          |> Measure.CreateEvent.noteOrRestEventWithExtra [ StartTie; StopTie ]
+
+          Note.create4 NoteName.C Duration.Quarter
+          |> NoteOrRest.Note
+          |> Measure.CreateEvent.noteOrRestEventWithExtra [ StopTie ]
+        ],
+        []
+      )
   ]
-  <| fun (previousMeasure, currentMeasure) (eventsShouldInclude, eventsShouldNotInclude) ->
-    let events =
-      Measure.generateEvents (Option.map (toValidatedMeasure 1) previousMeasure) (toValidatedMeasure 2 currentMeasure)
+  <| fun (context, measure) (expectedContext, eventsShouldInclude, eventsShouldNotInclude) ->
+    let events, context =
+      measure |> toValidatedMeasure 1 |> Measure.generateEvents context
 
     for item in eventsShouldInclude do
       events
       |> contains (sprintf "expected measure event not found: \"%A\"" item) item
 
     for item in eventsShouldNotInclude do
-      List.contains item events
+      events
+      |> List.contains item
       |> isFalse (sprintf "unexpected measure event found: \"%A\"" item)
+
+    context |> equal "context is different from expected" expectedContext
 
 let ``defines the number of divisions based on quarter note`` =
   let measureWithDurations durations =
@@ -162,6 +290,6 @@ let ``defines the number of divisions based on quarter note`` =
 [<Tests>]
 let MeasureSpec =
   testList "measure" [
-    ``generates events between two measures``
+    ``generates measure events``
     ``defines the number of divisions based on quarter note``
   ]

@@ -2,9 +2,10 @@ module Domain.MusicToXml
 
 open System.Xml.Linq
 
-open Domain.XmlWrapper
+open XmlWrapper
 
-open Domain.CommonTypes
+open CommonTypes
+open Measure.Types
 
 let partId2String (PartId partId) = $"P{partId}"
 
@@ -92,12 +93,28 @@ let interpretPitch (p: Pitch.T) : XElement =
       leafElement "alter" (sprintf "%+d" alter)
   ]
 
-let interpretNote (divisions: Duration.T) (n: NoteOrRest) : XElement =
-  match n with
+let interpretNote
+  (divisions: Duration.T)
+  ({
+     NoteOrRest = noteOrRest
+     AttachedToNoteOrRestEvents = attachedToNoteOrRestEvents
+   }: NoteOrRestEvent)
+  : XElement =
+  let xmlTie =
+    fun xmlType -> [
+      elementWithAttributes "tie" [ attribute "type" xmlType ] []
+      element "notations" [ elementWithAttributes "tied" [ attribute "type" xmlType ] [] ]
+    ]
+
+  match noteOrRest with
   | NoteOrRest.Note note ->
     [
       note |> Note.getPitch |> interpretPitch
-      yield! n |> NoteOrRest.getDuration |> interpretDuration divisions
+      yield! noteOrRest |> NoteOrRest.getDuration |> interpretDuration divisions
+      if attachedToNoteOrRestEvents |> List.contains StartTie then
+        yield! xmlTie "start"
+      if attachedToNoteOrRestEvents |> List.contains StopTie then
+        yield! xmlTie "stop"
     ]
     |> element "note"
   | NoteOrRest.Rest(Rest d) -> d |> interpretDuration divisions |> element "rest"
@@ -134,31 +151,29 @@ let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement
   es
   |> List.choose (fun e ->
     match e with
-    | NoteOrRestEvent noteOrRest -> (Measure.defineDivisions m, noteOrRest) ||> interpretNote |> Some
+    | NoteOrRestEvent noteOrRestEvent -> (Measure.defineDivisions m, noteOrRestEvent) ||> interpretNote |> Some
     | _ -> None)
 
-let createMeasure (previousMeasure: Validated.Measure option, currentMeasure: Validated.Measure) : XElement =
-  let events = Measure.generateEvents previousMeasure currentMeasure
-
-  [
-    createMeasureAttributes currentMeasure events
-    yield! createMeasureNotes currentMeasure events
-  ]
-  |> elementWithAttributes "measure" [ currentMeasure.MeasureId |> measureId2String |> attribute "number" ]
+let createMeasure (m: Validated.Measure, es: MeasureEvent list) : XElement =
+  [ createMeasureAttributes m es; yield! createMeasureNotes m es ]
+  |> elementWithAttributes "measure" [ m.MeasureId |> measureId2String |> attribute "number" ]
 
 let createPart (ps: Validated.Part list) : XElement list =
   ps
   |> List.map (fun part ->
-    let measures = part.Measures
-
-    let pairsOfMeasures =
-      if List.isEmpty measures then
-        []
-      else
-        (None, List.head measures)
-        :: (measures |> List.pairwise |> List.map (fun (a, b) -> Some a, b))
-
-    pairsOfMeasures
+    part.Measures
+    |> List.mapFold Measure.generateEvents {
+      IsFirstMeasure = true
+      IsTieStarted = false
+      CurrentKeySignature = KeySignature NoteName.C
+      CurrentTimeSignature = {
+        Numerator = 4
+        Denominator = Duration.Quarter
+      }
+      CurrentClef = Clef.G
+    }
+    |> fst
+    |> List.zip part.Measures
     |> List.map createMeasure
     |> elementWithAttributes "part" [ part.PartId |> partId2String |> attribute "id" ])
 

@@ -13,6 +13,8 @@ open Domain.ParsedMeasureBuilder
 open Domain.Validated
 open Domain.ValidatedMeasureBuilder
 
+open Measure.Types
+
 [<Literal>]
 let here = __SOURCE_DIRECTORY__
 
@@ -27,6 +29,12 @@ let ``converts music to xml`` =
           {
             Name = "Instrument Name"
             PartId = PartId 10
+            Clef = Clef.G
+            TimeSignature = {
+              Numerator = 4
+              Denominator = Duration.Quarter
+            }
+            KeySignature = KeySignature NoteName.C
             Measures = [
               aParsedMeasure ()
               |> withClef Clef.G
@@ -49,7 +57,12 @@ let ``converts music to xml`` =
 let ``converts note or rest to xml`` =
   testTheory3 "converts note or rest to xml" [
     caseId(1)
-      .WithData(Duration.Quarter, Note.create4 NoteName.C Duration.Whole |> NoteOrRest.Note)
+      .WithData(
+        Duration.Quarter,
+        Note.create4 NoteName.C Duration.Whole
+        |> NoteOrRest.Note
+        |> Measure.CreateEvent.noteOrRestEvent
+      )
       .WithExpectedResult(
         "
         <note>
@@ -64,7 +77,13 @@ let ``converts note or rest to xml`` =
       )
 
     caseId(2)
-      .WithData(Duration.Quarter, Duration.Quarter |> Rest |> NoteOrRest.Rest)
+      .WithData(
+        Duration.Quarter,
+        Duration.Quarter
+        |> Rest
+        |> NoteOrRest.Rest
+        |> Measure.CreateEvent.noteOrRestEvent
+      )
       .WithExpectedResult(
         "
       <rest>
@@ -75,7 +94,12 @@ let ``converts note or rest to xml`` =
       )
 
     caseId(3)
-      .WithData(Duration.Sixteenth, Note.create4 NoteName.FSharp Duration.EighthDotted |> NoteOrRest.Note)
+      .WithData(
+        Duration.Sixteenth,
+        Note.create4 NoteName.FSharp Duration.EighthDotted
+        |> NoteOrRest.Note
+        |> Measure.CreateEvent.noteOrRestEvent
+      )
       .WithExpectedResult(
         "
       <note>
@@ -90,9 +114,62 @@ let ``converts note or rest to xml`` =
       </note>
       "
       )
+
+    case("4.tie start")
+      .WithData(
+        Duration.Quarter,
+        Note.createTied4 NoteName.C Duration.Quarter
+        |> NoteOrRest.Note
+        |> Measure.CreateEvent.noteOrRestEventWithExtra [ StartTie ]
+      )
+      .WithExpectedResult(
+        "
+      <note>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>1</duration>
+        <type>quarter</type>
+        <tie type=\"start\"/>
+        <notations>
+          <tied type=\"start\"/>
+        </notations>
+      </note>
+      "
+      )
+
+    case("5.tie stop")
+      .WithData(
+        Duration.Quarter,
+        Note.create4 NoteName.C Duration.Quarter
+        |> NoteOrRest.Note
+        |> Measure.CreateEvent.noteOrRestEventWithExtra [ StopTie ]
+      )
+      .WithExpectedResult(
+        "
+      <note>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>1</duration>
+        <type>quarter</type>
+        <tie type=\"stop\"/>
+        <notations>
+          <tied type=\"stop\"/>
+        </notations>
+      </note>
+      "
+      )
   ]
-  <| fun (divisions, noteOrRest) expectedResult ->
-    let result = MusicToXml.interpretNote divisions noteOrRest
+  <| fun (divisions, noteOrRestEventAsMeasureEvent) expectedResult ->
+    let noteOrRestEvent =
+      match noteOrRestEventAsMeasureEvent with
+      | NoteOrRestEvent e -> e
+      | _ -> failwith "expected NoteOrRestEvent"
+
+    let result = MusicToXml.interpretNote divisions noteOrRestEvent
 
     (XmlWrapper.minifyXmlText expectedResult, XmlWrapper.minifyXElement result)
     ||> equal "generated xml is incorrect"

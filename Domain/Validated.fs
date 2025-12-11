@@ -8,6 +8,9 @@ type Music = List<Part>
 and Part = {
   PartId: PartId
   Name: string
+  Clef: Clef
+  TimeSignature: TimeSignature
+  KeySignature: KeySignature
   Measures: Measure list
 }
 
@@ -118,14 +121,22 @@ let private createFromValidParsedPart
   : Part list =
   let measures = notesSections |> getMeasuresPerPartId |> Map.ofList
 
-  // TODO: there is any strategy I can use to mitigate Option.get?
   partDefinitionSections
   |> List.map (fun partDefinition ->
     let partId = Option.get partDefinition.Id
 
     {
       PartId = partId
+      // TODO: there is any strategy I can use to mitigate Option.get?
       Name = Option.get partDefinition.Name
+      Clef = partDefinition.Clef |> Option.defaultValue Clef.G
+      TimeSignature =
+        partDefinition.TimeSignature
+        |> Option.defaultValue {
+          Numerator = 4
+          Denominator = Duration.Quarter
+        }
+      KeySignature = partDefinition.KeySignature |> Option.defaultValue (KeySignature NoteName.C)
       Measures = measures |> Map.tryFind partId |> Option.defaultValue []
     })
 

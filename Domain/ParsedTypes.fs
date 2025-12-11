@@ -2,6 +2,7 @@ module Domain.ParsedTypes
 
 open Domain.CommonTypes
 
+// TODO: move these types to Domain.Parser.Types?
 type ParsedMusic = {
   PartDefinitionSections: ParsedPartDefinitionSection list
   NotesSections: ParsedNotesSection list

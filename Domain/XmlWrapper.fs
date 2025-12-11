@@ -4,8 +4,8 @@ open System.Xml.Linq
 
 [<AutoOpen>]
 module private Helpers =
-  let removeSpaces (s: string) : string =
-    s.Replace(" ", "").Replace("\n", "").Replace("\r", "").Replace("\t", "")
+  let removeSelfClosingSpaces (xml: string) : string =
+    System.Text.RegularExpressions.Regex.Replace(xml, @" />", "/>")
 
 let attribute (key: string) (value: string) : XAttribute = XAttribute(XName.Get key, value)
 
@@ -20,10 +20,11 @@ let selfEnclosingElement (name: string) : XElement = XElement(XName.Get name, nu
 
 let document (root: XElement) : XDocument = XDocument root
 
+
 let minifyXDocument (v: XDocument) : string =
-  v.ToString SaveOptions.DisableFormatting |> removeSpaces
+  v.ToString SaveOptions.DisableFormatting |> removeSelfClosingSpaces
 
 let minifyXElement (v: XElement) : string =
-  v.ToString SaveOptions.DisableFormatting |> removeSpaces
+  v.ToString SaveOptions.DisableFormatting |> removeSelfClosingSpaces
 
 let minifyXmlText (v: string) : string = XDocument.Parse v |> minifyXDocument
