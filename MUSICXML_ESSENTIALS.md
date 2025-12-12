@@ -218,10 +218,17 @@ Add for dotted notes (appears once per dot).
 
 ### 7. Ties
 
+Ties connect two notes of the **same pitch** to create a longer duration. Each note keeps its individual duration, but they sound as one continuous note.
+
+#### 7.1 Basic Tie (Two Notes)
+
 ```xml
-<!-- First note -->
+<!-- First note (tie start) -->
 <note>
-  <pitch>...</pitch>
+  <pitch>
+    <step>C</step>
+    <octave>4</octave>
+  </pitch>
   <duration>2</duration>
   <type>quarter</type>
   <tie type="start"/>
@@ -230,9 +237,12 @@ Add for dotted notes (appears once per dot).
   </notations>
 </note>
 
-<!-- Second note -->
+<!-- Second note (tie stop) -->
 <note>
-  <pitch>...</pitch>
+  <pitch>
+    <step>C</step>
+    <octave>4</octave>
+  </pitch>
   <duration>2</duration>
   <type>quarter</type>
   <tie type="stop"/>
@@ -243,8 +253,132 @@ Add for dotted notes (appears once per dot).
 ```
 
 **Both required:**
-- `<tie>`: Playback (MIDI)
-- `<tied>`: Visual rendering
+- `<tie>`: Affects playback (MIDI) - notes sound as one
+- `<tied>`: Affects visual rendering - curved line appears
+
+**Result:** Two quarter notes tied together = sounds like a half note.
+
+#### 7.2 Sequence of Tied Notes (3+ Notes)
+
+For ties spanning multiple notes, middle notes need **both** start and stop:
+
+```xml
+<!-- First note: start only -->
+<note>
+  <pitch>
+    <step>D</step>
+    <octave>4</octave>
+  </pitch>
+  <duration>4</duration>
+  <type>quarter</type>
+  <tie type="start"/>
+  <notations>
+    <tied type="start"/>
+  </notations>
+</note>
+
+<!-- Middle note: stop previous, start next -->
+<note>
+  <pitch>
+    <step>D</step>
+    <octave>4</octave>
+  </pitch>
+  <duration>4</duration>
+  <type>quarter</type>
+  <tie type="stop"/>
+  <tie type="start"/>
+  <notations>
+    <tied type="stop"/>
+    <tied type="start"/>
+  </notations>
+</note>
+
+<!-- Last note: stop only -->
+<note>
+  <pitch>
+    <step>D</step>
+    <octave>4</octave>
+  </pitch>
+  <duration>4</duration>
+  <type>quarter</type>
+  <tie type="stop"/>
+  <notations>
+    <tied type="stop"/>
+  </notations>
+</note>
+```
+
+**Result:** Three quarter D notes tied together = sounds like a dotted half note.
+
+#### 7.3 Mapping Pattern
+
+```
+Note Position    <tie> elements           <tied> elements
+----------------------------------------------------------------
+First            type="start"             type="start"
+Middle (any)     type="stop" + "start"    type="stop" + "start"
+Last             type="stop"              type="stop"
+```
+
+#### 7.4 Complete Example with Ties Across Measures
+
+```xml
+<measure number="1">
+  <attributes>...</attributes>
+  <!-- Regular note -->
+  <note>
+    <pitch><step>C</step><octave>4</octave></pitch>
+    <duration>4</duration>
+    <type>quarter</type>
+  </note>
+  
+  <!-- Start tie at end of measure -->
+  <note>
+    <pitch><step>D</step><octave>4</octave></pitch>
+    <duration>4</duration>
+    <type>quarter</type>
+    <tie type="start"/>
+    <notations>
+      <tied type="start"/>
+    </notations>
+  </note>
+</measure>
+
+<measure number="2">
+  <!-- Continue tie in next measure -->
+  <note>
+    <pitch><step>D</step><octave>4</octave></pitch>
+    <duration>4</duration>
+    <type>quarter</type>
+    <tie type="stop"/>
+    <tie type="start"/>
+    <notations>
+      <tied type="stop"/>
+      <tied type="start"/>
+    </notations>
+  </note>
+  
+  <!-- End tie -->
+  <note>
+    <pitch><step>D</step><octave>4</octave></pitch>
+    <duration>4</duration>
+    <type>quarter</type>
+    <tie type="stop"/>
+    <notations>
+      <tied type="stop"/>
+    </notations>
+  </note>
+</measure>
+```
+
+**Result:** D note tied across measures - sounds for 3 quarter notes total.
+
+#### 7.5 Important Notes
+
+- **Same pitch required**: All tied notes must have identical `<step>`, `<alter>`, and `<octave>`
+- **Order matters**: `<tie>` elements appear before `<notations>` section
+- **Both required**: Always include both `<tie>` (playback) and `<tied>` (visual)
+- **Measure boundaries**: Ties work seamlessly across measure boundaries
 
 ---
 
