@@ -154,8 +154,19 @@ let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement
     | NoteOrRestEvent noteOrRestEvent -> (Measure.defineDivisions m, noteOrRestEvent) ||> interpretNote |> Some
     | _ -> None)
 
+let private createFinalBarline (es: MeasureEvent list) : XElement option =
+  if List.contains FinalBarlineEvent es then
+    elementWithAttributes "barline" [ attribute "location" "right" ] [ leafElement "bar-style" "light-heavy" ]
+    |> Some
+  else
+    None
+
 let createMeasure (m: Validated.Measure, es: MeasureEvent list) : XElement =
-  [ createMeasureAttributes m es; yield! createMeasureNotes m es ]
+  [
+    createMeasureAttributes m es
+    yield! createMeasureNotes m es
+    yield! createFinalBarline es |> Option.toList
+  ]
   |> elementWithAttributes "measure" [ m.MeasureId |> measureId2String |> attribute "number" ]
 
 let createPart (ps: Validated.Part list) : XElement list =
@@ -168,6 +179,8 @@ let createPart (ps: Validated.Part list) : XElement list =
       CurrentKeySignature = part.KeySignature
       CurrentTimeSignature = part.TimeSignature
       CurrentClef = part.Clef
+      TotalNumberOfMeasures = List.length part.Measures
+      CurrentMeasureIndex = 0
     }
     |> fst
     |> List.zip part.Measures

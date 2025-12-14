@@ -1,5 +1,7 @@
 module UnitTests.MeasureSpec
 
+open System
+
 open Expecto
 open Expecto.Flip.Expect
 
@@ -27,6 +29,13 @@ let ``generates measure events`` =
       Denominator = Duration.Quarter
     }
     CurrentClef = Clef.G
+    TotalNumberOfMeasures = Int32.MaxValue
+    CurrentMeasureIndex = 0
+  }
+
+  let withNextMeasureInde ctx = {
+    ctx with
+        CurrentMeasureIndex = ctx.CurrentMeasureIndex + 1
   }
 
   testTheory3 "generates measure events" [
@@ -39,7 +48,7 @@ let ``generates measure events`` =
         emptyMeasure
       )
       .WithExpectedResult(
-        {
+        withNextMeasureInde {
           measureContext with
               IsFirstMeasure = false
         },
@@ -58,7 +67,7 @@ let ``generates measure events`` =
       case("current measure does not change key signature, time signature or clef")
         .WithData(measureContext, emptyMeasure)
         .WithExpectedResult(
-          measureContext,
+          withNextMeasureInde measureContext,
           [],
           [
             NoteName.C |> KeySignature |> DefineKeySignatureEvent
@@ -80,7 +89,7 @@ let ``generates measure events`` =
           emptyMeasure |> withKeySignature (KeySignature NoteName.FSharp)
         )
         .WithExpectedResult(
-          {
+          withNextMeasureInde {
             measureContext with
                 CurrentKeySignature = KeySignature NoteName.FSharp
           },
@@ -104,7 +113,7 @@ let ``generates measure events`` =
           }
         )
         .WithExpectedResult(
-          {
+          withNextMeasureInde {
             measureContext with
                 CurrentTimeSignature = {
                   Numerator = 6
@@ -129,7 +138,7 @@ let ``generates measure events`` =
           emptyMeasure |> withClef Clef.F
         )
         .WithExpectedResult(
-          {
+          withNextMeasureInde {
             measureContext with
                 CurrentClef = Clef.F
           },
@@ -141,7 +150,7 @@ let ``generates measure events`` =
     case("notes without modifiers")
       .WithData(measureContext, emptyMeasure |> withRepeteadNote 4 (Note.create4 NoteName.C Duration.Quarter))
       .WithExpectedResult(
-        measureContext,
+        withNextMeasureInde measureContext,
         List.replicate
           4
           (Note.create4 NoteName.C Duration.Quarter
@@ -153,7 +162,7 @@ let ``generates measure events`` =
     case("starting tie note")
       .WithData(measureContext, emptyMeasure |> withNote (Note.createTied4 NoteName.C Duration.Whole))
       .WithExpectedResult(
-        {
+        withNextMeasureInde {
           measureContext with
               IsTieStarted = true
         },
@@ -174,7 +183,7 @@ let ``generates measure events`` =
         emptyMeasure |> withNote (Note.create4 NoteName.C Duration.Whole)
       )
       .WithExpectedResult(
-        {
+        withNextMeasureInde {
           measureContext with
               IsTieStarted = false
         },
@@ -194,7 +203,7 @@ let ``generates measure events`` =
         |> withNote (Note.create4 NoteName.C Duration.Quarter)
       )
       .WithExpectedResult(
-        measureContext,
+        withNextMeasureInde measureContext,
         [
           Note.createTied4 NoteName.C Duration.Quarter
           |> NoteOrRest.Note
@@ -208,6 +217,25 @@ let ``generates measure events`` =
           |> NoteOrRest.Note
           |> Measure.CreateEvent.noteOrRestEventWithExtra [ StopTie ]
         ],
+        []
+      )
+
+    case("final barline")
+      .WithData(
+        {
+          measureContext with
+              TotalNumberOfMeasures = 132
+              CurrentMeasureIndex = 131
+        },
+        emptyMeasure
+      )
+      .WithExpectedResult(
+        {
+          measureContext with
+              TotalNumberOfMeasures = 132
+              CurrentMeasureIndex = 132
+        },
+        [ FinalBarlineEvent ],
         []
       )
   ]

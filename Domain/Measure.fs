@@ -11,6 +11,8 @@ module Types =
     CurrentKeySignature: KeySignature
     CurrentTimeSignature: TimeSignature
     CurrentClef: Clef
+    TotalNumberOfMeasures: int
+    CurrentMeasureIndex: int
   }
 
   type MeasureEvent =
@@ -18,6 +20,7 @@ module Types =
     | DefineTimeSignatureEvent of TimeSignature
     | DefineClefEvent of Clef
     | NoteOrRestEvent of NoteOrRestEvent
+    | FinalBarlineEvent
 
   and NoteOrRestEvent = {
     NoteOrRest: NoteOrRest
@@ -58,17 +61,21 @@ let generateEvents
 
     if context.CurrentClef <> measure.Clef then
       DefineClefEvent measure.Clef
+
+    if context.TotalNumberOfMeasures = context.CurrentMeasureIndex + 1 then
+      FinalBarlineEvent
   ]
 
-  let updatedContextAfterMeasureStart = {
+  let updatedContext = {
     context with
         IsFirstMeasure = false
         CurrentKeySignature = measure.KeySignature
         CurrentTimeSignature = measure.TimeSignature
         CurrentClef = measure.Clef
+        CurrentMeasureIndex = context.CurrentMeasureIndex + 1
   }
 
-  let noteOrRestEvents, updatedContextAfterNotesProcessing =
+  let noteOrRestEvents, updatedContext' =
     measure.NotesOrRests
     |> List.mapFold
       (fun context noteOrRest ->
@@ -86,9 +93,9 @@ let generateEvents
           context with
               IsTieStarted = isNoteStartingATie
         })
-      updatedContextAfterMeasureStart
+      updatedContext
 
-  List.concat [ otherEvents; noteOrRestEvents ], updatedContextAfterNotesProcessing
+  List.concat [ otherEvents; noteOrRestEvents ], updatedContext'
 
 let defineDivisions ({ Parsed = measure }: Validated.Measure) : Duration.T =
   if List.isEmpty measure.NotesOrRests then
