@@ -10,11 +10,9 @@ open FParsec
 open Case
 
 open Domain
-open Domain.CommonTypes
-open Domain.ParsedTypes
-open Domain.ParsedMeasureBuilder
-
-open Domain.Parser.Types
+open CommonTypes
+open ParsedTypes
+open ParsedMeasureBuilder
 
 [<Literal>]
 let here = __SOURCE_DIRECTORY__

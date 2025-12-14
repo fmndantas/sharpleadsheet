@@ -8,10 +8,10 @@ open Expecto.Flip.Expect
 open UnitTests.Case
 
 open Domain
-open Domain.CommonTypes
-open Domain.ParsedMeasureBuilder
-open Domain.Validated
-open Domain.ValidatedMeasureBuilder
+open CommonTypes
+open ParsedMeasureBuilder
+open Validated
+open ValidatedMeasureBuilder
 
 open Measure.Types
 

@@ -6,8 +6,8 @@ open System.Xml.Linq
 open FParsec
 
 open Domain
-open Domain.CommonTypes
-open Domain.Parser.Types
+open CommonTypes
+open ParsedTypes
 
 module Path =
   type T = private Path of string

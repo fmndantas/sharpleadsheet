@@ -1,8 +1,7 @@
 module Domain.ParsedTypes
 
-open Domain.CommonTypes
+open CommonTypes
 
-// TODO: move these types to Domain.Parser.Types?
 type ParsedMusic = {
   PartDefinitionSections: ParsedPartDefinitionSection list
   NotesSections: ParsedNotesSection list
@@ -26,4 +25,19 @@ and ParsedMeasure = {
   KeySignature: KeySignature
   Clef: Clef
   NotesOrRests: NoteOrRest list
+}
+
+type ParserState = {
+  CurrentTimeSignature: TimeSignature
+  CurrentKeySignature: KeySignature
+  CurrentClef: Clef
+  CurrentOctave: int
+  LastPitch: Pitch.T option
+  LastDuration: Duration.T option
+}
+
+type DefaultSettings = {
+  TimeSignature: TimeSignature
+  KeySignature: KeySignature
+  Clef: Clef
 }

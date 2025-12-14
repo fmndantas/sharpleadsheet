@@ -6,9 +6,9 @@ open Expecto.Flip.Expect
 open Case
 
 open Domain
-open Domain.CommonTypes
-open Domain.ParsedTypes
-open Domain.ParsedMeasureBuilder
+open CommonTypes
+open ParsedTypes
+open ParsedMeasureBuilder
 
 [<AutoOpen>]
 module private ArrangeUtils =

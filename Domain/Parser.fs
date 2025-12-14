@@ -2,10 +2,11 @@ module Domain.Parser
 
 open FParsec
 
-open Domain.CommonTypes
-open Domain.ParsedTypes
-open Domain.ParsedMeasureBuilder
+open CommonTypes
+open ParsedTypes
+open ParsedMeasureBuilder
 
+[<AutoOpen>]
 module Types =
   [<RequireQualifiedAccess>]
   type PartDefinitionAttribute =
@@ -20,21 +21,6 @@ module Types =
     | Note of Note.T
     | Rest of Rest
     | OctaveManipulation of int
-
-  type ParserState = {
-    CurrentTimeSignature: TimeSignature
-    CurrentKeySignature: KeySignature
-    CurrentClef: Clef
-    CurrentOctave: int
-    LastPitch: Pitch.T option
-    LastDuration: Duration.T option
-  }
-
-  type DefaultSettings = {
-    TimeSignature: TimeSignature
-    KeySignature: KeySignature
-    Clef: Clef
-  }
 
 module Functions =
   open Types

@@ -1,9 +1,9 @@
 module Domain.ParsedMeasureBuilder
 
-open Domain.GenericFunctions
+open GenericFunctions
 
-open Domain.CommonTypes
-open Domain.ParsedTypes
+open CommonTypes
+open ParsedTypes
 
 let aParsedMeasure () : ParsedMeasure = {
   Clef = Clef.G

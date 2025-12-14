@@ -1,7 +1,7 @@
 module Domain.Validated
 
-open Domain.ParsedTypes
-open Domain.CommonTypes
+open ParsedTypes
+open CommonTypes
 
 type Music = List<Part>
 

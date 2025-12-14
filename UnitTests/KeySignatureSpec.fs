@@ -6,7 +6,7 @@ open Expecto.Flip.Expect
 open UnitTests.Case
 
 open Domain
-open Domain.CommonTypes
+open CommonTypes
 
 let ``it should calculate fifths`` =
   testTheory3 "it should calculate fifths" [
