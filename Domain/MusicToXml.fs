@@ -165,12 +165,9 @@ let createPart (ps: Validated.Part list) : XElement list =
     |> List.mapFold Measure.generateEvents {
       IsFirstMeasure = true
       IsTieStarted = false
-      CurrentKeySignature = KeySignature NoteName.C
-      CurrentTimeSignature = {
-        Numerator = 4
-        Denominator = Duration.Quarter
-      }
-      CurrentClef = Clef.G
+      CurrentKeySignature = part.KeySignature
+      CurrentTimeSignature = part.TimeSignature
+      CurrentClef = part.Clef
     }
     |> fst
     |> List.zip part.Measures

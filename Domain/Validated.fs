@@ -129,14 +129,9 @@ let private createFromValidParsedPart
       PartId = partId
       // TODO: there is any strategy I can use to mitigate Option.get?
       Name = Option.get partDefinition.Name
-      Clef = partDefinition.Clef |> Option.defaultValue Clef.G
-      TimeSignature =
-        partDefinition.TimeSignature
-        |> Option.defaultValue {
-          Numerator = 4
-          Denominator = Duration.Quarter
-        }
-      KeySignature = partDefinition.KeySignature |> Option.defaultValue (KeySignature NoteName.C)
+      Clef = partDefinition.Clef
+      TimeSignature = partDefinition.TimeSignature
+      KeySignature = partDefinition.KeySignature
       Measures = measures |> Map.tryFind partId |> Option.defaultValue []
     })
 

@@ -11,9 +11,9 @@ type ParsedMusic = {
 and ParsedPartDefinitionSection = {
   Id: PartId option
   Name: string option
-  Clef: Clef option
-  TimeSignature: TimeSignature option
-  KeySignature: KeySignature option
+  TimeSignature: TimeSignature
+  KeySignature: KeySignature
+  Clef: Clef
 }
 
 and ParsedNotesSection = {

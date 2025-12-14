@@ -24,23 +24,23 @@ module private ArrangeUtils =
     aPart
       partId
       (Some "Piano")
-      (Some Clef.G)
-      (Some {
+      Clef.G
+      {
         Numerator = 4
         Denominator = Duration.Quarter
-      })
-      (NoteName.C |> KeySignature |> Some)
+      }
+      (KeySignature NoteName.C)
 
   let partWithName name =
     aPart
       (1 |> PartId |> Some)
       name
-      (Some Clef.G)
-      (Some {
+      Clef.G
+      {
         Numerator = 4
         Denominator = Duration.Quarter
-      })
-      (NoteName.C |> KeySignature |> Some)
+      }
+      (KeySignature NoteName.C)
 
   let notesSectionWithId partId = { PartId = partId; Measures = [] }
   let c4WithDuration duration = Note.create4 NoteName.C duration
@@ -139,13 +139,12 @@ let ``creates validated music from correct parsed music`` =
         {
           Id = 1 |> PartId |> Some
           Name = Some "Piano"
-          Clef = Some Clef.F
-          TimeSignature =
-            Some {
-              Numerator = 7
-              Denominator = Duration.Sixteenth
-            }
-          KeySignature = NoteName.CSharp |> KeySignature |> Some
+          Clef = Clef.F
+          TimeSignature = {
+            Numerator = 7
+            Denominator = Duration.Sixteenth
+          }
+          KeySignature = KeySignature NoteName.CSharp
         }
       ]
       NotesSections = [

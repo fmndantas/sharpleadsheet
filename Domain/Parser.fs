@@ -30,6 +30,12 @@ module Types =
     LastDuration: Duration.T option
   }
 
+  type DefaultSettings = {
+    TimeSignature: TimeSignature
+    KeySignature: KeySignature
+    Clef: Clef
+  }
+
 module Functions =
   open Types
 
@@ -168,7 +174,7 @@ module Functions =
       |>> fun v -> v |> KeySignature |> PartDefinitionAttribute.KeySignature
     ]
 
-  let pPartDefinitionSection: P<ParsedPartDefinitionSection> =
+  let pPartDefinitionSection (settings: DefaultSettings) : P<ParsedPartDefinitionSection> =
     between (pCommand "part" .>> ws) (pCommand "endpart" .>> ws) (many (pPartDefinitionAttribute .>> ws))
     |>> (fun partDefinitionAttributes ->
       let mutable partId: PartId option = None
@@ -189,9 +195,9 @@ module Functions =
       {
         Id = partId
         Name = name
-        Clef = clef
-        TimeSignature = timeSignature
-        KeySignature = keySignature
+        TimeSignature = timeSignature |> Option.defaultValue settings.TimeSignature
+        KeySignature = keySignature |> Option.defaultValue settings.KeySignature
+        Clef = clef |> Option.defaultValue settings.Clef
       })
 
   let pOctaveManipulation: P<NotesSectionSymbol> =
@@ -265,21 +271,15 @@ module Functions =
       }
     }
 
-  let pMusic: P<ParsedMusic> =
+  let pMusic (settings: DefaultSettings) : P<ParsedMusic> =
     parse {
-      let! partDefinition = pPartDefinitionSection
+      let! partDefinition = pPartDefinitionSection settings
 
       do!
         setUserState {
-          CurrentTimeSignature =
-            Option.defaultValue
-              {
-                Numerator = 4
-                Denominator = Duration.Quarter
-              }
-              partDefinition.TimeSignature
-          CurrentKeySignature = Option.defaultValue (KeySignature NoteName.C) partDefinition.KeySignature
-          CurrentClef = Option.defaultValue Clef.G partDefinition.Clef
+          CurrentTimeSignature = partDefinition.TimeSignature
+          CurrentKeySignature = partDefinition.KeySignature
+          CurrentClef = partDefinition.Clef
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
