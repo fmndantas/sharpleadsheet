@@ -27,12 +27,12 @@ type Parse = Path.T -> Result<Validated.Music, WorkflowError list>
 type OutputMusicXml = Validated.Music -> XDocument
 
 let private defaultState = {
-  InitialKeySignature = KeySignature NoteName.C
-  InitialTimeSignature = {
+  CurrentKeySignature = KeySignature NoteName.C
+  CurrentTimeSignature = {
     Numerator = 4
     Denominator = Duration.Quarter
   }
-  InitialClef = Clef.G
+  CurrentClef = Clef.G
   CurrentOctave = 4
   LastDuration = None
   LastPitch = None

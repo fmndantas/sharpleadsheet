@@ -22,9 +22,9 @@ module Types =
     | OctaveManipulation of int
 
   type ParserState = {
-    InitialTimeSignature: TimeSignature
-    InitialKeySignature: KeySignature
-    InitialClef: Clef
+    CurrentTimeSignature: TimeSignature
+    CurrentKeySignature: KeySignature
+    CurrentClef: Clef
     CurrentOctave: int
     LastPitch: Pitch.T option
     LastDuration: Duration.T option
@@ -118,7 +118,7 @@ module Functions =
   let getUpdatedDuration (state: ParserState) (maybeNewDuration: Duration.T option) =
     maybeNewDuration
     |> Option.orElse state.LastDuration
-    |> Option.defaultValue state.InitialTimeSignature.Denominator
+    |> Option.defaultValue state.CurrentTimeSignature.Denominator
 
   let pTie: P<Note.Modifier> = pstring "~" |>> fun _ -> Note.Tie
 
@@ -234,9 +234,9 @@ module Functions =
 
       let! state = getUserState
 
-      let keySignature = state.InitialKeySignature
-      let timeSignature = state.InitialTimeSignature
-      let clef = state.InitialClef
+      let keySignature = state.CurrentKeySignature
+      let timeSignature = state.CurrentTimeSignature
+      let clef = state.CurrentClef
 
       let createMeasure symbols =
         aParsedMeasure ()
@@ -271,15 +271,15 @@ module Functions =
 
       do!
         setUserState {
-          InitialTimeSignature =
+          CurrentTimeSignature =
             Option.defaultValue
               {
                 Numerator = 4
                 Denominator = Duration.Quarter
               }
               partDefinition.TimeSignature
-          InitialKeySignature = Option.defaultValue (KeySignature NoteName.C) partDefinition.KeySignature
-          InitialClef = Option.defaultValue Clef.G partDefinition.Clef
+          CurrentKeySignature = Option.defaultValue (KeySignature NoteName.C) partDefinition.KeySignature
+          CurrentClef = Option.defaultValue Clef.G partDefinition.Clef
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None

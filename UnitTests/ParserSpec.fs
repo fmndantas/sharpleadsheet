@@ -31,12 +31,12 @@ let private runWithStateAndAssert parser initialState content assertFn =
 
 let private runAndAssert parser content assertFn =
   let initialState = {
-    InitialKeySignature = KeySignature NoteName.C
-    InitialTimeSignature = {
+    CurrentKeySignature = KeySignature NoteName.C
+    CurrentTimeSignature = {
       Numerator = 2
       Denominator = Duration.Quarter
     }
-    InitialClef = Clef.G
+    CurrentClef = Clef.G
     CurrentOctave = 4
     LastDuration = None
     LastPitch = None
@@ -136,12 +136,12 @@ let ``parses a note`` =
   ]
   <| fun (lastDuration, lastPitch, content) expectedResult ->
     let currentState = {
-      InitialKeySignature = KeySignature NoteName.C
-      InitialTimeSignature = {
+      CurrentKeySignature = KeySignature NoteName.C
+      CurrentTimeSignature = {
         Numerator = 2
         Denominator = Duration.Quarter
       }
-      InitialClef = Clef.G
+      CurrentClef = Clef.G
       CurrentOctave = 4
       LastPitch = lastPitch
       LastDuration = lastDuration
@@ -161,12 +161,12 @@ let ``parses a rest`` =
   ]
   <| fun (lastDuration, content) expectedResult ->
     let state = {
-      InitialTimeSignature = {
+      CurrentTimeSignature = {
         Numerator = 1
         Denominator = Duration.Sixteenth
       }
-      InitialKeySignature = NoteName.C |> KeySignature
-      InitialClef = Clef.G
+      CurrentKeySignature = NoteName.C |> KeySignature
+      CurrentClef = Clef.G
       CurrentOctave = 4
       LastPitch = None
       LastDuration = lastDuration
@@ -180,12 +180,12 @@ let ``parses notes section content`` =
     caseId(1)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 2
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -218,12 +218,12 @@ let ``parses notes section content`` =
     caseId(2)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 3
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.F
-          InitialClef = Clef.F
+          CurrentKeySignature = KeySignature NoteName.F
+          CurrentClef = Clef.F
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -267,12 +267,12 @@ let ``parses notes section content`` =
     caseId(3)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 4
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -298,12 +298,12 @@ let ``parses notes section content`` =
     caseId(4)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 4
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -326,12 +326,12 @@ let ``parses notes section content`` =
     caseId(5)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 4
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -372,12 +372,12 @@ let ``parses notes section content`` =
     caseId(6)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 4
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -440,12 +440,12 @@ let ``parses notes section`` =
     caseId(7)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 4
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -524,12 +524,12 @@ let ``parses music`` =
           ]
         },
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 2
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 5
           LastPitch = Pitch.create NoteName.AFlat 5 |> Some
           LastDuration = Some Duration.Sixteenth
@@ -583,12 +583,12 @@ let ``parses music`` =
           ]
         },
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 1
             Denominator = Duration.Eighth
           }
-          InitialKeySignature = KeySignature NoteName.G
-          InitialClef = Clef.F
+          CurrentKeySignature = KeySignature NoteName.G
+          CurrentClef = Clef.F
           CurrentOctave = 4
           LastPitch = Pitch.createMiddle NoteName.C |> Some
           LastDuration = Some Duration.Eighth
