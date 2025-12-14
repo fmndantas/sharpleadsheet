@@ -86,10 +86,11 @@ let ``converts note or rest to xml`` =
       )
       .WithExpectedResult(
         "
-      <rest>
+      <note>
+        <rest/>
         <duration>1</duration>
         <type>quarter</type>
-      </rest>
+      </note>
       "
       )
 

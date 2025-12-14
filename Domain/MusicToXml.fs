@@ -106,18 +106,18 @@ let interpretNote
       element "notations" [ elementWithAttributes "tied" [ attribute "type" xmlType ] [] ]
     ]
 
-  match noteOrRest with
-  | NoteOrRest.Note note ->
-    [
-      note |> Note.getPitch |> interpretPitch
-      yield! noteOrRest |> NoteOrRest.getDuration |> interpretDuration divisions
-      if attachedToNoteOrRestEvents |> List.contains StartTie then
-        yield! xmlTie "start"
-      if attachedToNoteOrRestEvents |> List.contains StopTie then
-        yield! xmlTie "stop"
-    ]
-    |> element "note"
-  | NoteOrRest.Rest(Rest d) -> d |> interpretDuration divisions |> element "rest"
+  let duration = NoteOrRest.getDuration noteOrRest
+
+  element "note" [
+    match noteOrRest with
+    | NoteOrRest.Rest _ -> selfEnclosingElement "rest"
+    | NoteOrRest.Note note -> yield! [ note |> Note.getPitch |> interpretPitch ]
+    yield! interpretDuration divisions duration
+    if attachedToNoteOrRestEvents |> List.contains StartTie then
+      yield! xmlTie "start"
+    if attachedToNoteOrRestEvents |> List.contains StopTie then
+      yield! xmlTie "stop"
+  ]
 
 let createMeasureAttributes (m: Validated.Measure) (es: MeasureEvent list) : XElement =
   [
