@@ -12,6 +12,7 @@ type TimeSignature = {
 
 type KeySignature = KeySignature of NoteName.T
 
+// TODO: think in a better name for this type
 [<RequireQualifiedAccess>]
 type NoteOrRest =
   | Note of Note.T
@@ -32,13 +33,6 @@ type ValidationError =
 
 and PartsWithRepeatedIds = { PartId: PartId; Indexes: int list }
 and NotesSectionReferencesInvalidPartId = { PartId: PartId; Index: int }
-
-[<RequireQualifiedAccess>]
-type MeasureEvent =
-  | DefineKeySignature of KeySignature
-  | DefineTimeSignature of TimeSignature
-  | DefineClef of Clef
-  | NoteOrRest of NoteOrRest
 
 [<RequireQualifiedAccess>]
 type Fifth =

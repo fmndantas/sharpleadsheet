@@ -6,9 +6,9 @@ open Expecto.Flip.Expect
 open Case
 
 open Domain
-open Domain.CommonTypes
-open Domain.ParsedTypes
-open Domain.ParsedMeasureBuilder
+open CommonTypes
+open ParsedTypes
+open ParsedMeasureBuilder
 
 [<AutoOpen>]
 module private ArrangeUtils =
@@ -24,23 +24,23 @@ module private ArrangeUtils =
     aPart
       partId
       (Some "Piano")
-      (Some Clef.G)
-      (Some {
+      Clef.G
+      {
         Numerator = 4
         Denominator = Duration.Quarter
-      })
-      (NoteName.C |> KeySignature |> Some)
+      }
+      (KeySignature NoteName.C)
 
   let partWithName name =
     aPart
       (1 |> PartId |> Some)
       name
-      (Some Clef.G)
-      (Some {
+      Clef.G
+      {
         Numerator = 4
         Denominator = Duration.Quarter
-      })
-      (NoteName.C |> KeySignature |> Some)
+      }
+      (KeySignature NoteName.C)
 
   let notesSectionWithId partId = { PartId = partId; Measures = [] }
   let c4WithDuration duration = Note.create4 NoteName.C duration
@@ -139,9 +139,12 @@ let ``creates validated music from correct parsed music`` =
         {
           Id = 1 |> PartId |> Some
           Name = Some "Piano"
-          Clef = None
-          TimeSignature = None
-          KeySignature = None
+          Clef = Clef.F
+          TimeSignature = {
+            Numerator = 7
+            Denominator = Duration.Sixteenth
+          }
+          KeySignature = KeySignature NoteName.CSharp
         }
       ]
       NotesSections = [
@@ -159,6 +162,12 @@ let ``creates validated music from correct parsed music`` =
       {
         PartId = PartId 1
         Name = "Piano"
+        Clef = Clef.F
+        TimeSignature = {
+          Numerator = 7
+          Denominator = Duration.Sixteenth
+        }
+        KeySignature = KeySignature NoteName.CSharp
         Measures = [
           {
             MeasureId = MeasureId 1
@@ -232,6 +241,14 @@ let ``invalidates wrong parsed measures`` =
         )
         .WithExpectedResult(
           (MeasureId 3, partId)
+          |> ValidationError.MeasureWithInconsistentDurations
+          |> ContainsError
+        )
+
+      case("6.error")
+        .WithData([ measure |> withRest Duration.Quarter ])
+        .WithExpectedResult(
+          (MeasureId 1, partId)
           |> ValidationError.MeasureWithInconsistentDurations
           |> ContainsError
         )

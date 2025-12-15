@@ -37,3 +37,5 @@ let create6 = create 6
 let getPitch note = note.Pitch
 
 let getDuration note = note.Duration
+
+let isTied note = note.Modifiers |> List.contains Tie

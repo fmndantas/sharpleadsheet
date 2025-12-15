@@ -6,8 +6,8 @@ open System.Xml.Linq
 open FParsec
 
 open Domain
-open Domain.CommonTypes
-open Domain.Parser.Types
+open CommonTypes
+open ParsedTypes
 
 module Path =
   type T = private Path of string
@@ -26,13 +26,19 @@ type WorkflowError =
 type Parse = Path.T -> Result<Validated.Music, WorkflowError list>
 type OutputMusicXml = Validated.Music -> XDocument
 
-let private defaultState = {
-  InitialKeySignature = KeySignature NoteName.C
-  InitialTimeSignature = {
+let private defaultSettings = {
+  TimeSignature = {
     Numerator = 4
     Denominator = Duration.Quarter
   }
-  InitialClef = Clef.G
+  KeySignature = KeySignature NoteName.C
+  Clef = Clef.G
+}
+
+let private defaultState = {
+  CurrentKeySignature = defaultSettings.KeySignature
+  CurrentTimeSignature = defaultSettings.TimeSignature
+  CurrentClef = defaultSettings.Clef
   CurrentOctave = 4
   LastDuration = None
   LastPitch = None
@@ -43,7 +49,9 @@ let parse: Parse =
     let pathAsString = path |> Path.getPathAsString
     let inputText = pathAsString |> File.ReadAllText
 
-    match runParserOnString Parser.Functions.pMusic defaultState pathAsString inputText with
+    let pMusic = Parser.Functions.pMusic defaultSettings
+
+    match runParserOnString pMusic defaultState pathAsString inputText with
     | Success(parsedMusic, _, _) -> Result.Ok parsedMusic
     | Failure(errorMessage, _, _) -> Result.Error errorMessage
     |> Result.mapError (WorkflowError.Parsing >> List.singleton)

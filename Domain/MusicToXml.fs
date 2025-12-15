@@ -2,27 +2,17 @@ module Domain.MusicToXml
 
 open System.Xml.Linq
 
-open Domain.XmlWrapper
+open XmlWrapper
 
-open Domain.CommonTypes
-open Domain.ParsedTypes
-
-[<RequireQualifiedAccess>]
-[<System.Obsolete>]
-type Music =
-  | Parsed of ParsedMusic
-  | Validated of Validated.Music
+open CommonTypes
+open Measure.Types
 
 let partId2String (PartId partId) = $"P{partId}"
 
-let indexWithPartId (xs: 'a list) : list<PartId * 'a> =
-  xs |> List.indexed |> List.map (fun (idx, x) -> idx + 1 |> PartId, x)
-
 let createPartList (names: Validated.Part list) : XElement =
   names
-  |> indexWithPartId
-  |> List.map (fun (partId, part) ->
-    elementWithAttributes "score-part" [ partId |> partId2String |> attribute "id" ] [
+  |> List.map (fun part ->
+    elementWithAttributes "score-part" [ part.PartId |> partId2String |> attribute "id" ] [
       leafElement "part-name" part.Name
     ])
   |> element "part-list"
@@ -36,78 +26,168 @@ let calculateFifths =
     | Fifth.Flat flat -> $"{-flat}"
     | Fifth.Sharp sharp -> $"{sharp}"
 
-// TEST: calculateBeatType
-let calculateBeatType (t: TimeSignature) : string = "4"
+let calculateBeatType (t: TimeSignature) : string =
+  match t.Denominator with
+  | Duration.Whole -> 1
+  | Duration.Half -> 2
+  | Duration.Quarter -> 4
+  | Duration.Eighth -> 8
+  | Duration.Sixteenth -> 16
+  | Duration.ThirtySecond -> 32
+  | _ -> failwith "unsupported duration for beat type"
+  |> toString
 
-// TEST: interpretClefEvent
 let interpretClefEvent (c: Clef) : XElement =
-  [ leafElement "sign" "G"; leafElement "line" "2" ] |> element "clef"
+  let sign, line =
+    match c with
+    | Clef.G -> "G", "2"
+    | Clef.F -> "F", "4"
 
-// TEST: interpretNote
-let interpretNote (n: NoteOrRest) : XElement =
+  [ leafElement "sign" sign; leafElement "line" line ] |> element "clef"
+
+let interpretDuration (divisions: Duration.T) (d: Duration.T) : XElement list =
+  let duration =
+    match Duration.getEquivalenceToMinimalDuration divisions, Duration.getEquivalenceToMinimalDuration d with
+    | Duration.Equivalence.Multiple den, Duration.Equivalence.Multiple num -> num / den
+
+  let durationType =
+    match d with
+    | Duration.Whole -> "whole"
+    | Duration.WholeDotted -> "whole"
+    | Duration.Half -> "half"
+    | Duration.HalfDotted -> "half"
+    | Duration.Quarter -> "quarter"
+    | Duration.QuarterDotted -> "quarter"
+    | Duration.Eighth -> "eighth"
+    | Duration.EighthDotted -> "eighth"
+    | Duration.Sixteenth -> "16th"
+    | Duration.SixteenthDotted -> "16th"
+    | Duration.ThirtySecond -> "32nd"
+
+  let isDotted = d.ToString().ToLower().Contains "dotted"
+
   [
-    element "pitch" [ leafElement "step" "C"; leafElement "octave" "4" ]
-    leafElement "duration" "4"
-    leafElement "type" "whole"
+    leafElement "duration" (duration.ToString())
+    leafElement "type" durationType
+    if isDotted then
+      selfEnclosingElement "dot"
   ]
-  |> element "note"
+
+let interpretPitch (p: Pitch.T) : XElement =
+  let noteName = Pitch.getNoteName p
+  let stringNoteName = noteName.ToString()
+  let octave = Pitch.getOctave p
+  let step = noteName.ToString()[0]
+
+  let alter =
+    let lowerStringNoteName = stringNoteName.ToLower()
+
+    if lowerStringNoteName.Contains "flat" then -1
+    elif lowerStringNoteName.Contains "sharp" then 1
+    else 0
+
+  element "pitch" [
+    leafElement "step" (step.ToString())
+    leafElement "octave" (octave.ToString())
+    if alter <> 0 then
+      leafElement "alter" (sprintf "%+d" alter)
+  ]
+
+let interpretNote
+  (divisions: Duration.T)
+  ({
+     NoteOrRest = noteOrRest
+     AttachedToNoteOrRestEvents = attachedToNoteOrRestEvents
+   }: NoteOrRestEvent)
+  : XElement =
+  let xmlTie =
+    fun xmlType -> [
+      elementWithAttributes "tie" [ attribute "type" xmlType ] []
+      element "notations" [ elementWithAttributes "tied" [ attribute "type" xmlType ] [] ]
+    ]
+
+  let duration = NoteOrRest.getDuration noteOrRest
+
+  element "note" [
+    match noteOrRest with
+    | NoteOrRest.Rest _ -> selfEnclosingElement "rest"
+    | NoteOrRest.Note note -> yield! [ note |> Note.getPitch |> interpretPitch ]
+    yield! interpretDuration divisions duration
+    if attachedToNoteOrRestEvents |> List.contains StartTie then
+      yield! xmlTie "start"
+    if attachedToNoteOrRestEvents |> List.contains StopTie then
+      yield! xmlTie "stop"
+  ]
 
 let createMeasureAttributes (m: Validated.Measure) (es: MeasureEvent list) : XElement =
   [
-    m |> Measure.defineDivisions |> _.ToString() |> leafElement "divisions"
+    m
+    |> Measure.defineDivisions
+    |> function
+      | Duration.Quarter -> 1
+      | Duration.Eighth -> 2
+      | Duration.Sixteenth -> 4
+      | Duration.ThirtySecond -> 8
+      | _ -> failwith "unsupported duration for divisions"
+    |> _.ToString()
+    |> leafElement "divisions"
     yield!
       es
       |> List.choose (fun e ->
         match e with
-        | MeasureEvent.DefineKeySignature k -> element "key" [ k |> calculateFifths |> leafElement "fifths" ] |> Some
-        | MeasureEvent.DefineTimeSignature t ->
+        | DefineKeySignatureEvent k -> element "key" [ k |> calculateFifths |> leafElement "fifths" ] |> Some
+        | DefineTimeSignatureEvent t ->
           element "time" [
             leafElement "beats" (t.Numerator.ToString())
             t |> calculateBeatType |> leafElement "beat-type"
           ]
           |> Some
-        | MeasureEvent.DefineClef c -> interpretClefEvent >> Some <| c
+        | DefineClefEvent c -> c |> interpretClefEvent |> Some
         | _ -> None)
   ]
   |> element "attributes"
 
-let createMeasureNotes (es: MeasureEvent list) : XElement list =
+let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement list =
   es
   |> List.choose (fun e ->
     match e with
-    | MeasureEvent.NoteOrRest noteOrRest -> interpretNote noteOrRest |> Some
+    | NoteOrRestEvent noteOrRestEvent -> (Measure.defineDivisions m, noteOrRestEvent) ||> interpretNote |> Some
     | _ -> None)
 
-let createMeasure (previousMeasure: Validated.Measure option, currentMeasure: Validated.Measure) : XElement =
-  let events = Measure.generateEvents previousMeasure currentMeasure
+let private createFinalBarline (es: MeasureEvent list) : XElement option =
+  if List.contains FinalBarlineEvent es then
+    elementWithAttributes "barline" [ attribute "location" "right" ] [ leafElement "bar-style" "light-heavy" ]
+    |> Some
+  else
+    None
 
+let createMeasure (m: Validated.Measure, es: MeasureEvent list) : XElement =
   [
-    createMeasureAttributes currentMeasure events
-    yield! createMeasureNotes events
+    createMeasureAttributes m es
+    yield! createMeasureNotes m es
+    yield! createFinalBarline es |> Option.toList
   ]
-  |> elementWithAttributes "measure" [ currentMeasure.MeasureId |> measureId2String |> attribute "number" ]
+  |> elementWithAttributes "measure" [ m.MeasureId |> measureId2String |> attribute "number" ]
 
 let createPart (ps: Validated.Part list) : XElement list =
   ps
-  |> indexWithPartId
-  |> List.map (fun (partId, part) ->
-    let measures = part.Measures
-
-    let pairsOfMeasures =
-      if List.isEmpty measures then
-        []
-      else
-        (None, List.head measures)
-        :: (measures |> List.pairwise |> List.map (fun (a, b) -> Some a, b))
-
-    pairsOfMeasures
+  |> List.map (fun part ->
+    part.Measures
+    |> List.mapFold Measure.generateEvents {
+      IsFirstMeasure = true
+      IsTieStarted = false
+      CurrentKeySignature = part.KeySignature
+      CurrentTimeSignature = part.TimeSignature
+      CurrentClef = part.Clef
+      TotalNumberOfMeasures = List.length part.Measures
+      CurrentMeasureIndex = 0
+    }
+    |> fst
+    |> List.zip part.Measures
     |> List.map createMeasure
-    |> elementWithAttributes "part" [ partId |> partId2String |> attribute "id" ])
+    |> elementWithAttributes "part" [ part.PartId |> partId2String |> attribute "id" ])
 
-// TODO: add validation
-let convert (m: Music) : XDocument =
-  let (Music.Validated parts) = m
-
-  [ parts |> createPartList; yield! createPart parts ]
+let convert (m: Validated.Music) : XDocument =
+  [ m |> createPartList; yield! createPart m ]
   |> elementWithAttributes "score-partwise" [ attribute "version" "4.0" ]
   |> document

@@ -10,14 +10,21 @@ open FParsec
 open Case
 
 open Domain
-open Domain.CommonTypes
-open Domain.ParsedTypes
-open Domain.ParsedMeasureBuilder
-
-open Domain.Parser.Types
+open CommonTypes
+open ParsedTypes
+open ParsedMeasureBuilder
 
 [<Literal>]
 let here = __SOURCE_DIRECTORY__
+
+let private defaultSettings = {
+  TimeSignature = {
+    Numerator = 4
+    Denominator = Duration.Quarter
+  }
+  KeySignature = KeySignature NoteName.C
+  Clef = Clef.G
+}
 
 let private openSample (file: string) =
   let dot = Directory.GetParent(here).FullName
@@ -31,12 +38,12 @@ let private runWithStateAndAssert parser initialState content assertFn =
 
 let private runAndAssert parser content assertFn =
   let initialState = {
-    InitialKeySignature = KeySignature NoteName.C
-    InitialTimeSignature = {
+    CurrentKeySignature = KeySignature NoteName.C
+    CurrentTimeSignature = {
       Numerator = 2
       Denominator = Duration.Quarter
     }
-    InitialClef = Clef.G
+    CurrentClef = Clef.G
     CurrentOctave = 4
     LastDuration = None
     LastPitch = None
@@ -52,29 +59,27 @@ let ``parses a part definition section`` =
     sampleCase(1, "part-definition-1.sls").WithExpectedResult {
       Id = PartId 1 |> Some
       Name = Some "Piano"
-      Clef = Some Clef.G
-      TimeSignature =
-        Some {
-          Numerator = 2
-          Denominator = Duration.Quarter
-        }
-      KeySignature = KeySignature NoteName.F |> Some
+      TimeSignature = {
+        Numerator = 2
+        Denominator = Duration.Quarter
+      }
+      KeySignature = KeySignature NoteName.F
+      Clef = Clef.G
     }
 
     sampleCase(2, "part-definition-2.sls").WithExpectedResult {
       Id = PartId 1 |> Some
       Name = Some "guitar"
-      Clef = Some Clef.G
-      TimeSignature =
-        Some {
-          Numerator = 1
-          Denominator = Duration.Eighth
-        }
-      KeySignature = KeySignature NoteName.G |> Some
+      TimeSignature = {
+        Numerator = 1
+        Denominator = Duration.Eighth
+      }
+      KeySignature = KeySignature NoteName.G
+      Clef = Clef.G
     }
   ]
   <| fun content expectedResult ->
-    runAndAssert Parser.Functions.pPartDefinitionSection content
+    runAndAssert (Parser.Functions.pPartDefinitionSection defaultSettings) content
     <| fun result _ -> result |> equal "part definition section is incorrect" expectedResult
 
 let ``parses a note name`` =
@@ -136,12 +141,12 @@ let ``parses a note`` =
   ]
   <| fun (lastDuration, lastPitch, content) expectedResult ->
     let currentState = {
-      InitialKeySignature = KeySignature NoteName.C
-      InitialTimeSignature = {
+      CurrentKeySignature = KeySignature NoteName.C
+      CurrentTimeSignature = {
         Numerator = 2
         Denominator = Duration.Quarter
       }
-      InitialClef = Clef.G
+      CurrentClef = Clef.G
       CurrentOctave = 4
       LastPitch = lastPitch
       LastDuration = lastDuration
@@ -161,12 +166,12 @@ let ``parses a rest`` =
   ]
   <| fun (lastDuration, content) expectedResult ->
     let state = {
-      InitialTimeSignature = {
+      CurrentTimeSignature = {
         Numerator = 1
         Denominator = Duration.Sixteenth
       }
-      InitialKeySignature = NoteName.C |> KeySignature
-      InitialClef = Clef.G
+      CurrentKeySignature = NoteName.C |> KeySignature
+      CurrentClef = Clef.G
       CurrentOctave = 4
       LastPitch = None
       LastDuration = lastDuration
@@ -180,12 +185,12 @@ let ``parses notes section content`` =
     caseId(1)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 2
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -218,12 +223,12 @@ let ``parses notes section content`` =
     caseId(2)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 3
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.F
-          InitialClef = Clef.F
+          CurrentKeySignature = KeySignature NoteName.F
+          CurrentClef = Clef.F
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -267,12 +272,12 @@ let ``parses notes section content`` =
     caseId(3)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 4
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -298,12 +303,12 @@ let ``parses notes section content`` =
     caseId(4)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 4
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -326,12 +331,12 @@ let ``parses notes section content`` =
     caseId(5)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 4
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -372,12 +377,12 @@ let ``parses notes section content`` =
     caseId(6)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 4
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -440,12 +445,12 @@ let ``parses notes section`` =
     caseId(7)
       .WithData(
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 4
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
@@ -479,13 +484,12 @@ let ``parses music`` =
             {
               Id = 1 |> PartId |> Some
               Name = Some "Piano"
-              Clef = Some Clef.G
-              TimeSignature =
-                Some {
-                  Numerator = 2
-                  Denominator = Duration.Quarter
-                }
-              KeySignature = NoteName.C |> KeySignature |> Some
+              Clef = Clef.G
+              TimeSignature = {
+                Numerator = 2
+                Denominator = Duration.Quarter
+              }
+              KeySignature = KeySignature NoteName.C
             }
           ]
           NotesSections = [
@@ -524,12 +528,12 @@ let ``parses music`` =
           ]
         },
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 2
             Denominator = Duration.Quarter
           }
-          InitialKeySignature = KeySignature NoteName.C
-          InitialClef = Clef.G
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
           CurrentOctave = 5
           LastPitch = Pitch.create NoteName.AFlat 5 |> Some
           LastDuration = Some Duration.Sixteenth
@@ -544,13 +548,12 @@ let ``parses music`` =
             {
               Id = 2 |> PartId |> Some
               Name = Some "bass"
-              Clef = Some Clef.F
-              TimeSignature =
-                Some {
-                  Numerator = 1
-                  Denominator = Duration.Eighth
-                }
-              KeySignature = NoteName.G |> KeySignature |> Some
+              Clef = Clef.F
+              TimeSignature = {
+                Numerator = 1
+                Denominator = Duration.Eighth
+              }
+              KeySignature = KeySignature NoteName.G
             }
           ]
           NotesSections = [
@@ -583,12 +586,12 @@ let ``parses music`` =
           ]
         },
         {
-          InitialTimeSignature = {
+          CurrentTimeSignature = {
             Numerator = 1
             Denominator = Duration.Eighth
           }
-          InitialKeySignature = KeySignature NoteName.G
-          InitialClef = Clef.F
+          CurrentKeySignature = KeySignature NoteName.G
+          CurrentClef = Clef.F
           CurrentOctave = 4
           LastPitch = Pitch.createMiddle NoteName.C |> Some
           LastDuration = Some Duration.Eighth
@@ -596,7 +599,7 @@ let ``parses music`` =
       )
   ]
   <| fun content (expectedResult: ParsedMusic, expectedFinalState: ParserState) ->
-    runAndAssert Parser.Functions.pMusic content
+    runAndAssert (Parser.Functions.pMusic defaultSettings) content
     <| fun result finalState ->
       result |> equal "music is incorrect" expectedResult
       finalState |> equal "final state is incorrect" expectedFinalState

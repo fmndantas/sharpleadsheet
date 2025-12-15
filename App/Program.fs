@@ -8,6 +8,7 @@ open App.Workflow
 [<EntryPoint>]
 let main argv =
   let source = argv[0]
+  let outputFile = argv[1]
 
   let partIdToString =
     function
@@ -42,11 +43,13 @@ let main argv =
     source
     |> Path.fromString
     |> parse
+    |> Result.map Domain.MusicToXml.convert
     |> Result.mapError (List.map workflowErrorToString)
 
   match result with
-  | Ok _ ->
-    printfn "Parsing went OK!"
+  | Ok xml ->
+    printfn "Parsing went OK! Saving output .xml in \"%s\"" outputFile
+    System.IO.File.WriteAllText(outputFile, xml.ToString())
   | Error errors ->
     printfn "Parsing generated errors :("
     errors |> List.iter (printfn "%s")

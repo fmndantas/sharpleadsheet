@@ -1,6 +1,6 @@
 module Domain.ParsedTypes
 
-open Domain.CommonTypes
+open CommonTypes
 
 type ParsedMusic = {
   PartDefinitionSections: ParsedPartDefinitionSection list
@@ -10,9 +10,9 @@ type ParsedMusic = {
 and ParsedPartDefinitionSection = {
   Id: PartId option
   Name: string option
-  Clef: Clef option
-  TimeSignature: TimeSignature option
-  KeySignature: KeySignature option
+  TimeSignature: TimeSignature
+  KeySignature: KeySignature
+  Clef: Clef
 }
 
 and ParsedNotesSection = {
@@ -25,4 +25,19 @@ and ParsedMeasure = {
   KeySignature: KeySignature
   Clef: Clef
   NotesOrRests: NoteOrRest list
+}
+
+type ParserState = {
+  CurrentTimeSignature: TimeSignature
+  CurrentKeySignature: KeySignature
+  CurrentClef: Clef
+  CurrentOctave: int
+  LastPitch: Pitch.T option
+  LastDuration: Duration.T option
+}
+
+type DefaultSettings = {
+  TimeSignature: TimeSignature
+  KeySignature: KeySignature
+  Clef: Clef
 }

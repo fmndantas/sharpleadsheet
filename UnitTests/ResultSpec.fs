@@ -5,7 +5,6 @@ open Expecto.Flip.Expect
 
 open Case
 
-
 let traverse =
   testTheory3 "traverse" [
     case("all ok").WithData([ Ok 1; Ok 2; Ok 3 ]).WithExpectedResult(Ok [ 1; 2; 3 ])

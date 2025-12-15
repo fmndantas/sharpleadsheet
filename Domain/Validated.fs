@@ -1,13 +1,16 @@
 module Domain.Validated
 
-open Domain.ParsedTypes
-open Domain.CommonTypes
+open ParsedTypes
+open CommonTypes
 
 type Music = List<Part>
 
 and Part = {
   PartId: PartId
   Name: string
+  Clef: Clef
+  TimeSignature: TimeSignature
+  KeySignature: KeySignature
   Measures: Measure list
 }
 
@@ -74,13 +77,8 @@ let private validateMeasure (partId: PartId) (measure: Measure) : Result<Measure
       } =
     measure.Parsed.TimeSignature
 
-  let noteOrRestToDuration =
-    function
-    | NoteOrRest.Note n -> Note.getDuration n
-    | NoteOrRest.Rest(Rest d) -> d
-
   if
-    (List.replicate numerator denominator, List.map noteOrRestToDuration measure.Parsed.NotesOrRests)
+    (List.replicate numerator denominator, List.map NoteOrRest.getDuration measure.Parsed.NotesOrRests)
     ||> Duration.getEquivalenceBetweenLists
   then
     Ok measure
@@ -123,14 +121,17 @@ let private createFromValidParsedPart
   : Part list =
   let measures = notesSections |> getMeasuresPerPartId |> Map.ofList
 
-  // TODO: there is any strategy I can use to mitigate Option.get?
   partDefinitionSections
   |> List.map (fun partDefinition ->
     let partId = Option.get partDefinition.Id
 
     {
       PartId = partId
+      // TODO: there is any strategy I can use to mitigate Option.get?
       Name = Option.get partDefinition.Name
+      Clef = partDefinition.Clef
+      TimeSignature = partDefinition.TimeSignature
+      KeySignature = partDefinition.KeySignature
       Measures = measures |> Map.tryFind partId |> Option.defaultValue []
     })
 

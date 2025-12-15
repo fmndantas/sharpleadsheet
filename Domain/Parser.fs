@@ -2,10 +2,11 @@ module Domain.Parser
 
 open FParsec
 
-open Domain.CommonTypes
-open Domain.ParsedTypes
-open Domain.ParsedMeasureBuilder
+open CommonTypes
+open ParsedTypes
+open ParsedMeasureBuilder
 
+[<AutoOpen>]
 module Types =
   [<RequireQualifiedAccess>]
   type PartDefinitionAttribute =
@@ -20,15 +21,6 @@ module Types =
     | Note of Note.T
     | Rest of Rest
     | OctaveManipulation of int
-
-  type ParserState = {
-    InitialTimeSignature: TimeSignature
-    InitialKeySignature: KeySignature
-    InitialClef: Clef
-    CurrentOctave: int
-    LastPitch: Pitch.T option
-    LastDuration: Duration.T option
-  }
 
 module Functions =
   open Types
@@ -118,7 +110,7 @@ module Functions =
   let getUpdatedDuration (state: ParserState) (maybeNewDuration: Duration.T option) =
     maybeNewDuration
     |> Option.orElse state.LastDuration
-    |> Option.defaultValue state.InitialTimeSignature.Denominator
+    |> Option.defaultValue state.CurrentTimeSignature.Denominator
 
   let pTie: P<Note.Modifier> = pstring "~" |>> fun _ -> Note.Tie
 
@@ -168,7 +160,7 @@ module Functions =
       |>> fun v -> v |> KeySignature |> PartDefinitionAttribute.KeySignature
     ]
 
-  let pPartDefinitionSection: P<ParsedPartDefinitionSection> =
+  let pPartDefinitionSection (settings: DefaultSettings) : P<ParsedPartDefinitionSection> =
     between (pCommand "part" .>> ws) (pCommand "endpart" .>> ws) (many (pPartDefinitionAttribute .>> ws))
     |>> (fun partDefinitionAttributes ->
       let mutable partId: PartId option = None
@@ -189,9 +181,9 @@ module Functions =
       {
         Id = partId
         Name = name
-        Clef = clef
-        TimeSignature = timeSignature
-        KeySignature = keySignature
+        TimeSignature = timeSignature |> Option.defaultValue settings.TimeSignature
+        KeySignature = keySignature |> Option.defaultValue settings.KeySignature
+        Clef = clef |> Option.defaultValue settings.Clef
       })
 
   let pOctaveManipulation: P<NotesSectionSymbol> =
@@ -234,9 +226,9 @@ module Functions =
 
       let! state = getUserState
 
-      let keySignature = state.InitialKeySignature
-      let timeSignature = state.InitialTimeSignature
-      let clef = state.InitialClef
+      let keySignature = state.CurrentKeySignature
+      let timeSignature = state.CurrentTimeSignature
+      let clef = state.CurrentClef
 
       let createMeasure symbols =
         aParsedMeasure ()
@@ -265,21 +257,15 @@ module Functions =
       }
     }
 
-  let pMusic: P<ParsedMusic> =
+  let pMusic (settings: DefaultSettings) : P<ParsedMusic> =
     parse {
-      let! partDefinition = pPartDefinitionSection
+      let! partDefinition = pPartDefinitionSection settings
 
       do!
         setUserState {
-          InitialTimeSignature =
-            Option.defaultValue
-              {
-                Numerator = 4
-                Denominator = Duration.Quarter
-              }
-              partDefinition.TimeSignature
-          InitialKeySignature = Option.defaultValue (KeySignature NoteName.C) partDefinition.KeySignature
-          InitialClef = Option.defaultValue Clef.G partDefinition.Clef
+          CurrentTimeSignature = partDefinition.TimeSignature
+          CurrentKeySignature = partDefinition.KeySignature
+          CurrentClef = partDefinition.Clef
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
