@@ -549,6 +549,164 @@ By default, chord symbols appear above the first note. For chords that span mult
 
 ---
 
+### 9. Barlines
+
+Barlines separate measures and can indicate different musical structures. By default, MuseScore adds regular barlines between measures automatically, but you can specify different types.
+
+#### 9.1 Basic Barline Structure
+
+```xml
+<measure number="1">
+  <attributes>...</attributes>
+  <note>...</note>
+  <barline location="right">
+    <bar-style>light-heavy</bar-style>
+  </barline>
+</measure>
+```
+
+**Location options:**
+- `left` - At the beginning of the measure
+- `right` - At the end of the measure (most common)
+- `middle` - Mid-measure (rare, for special notation)
+
+#### 9.2 Barline Types
+
+Common barline styles:
+
+```xml
+<!-- Regular (default - not needed to specify) -->
+<bar-style>regular</bar-style>
+
+<!-- Double barline (section ending) -->
+<bar-style>light-light</bar-style>
+
+<!-- Final barline (end of piece) -->
+<bar-style>light-heavy</bar-style>
+
+<!-- Repeat start -->
+<bar-style>heavy-light</bar-style>
+
+<!-- Repeat end -->
+<bar-style>light-heavy</bar-style>
+
+<!-- Dashed (for continuations) -->
+<bar-style>dashed</bar-style>
+
+<!-- Heavy (for major sections) -->
+<bar-style>heavy</bar-style>
+
+<!-- None (invisible) -->
+<bar-style>none</bar-style>
+```
+
+#### 9.3 Repeat Barlines
+
+For repeat signs, add `<repeat>` element:
+
+```xml
+<!-- Start repeat (beginning of repeated section) -->
+<barline location="left">
+  <bar-style>heavy-light</bar-style>
+  <repeat direction="forward"/>
+</barline>
+
+<!-- End repeat (end of repeated section) -->
+<barline location="right">
+  <bar-style>light-heavy</bar-style>
+  <repeat direction="backward"/>
+</barline>
+```
+
+**Repeat with times:**
+```xml
+<barline location="right">
+  <bar-style>light-heavy</bar-style>
+  <repeat direction="backward" times="2"/>  <!-- play 2 times total -->
+</barline>
+```
+
+#### 9.4 Complete Examples
+
+**Example 1: Final barline at end of piece**
+```xml
+<measure number="8">
+  <attributes>...</attributes>
+  <note>...</note>
+  <note>...</note>
+  <barline location="right">
+    <bar-style>light-heavy</bar-style>
+  </barline>
+</measure>
+```
+
+**Example 2: Section with double barline**
+```xml
+<measure number="16">
+  <attributes>...</attributes>
+  <note>...</note>
+  <barline location="right">
+    <bar-style>light-light</bar-style>
+  </barline>
+</measure>
+```
+
+**Example 3: Simple repeat**
+```xml
+<!-- Measure 1: start repeat -->
+<measure number="1">
+  <barline location="left">
+    <bar-style>heavy-light</bar-style>
+    <repeat direction="forward"/>
+  </barline>
+  <attributes>...</attributes>
+  <note>...</note>
+</measure>
+
+<!-- Measure 2 -->
+<measure number="2">
+  <note>...</note>
+</measure>
+
+<!-- Measure 3 -->
+<measure number="3">
+  <note>...</note>
+</measure>
+
+<!-- Measure 4: end repeat -->
+<measure number="4">
+  <note>...</note>
+  <barline location="right">
+    <bar-style>light-heavy</bar-style>
+    <repeat direction="backward"/>
+  </barline>
+</measure>
+```
+
+**Result:** Measures 1-4 with repeat signs, telling performer to play twice.
+
+#### 9.5 Common Patterns
+
+```
+Pattern                 Usage
+---------------------------------------------
+(none)                  Regular measure - auto-generated
+light-light             Section boundary, key/time change
+light-heavy             Final barline (end of piece)
+heavy-light + forward   Start of repeat section
+light-heavy + backward  End of repeat section
+dashed                  Measure continuation (rare)
+```
+
+#### 9.6 Important Notes
+
+- **Default behavior**: MuseScore adds regular barlines automatically - you don't need to specify them
+- **Only specify when different**: Only add `<barline>` when you need something other than regular
+- **Right location most common**: `location="right"` is most frequently used
+- **Final measure**: Always use `light-heavy` on the last measure of a piece
+
+---
+
 ## What MuseScore Handles Automatically
 
 ✅ **Beaming** - Groups eighth/sixteenth notes by beat
@@ -744,5 +902,6 @@ musescore test.musicxml
 5. **Tie support** - add `<tie>` and `<tied>` elements
 6. **Dotted notes** - add `<dot/>` element
 7. **Chord symbols** (optional) - add `<harmony>` before notes with root, kind, and optional bass
+8. **Barlines** (optional) - add `<barline>` with style for final bars, repeats, and sections
 
 **That's it.** MuseScore renders everything else beautifully.
