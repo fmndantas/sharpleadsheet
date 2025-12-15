@@ -33,7 +33,7 @@ let ``generates measure events`` =
     CurrentMeasureIndex = 0
   }
 
-  let withNextMeasureInde ctx = {
+  let withNextMeasureIndex ctx = {
     ctx with
         CurrentMeasureIndex = ctx.CurrentMeasureIndex + 1
   }
@@ -48,7 +48,7 @@ let ``generates measure events`` =
         emptyMeasure
       )
       .WithExpectedResult(
-        withNextMeasureInde {
+        withNextMeasureIndex {
           measureContext with
               IsFirstMeasure = false
         },
@@ -67,7 +67,7 @@ let ``generates measure events`` =
       case("current measure does not change key signature, time signature or clef")
         .WithData(measureContext, emptyMeasure)
         .WithExpectedResult(
-          withNextMeasureInde measureContext,
+          withNextMeasureIndex measureContext,
           [],
           [
             NoteName.C |> KeySignature |> DefineKeySignatureEvent
@@ -89,7 +89,7 @@ let ``generates measure events`` =
           emptyMeasure |> withKeySignature (KeySignature NoteName.FSharp)
         )
         .WithExpectedResult(
-          withNextMeasureInde {
+          withNextMeasureIndex {
             measureContext with
                 CurrentKeySignature = KeySignature NoteName.FSharp
           },
@@ -113,7 +113,7 @@ let ``generates measure events`` =
           }
         )
         .WithExpectedResult(
-          withNextMeasureInde {
+          withNextMeasureIndex {
             measureContext with
                 CurrentTimeSignature = {
                   Numerator = 6
@@ -138,7 +138,7 @@ let ``generates measure events`` =
           emptyMeasure |> withClef Clef.F
         )
         .WithExpectedResult(
-          withNextMeasureInde {
+          withNextMeasureIndex {
             measureContext with
                 CurrentClef = Clef.F
           },
@@ -150,7 +150,7 @@ let ``generates measure events`` =
     case("notes without modifiers")
       .WithData(measureContext, emptyMeasure |> withRepeteadNote 4 (Note.create4 NoteName.C Duration.Quarter))
       .WithExpectedResult(
-        withNextMeasureInde measureContext,
+        withNextMeasureIndex measureContext,
         List.replicate
           4
           (Note.create4 NoteName.C Duration.Quarter
@@ -162,7 +162,7 @@ let ``generates measure events`` =
     case("starting tie note")
       .WithData(measureContext, emptyMeasure |> withNote (Note.createTied4 NoteName.C Duration.Whole))
       .WithExpectedResult(
-        withNextMeasureInde {
+        withNextMeasureIndex {
           measureContext with
               IsTieStarted = true
         },
@@ -183,7 +183,7 @@ let ``generates measure events`` =
         emptyMeasure |> withNote (Note.create4 NoteName.C Duration.Whole)
       )
       .WithExpectedResult(
-        withNextMeasureInde {
+        withNextMeasureIndex {
           measureContext with
               IsTieStarted = false
         },
@@ -203,7 +203,7 @@ let ``generates measure events`` =
         |> withNote (Note.create4 NoteName.C Duration.Quarter)
       )
       .WithExpectedResult(
-        withNextMeasureInde measureContext,
+        withNextMeasureIndex measureContext,
         [
           Note.createTied4 NoteName.C Duration.Quarter
           |> NoteOrRest.Note
