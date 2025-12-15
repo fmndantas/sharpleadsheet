@@ -12,7 +12,7 @@ Our goal is to offer a simple and intuitive input syntax, combined with clear an
 ### ✅ Current Status: Phase 1
 
 | Feature | Status |
-| :--- | :---:
+| :--- | :---: |
 | Single part and staff support | ✅ |
 | G and F clefs | ✅ |
 | Arbitrary time signatures | ✅ |
@@ -25,7 +25,7 @@ Our goal is to offer a simple and intuitive input syntax, combined with clear an
 ### 🚀 Next Steps (Phase 2)
 
 | Feature | Status |
-| :--- | :---:
+| :--- | :---: |
 | Chord symbols | ⏳ In Progress |
 | Text attached to note or rest | ⏳ In Progress |
 | Rhythmic slash notation | ⏳ In Progress |
@@ -73,6 +73,6 @@ SharpLeadsheet is an **open source** project. Contributions are welcome!
 Feel free to:
 
 1.  Open an **Issue** to report bugs or suggest new features.
-2.  Open a **Pull Request** to implement Phase 2 items or general improvements.
+2.  Open a **Pull Request** for issues you want to tackle.
 
 ---
