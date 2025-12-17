@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="CliParser.fs" />
     <Compile Include="Workflow.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
@@ -15,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Argu" Version="6.2.5" />
     <PackageReference Include="FParsec" Version="1.1.1" />
   </ItemGroup>
 
