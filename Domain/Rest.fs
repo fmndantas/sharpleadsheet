@@ -1,7 +1,12 @@
 module Domain.Rest
 
-type T = private { Duration: Duration.T }
+type T = private {
+  Duration: Duration.T
+  Chord: Chord.T option
+}
 
-let create (duration: Duration.T) = { Duration = duration }
+let create (duration: Duration.T) : T = { Duration = duration; Chord = None }
 
-let getDuration ({ Duration = duration }: T) = duration
+let getDuration ({ Duration = duration }: T) : Duration.T = duration
+
+let withChord (chord: Chord.T) (rest: T) : T = { rest with Chord = Some chord }

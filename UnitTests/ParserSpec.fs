@@ -398,29 +398,29 @@ let ``parses notes section content`` =
 
         [
           measure
-          |> withRest Duration.Quarter
+          |> withRest (Rest.create Duration.Quarter)
           |> withRepeteadNote 2 (Note.create4 NoteName.C Duration.Quarter)
           |> withNote (Note.create4 NoteName.D Duration.Quarter)
 
           measure
           |> withNote (Note.create4 NoteName.E Duration.Quarter)
-          |> withRest Duration.HalfDotted
+          |> withRest (Rest.create Duration.HalfDotted)
 
           measure
-          |> withRest Duration.Quarter
+          |> withRest (Rest.create Duration.Quarter)
           |> withNote (Note.create4 NoteName.E Duration.Quarter)
           |> withNote (Note.create4 NoteName.F Duration.Quarter)
-          |> withRest Duration.Eighth
+          |> withRest (Rest.create Duration.Eighth)
           |> withNote (Note.create4 NoteName.E Duration.Eighth)
 
           measure
           |> withNote (Note.create4 NoteName.E Duration.Sixteenth)
-          |> withRest Duration.EighthDotted
-          |> withRest Duration.Quarter
+          |> withRest (Rest.create Duration.EighthDotted)
+          |> withRest (Rest.create Duration.Quarter)
           |> withNote (Note.create4 NoteName.D Duration.Half)
 
           measure
-          |> withRest Duration.Quarter
+          |> withRest (Rest.create Duration.Quarter)
           |> withNote (Note.createTied4 NoteName.D Duration.Quarter)
           |> withNote (Note.createTied4 NoteName.D Duration.Quarter)
           |> withNote (Note.create4 NoteName.D Duration.Eighth)
@@ -462,12 +462,15 @@ let ``parses notes section content`` =
           measure
           |> withNote (
             Note.create4 NoteName.C Duration.Whole
-            |> Note.withChord (Chord.create3 NoteName.C NoteName.G "maj9")
+            |> Note.withChord (Chord.createWithBassAndKind NoteName.C NoteName.G "maj9")
           )
 
           measure
-          |> withRest Duration.Whole
-          |> Rest.withChord (Chord.create3 NoteName.A NoteName.E "maj9(#11)")
+          |> withRest (
+            Duration.Whole
+            |> Rest.create
+            |> Rest.withChord (Chord.createWithBassAndKind NoteName.A NoteName.E "maj9(#11)")
+          )
         ]
       )
   ]
@@ -550,14 +553,14 @@ let ``parses music`` =
 
                   measure
                   |> withNote (Note.create4 NoteName.E Duration.Quarter)
-                  |> withRest Duration.Quarter
+                  |> withRest (Rest.create Duration.Quarter)
 
                   measure
                   |> withNote (Note.create4 NoteName.F Duration.Eighth)
                   |> withNote (Note.create4 NoteName.G Duration.Sixteenth)
-                  |> withRest Duration.Sixteenth
+                  |> withRest (Rest.create Duration.Sixteenth)
                   |> withNote (Note.create5 NoteName.AFlat Duration.EighthDotted)
-                  |> withRest Duration.Sixteenth
+                  |> withRest (Rest.create Duration.Sixteenth)
                 ]
             }
           ]

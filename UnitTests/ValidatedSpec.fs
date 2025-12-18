@@ -246,7 +246,7 @@ let ``invalidates wrong parsed measures`` =
         )
 
       case("6.error")
-        .WithData([ measure |> withRest Duration.Quarter ])
+        .WithData([ measure |> withRest (Rest.create Duration.Quarter) ])
         .WithExpectedResult(
           (MeasureId 1, partId)
           |> ValidationError.MeasureWithInconsistentDurations

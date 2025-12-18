@@ -4,6 +4,7 @@ type T = private {
   Pitch: Pitch.T
   Duration: Duration.T
   Modifiers: Modifier list
+  Chord: Chord.T option
 }
 
 and Modifier = | Tie
@@ -13,6 +14,7 @@ let create octave noteName duration = {
   Pitch = Pitch.create noteName octave
   Duration = duration
   Modifiers = []
+  Chord = None
 }
 
 /// Create a note with modifiers
@@ -20,6 +22,7 @@ let create' octave modifiers noteName duration = {
   Pitch = Pitch.create noteName octave
   Duration = duration
   Modifiers = modifiers
+  Chord = None
 }
 
 let create2 = create 2
@@ -39,3 +42,5 @@ let getPitch note = note.Pitch
 let getDuration note = note.Duration
 
 let isTied note = note.Modifiers |> List.contains Tie
+
+let withChord (chord: Chord.T) (note: T) = { note with Chord = Some chord }
