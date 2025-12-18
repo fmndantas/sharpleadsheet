@@ -435,6 +435,41 @@ let ``parses notes section content`` =
           |> withNote (Note.create4 NoteName.E Duration.Quarter)
         ]
       )
+
+    case("7.chords-1")
+      .WithData(
+        {
+          CurrentTimeSignature = {
+            Numerator = 4
+            Denominator = Duration.Quarter
+          }
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
+          CurrentOctave = 4
+          LastPitch = None
+          LastDuration = None
+        },
+        openSample "chords-1.sls"
+      )
+      .WithExpectedResult(
+        let measure =
+          aParsedMeasure ()
+          |> withCommonTimeSignature
+          |> withCNaturalKeySignature
+          |> withClef Clef.G
+
+        [
+          measure
+          |> withNote (
+            Note.create4 NoteName.C Duration.Whole
+            |> Note.withChord (Chord.create3 NoteName.C NoteName.G "maj9")
+          )
+
+          measure
+          |> withRest Duration.Whole
+          |> Rest.withChord (Chord.create3 NoteName.A NoteName.E "maj9(#11)")
+        ]
+      )
   ]
   <| fun (currentState, content) expectedResult ->
     runWithStateAndAssert Parser.Functions.pNotesSectionContent currentState content
