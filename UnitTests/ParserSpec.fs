@@ -442,7 +442,7 @@ let ``parses notes section content`` =
 
 let ``parses notes section`` =
   testTheory3 "parses notes section" [
-    caseId(7)
+    caseId(1)
       .WithData(
         {
           CurrentTimeSignature = {
