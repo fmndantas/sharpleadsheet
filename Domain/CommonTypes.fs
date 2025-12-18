@@ -3,8 +3,6 @@
 type MeasureId = MeasureId of int
 type PartId = PartId of int
 
-type Rest = Rest of Duration.T
-
 type TimeSignature = {
   Numerator: int
   Denominator: Duration.T
@@ -16,7 +14,7 @@ type KeySignature = KeySignature of NoteName.T
 [<RequireQualifiedAccess>]
 type NoteOrRest =
   | Note of Note.T
-  | Rest of Rest
+  | Rest of Rest.T
 
 [<RequireQualifiedAccess>]
 type Clef =

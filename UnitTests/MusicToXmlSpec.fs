@@ -80,7 +80,7 @@ let ``converts note or rest to xml`` =
       .WithData(
         Duration.Quarter,
         Duration.Quarter
-        |> Rest
+        |> Rest.create
         |> NoteOrRest.Rest
         |> Measure.CreateEvent.noteOrRestEvent
       )

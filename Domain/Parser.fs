@@ -19,7 +19,7 @@ module Types =
   [<RequireQualifiedAccess>]
   type NotesSectionSymbol =
     | Note of Note.T
-    | Rest of Rest
+    | Rest of Rest.T
     | OctaveManipulation of int
 
 module Functions =
@@ -135,14 +135,14 @@ module Functions =
       return note
     }
 
-  let pRest: P<Rest> =
+  let pRest: P<Rest.T> =
     parse {
       let! state = getUserState
       let! maybeDuration = pstring "r" >>. opt pDuration
       let duration = getUpdatedDuration state maybeDuration
 
       do! updateUserState (fun s -> { s with LastDuration = Some duration })
-      return Rest duration
+      return Rest.create duration
     }
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =

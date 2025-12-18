@@ -32,7 +32,7 @@ let private openSample (file: string) =
   File.ReadAllText file
 
 let private runWithStateAndAssert parser initialState content assertFn =
-  match runParserOnString parser initialState "" content with
+  match runParserOnString parser initialState "unit-test" content with
   | Success(result, finalState, _) -> assertFn result finalState
   | Failure(errorMessage, _, _) -> failtest errorMessage
 
@@ -157,12 +157,12 @@ let ``parses a note`` =
 
 let ``parses a rest`` =
   testTheory3 "parses a rest" [
-    case("4").WithData(None, "r4").WithExpectedResult(Rest Duration.Quarter)
-    case("8.").WithData(None, "r8.").WithExpectedResult(Rest Duration.EighthDotted)
-    case("1").WithData(None, "r1").WithExpectedResult(Rest Duration.Whole)
-    case("2.").WithData(Some Duration.HalfDotted, "r").WithExpectedResult(Rest Duration.HalfDotted)
-    case("4.").WithData(None, "r").WithExpectedResult(Rest Duration.Sixteenth)
-    case("1.").WithData(Some Duration.WholeDotted, "r16.").WithExpectedResult(Rest Duration.SixteenthDotted)
+    case("4").WithData(None, "r4").WithExpectedResult(Rest.create Duration.Quarter)
+    case("8.").WithData(None, "r8.").WithExpectedResult(Rest.create Duration.EighthDotted)
+    case("1").WithData(None, "r1").WithExpectedResult(Rest.create Duration.Whole)
+    case("2.").WithData(Some Duration.HalfDotted, "r").WithExpectedResult(Rest.create Duration.HalfDotted)
+    case("4.").WithData(None, "r").WithExpectedResult(Rest.create Duration.Sixteenth)
+    case("1.").WithData(Some Duration.WholeDotted, "r16.").WithExpectedResult(Rest.create Duration.SixteenthDotted)
   ]
   <| fun (lastDuration, content) expectedResult ->
     let state = {

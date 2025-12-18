@@ -17,6 +17,7 @@
     <Compile Include="Duration.fs"/>
     <Compile Include="NoteName.fs"/>
     <Compile Include="Pitch.fs"/>
+    <Compile Include="Rest.fs"/>
     <Compile Include="Note.fs"/>
     <Compile Include="CommonTypes.fs"/>
     <Compile Include="NoteOrRest.fs"/>
