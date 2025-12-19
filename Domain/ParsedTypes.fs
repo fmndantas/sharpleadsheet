@@ -34,6 +34,7 @@ type ParserState = {
   CurrentOctave: int
   LastPitch: Pitch.T option
   LastDuration: Duration.T option
+  LastChord: Chord.T option
 }
 
 type DefaultSettings = {

@@ -6,8 +6,16 @@ type T = private {
   Kind: string option
 }
 
-let createWithBassAndKind (root: NoteName.T) (bass: NoteName.T) (kind: string) : T = {
+let create (root: NoteName.T) (bass: NoteName.T option) (kind: string option) : T = {
   Root = root
-  Bass = Some bass
-  Kind = Some kind
+  Bass = None
+  Kind = None
 }
+
+let createWithRoot (root: NoteName.T) : T = create root None None
+
+let createWithKind (root: NoteName.T) (kind: string) : T = create root None (Some kind)
+
+let createWithBass (root: NoteName.T) (bass: NoteName.T) : T = create root (Some bass) None
+
+let createWithBassAndKind (root: NoteName.T) (bass: NoteName.T) (kind: string) : T = create root (Some bass) (Some kind)

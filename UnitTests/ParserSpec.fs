@@ -47,6 +47,7 @@ let private runAndAssert parser content assertFn =
     CurrentOctave = 4
     LastDuration = None
     LastPitch = None
+    LastChord = None
   }
 
   runWithStateAndAssert parser initialState content assertFn
@@ -150,6 +151,7 @@ let ``parses a note`` =
       CurrentOctave = 4
       LastPitch = lastPitch
       LastDuration = lastDuration
+      LastChord = None
     }
 
     runWithStateAndAssert Parser.Functions.pNote currentState content
@@ -175,10 +177,26 @@ let ``parses a rest`` =
       CurrentOctave = 4
       LastPitch = None
       LastDuration = lastDuration
+      LastChord = None
     }
 
     runWithStateAndAssert Parser.Functions.pRest state content
     <| fun result _ -> result |> equal "rest is incorrect" expectedResult
+
+let ``parses a chord`` =
+  testTheory3 "parses a chord" [
+    caseId(1).WithData("c").WithExpectedResult(Chord.createWithRoot NoteName.C)
+    caseId(2).WithData("b.maj7").WithExpectedResult(Chord.createWithKind NoteName.B "maj7")
+    caseId(3).WithData("e/gis").WithExpectedResult(Chord.createWithBass NoteName.E NoteName.GSharp)
+    caseId(4).WithData("f/bf").WithExpectedResult(Chord.createWithBass NoteName.F NoteName.BFlat)
+    caseId(5)
+      .WithData("fs.maj9(#11)/c")
+      .WithExpectedResult(Chord.createWithBassAndKind NoteName.FSharp NoteName.C "maj9(#11)")
+    caseId(6).WithData("f.add9/bf]").WithExpectedResult(Chord.createWithBassAndKind NoteName.F NoteName.BFlat "add9")
+  ]
+  <| fun content expectedResult ->
+    runAndAssert Parser.Functions.pChord content
+    <| fun result _ -> result |> equal "chord is incorrect" expectedResult
 
 let ``parses notes section content`` =
   testTheory3 "parses notes section content" [
@@ -194,6 +212,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-1.sls"
       )
@@ -232,6 +251,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-2.sls"
       )
@@ -281,6 +301,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-3.sls"
       )
@@ -312,6 +333,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-4.sls"
       )
@@ -340,6 +362,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-5.sls"
       )
@@ -386,6 +409,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-6.sls"
       )
@@ -448,6 +472,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "chords-1.sls"
       )
@@ -492,6 +517,7 @@ let ``parses notes section`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "notes-section-1.sls"
       )
@@ -575,6 +601,7 @@ let ``parses music`` =
           CurrentOctave = 5
           LastPitch = Pitch.create NoteName.AFlat 5 |> Some
           LastDuration = Some Duration.Sixteenth
+          LastChord = None
         }
       )
 
@@ -633,6 +660,7 @@ let ``parses music`` =
           CurrentOctave = 4
           LastPitch = Pitch.createMiddle NoteName.C |> Some
           LastDuration = Some Duration.Eighth
+          LastChord = None
         }
       )
   ]
@@ -650,7 +678,9 @@ let ParserSpec =
     ``parses a duration``
     ``parses a note``
     ``parses a rest``
+    ``parses a chord``
     ``parses notes section content``
     ``parses notes section``
     ``parses music``
+
   ]

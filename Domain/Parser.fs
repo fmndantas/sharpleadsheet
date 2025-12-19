@@ -21,6 +21,7 @@ module Types =
     | Note of Note.T
     | Rest of Rest.T
     | OctaveManipulation of int
+    | Chord of Chord.T
 
 module Functions =
   open Types
@@ -124,6 +125,7 @@ module Functions =
 
       let note =
         Note.create' state.CurrentOctave (List.choose id [ maybeTie ]) noteName duration
+        |> Note.maybeWithChord state.LastChord
 
       do!
         updateUserState (fun s -> {
@@ -142,7 +144,7 @@ module Functions =
       let duration = getUpdatedDuration state maybeDuration
 
       do! updateUserState (fun s -> { s with LastDuration = Some duration })
-      return Rest.create duration
+      return Rest.create duration |> Rest.maybeWithChord state.LastChord
     }
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
@@ -204,6 +206,17 @@ module Functions =
       return NotesSectionSymbol.OctaveManipulation updatedOctave
     }
 
+  let pChord: P<Chord.T> =
+    parse {
+      let pChordKind = manySatisfy (fun c -> c <> ']')
+      let! root = pNoteName
+      let! maybeKind = opt (pchar '.' >>. pChordKind)
+      let! maybeBass = opt (pchar '/' >>. pNoteName)
+      let chord = Chord.create root maybeBass maybeKind
+      do! updateUserState (fun s -> { s with LastChord = Some chord })
+      return chord
+    }
+
   let pNotesSectionContent: P<ParsedMeasure list> =
     parse {
       let pSymbol: P<NotesSectionSymbol> =
@@ -211,6 +224,7 @@ module Functions =
           pNote |>> NotesSectionSymbol.Note
           pRest |>> NotesSectionSymbol.Rest
           pOctaveManipulation
+          between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord
         ]
 
       let! symbolsPerMeasure = sepBy (pSymbol .>> ws |> many) (pstring "|" .>> ws)
@@ -269,6 +283,7 @@ module Functions =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         }
 
       let! notesSection = many1 pNotesSection

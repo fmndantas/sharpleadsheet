@@ -44,3 +44,5 @@ let getDuration note = note.Duration
 let isTied note = note.Modifiers |> List.contains Tie
 
 let withChord (chord: Chord.T) (note: T) = { note with Chord = Some chord }
+
+let maybeWithChord (chord: Chord.T option) (note: T) = { note with Chord = chord }
