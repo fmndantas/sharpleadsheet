@@ -51,4 +51,9 @@ let withRepeteadNote (count: int) (note: Note.T) (m: ParsedMeasure) : ParsedMeas
       NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.Note note))
 }
 
+let withRepeatedRest (count: int) (rest: Rest.T) (m: ParsedMeasure) : ParsedMeasure = {
+  m with
+      NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.Rest rest))
+}
+
 let withSymbols (symbols: NoteOrRest list) (m: ParsedMeasure) : ParsedMeasure = { m with NotesOrRests = symbols }

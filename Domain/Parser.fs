@@ -132,6 +132,7 @@ module Functions =
           s with
               LastPitch = note |> Note.getPitch |> Some
               LastDuration = note |> Note.getDuration |> Some
+              LastChord = None
         })
 
       return note
@@ -143,7 +144,13 @@ module Functions =
       let! maybeDuration = pstring "r" >>. opt pDuration
       let duration = getUpdatedDuration state maybeDuration
 
-      do! updateUserState (fun s -> { s with LastDuration = Some duration })
+      do!
+        updateUserState (fun s -> {
+          s with
+              LastDuration = Some duration
+              LastChord = None
+        })
+
       return Rest.create duration |> Rest.maybeWithChord state.LastChord
     }
 
@@ -208,7 +215,7 @@ module Functions =
 
   let pChord: P<Chord.T> =
     parse {
-      let pChordKind = manySatisfy (fun c -> c <> ']')
+      let pChordKind = manySatisfy (fun c -> c <> ']' && c <> '/')
       let! root = pNoteName
       let! maybeKind = opt (pchar '.' >>. pChordKind)
       let! maybeBass = opt (pchar '/' >>. pNoteName)

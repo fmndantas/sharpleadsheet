@@ -187,7 +187,7 @@ let ``parses a chord`` =
   testTheory3 "parses a chord" [
     caseId(1).WithData("c").WithExpectedResult(Chord.createWithRoot NoteName.C)
     caseId(2).WithData("b.maj7").WithExpectedResult(Chord.createWithKind NoteName.B "maj7")
-    caseId(3).WithData("e/gis").WithExpectedResult(Chord.createWithBass NoteName.E NoteName.GSharp)
+    caseId(3).WithData("e/gs").WithExpectedResult(Chord.createWithBass NoteName.E NoteName.GSharp)
     caseId(4).WithData("f/bf").WithExpectedResult(Chord.createWithBass NoteName.F NoteName.BFlat)
     caseId(5)
       .WithData("fs.maj9(#11)/c")
@@ -663,6 +663,134 @@ let ``parses music`` =
           LastChord = None
         }
       )
+
+    caseId(3)
+      .WithData(openSample "example-3.sls")
+      .WithExpectedResult(
+        {
+          PartDefinitionSections = [
+            {
+              Id = 3 |> PartId |> Some
+              Name = Some "Melodia"
+              Clef = Clef.G
+              TimeSignature = {
+                Numerator = 4
+                Denominator = Duration.Quarter
+              }
+              KeySignature = KeySignature NoteName.F
+            }
+          ]
+          NotesSections = [
+            {
+              PartId = PartId 3
+              Measures =
+                let measure =
+                  aParsedMeasure ()
+                  |> withTimeSignature {
+                    Numerator = 4
+                    Denominator = Duration.Quarter
+                  }
+                  |> withKeySignature (KeySignature NoteName.F)
+                  |> withClef Clef.G
+
+                let quarterRest = Rest.create Duration.Quarter
+
+                [
+                  measure
+                  |> withRest (quarterRest |> Rest.withChord (Chord.createWithKind NoteName.D "m9"))
+                  |> withRepeatedRest 3 quarterRest
+
+                  measure
+                  |> withRest (quarterRest |> Rest.withChord (Chord.createWithKind NoteName.D "m9"))
+                  |> withRepeatedRest 3 quarterRest
+
+                  measure
+                  |> withNotes [
+                    Note.create4 NoteName.A Duration.Eighth
+                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.QuarterDotted
+                    Note.create5 NoteName.D Duration.Eighth
+                  ]
+
+                  measure |> withNote (Note.create5 NoteName.C Duration.Whole)
+
+                  measure
+                  |> withNotes [
+                    Note.create4 NoteName.A Duration.Eighth
+                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.QuarterDotted
+                    Note.create5 NoteName.D Duration.Eighth
+                  ]
+
+                  measure |> withNote (Note.create5 NoteName.C Duration.Whole)
+
+                  measure
+                  |> withNotes [
+                    Note.create5 NoteName.D Duration.Eighth
+                    |> Note.withChord (Chord.createWithKind NoteName.G "m9")
+                    Note.create5 NoteName.F Duration.Eighth
+                    Note.create5 NoteName.F Duration.Eighth
+                    Note.create5 NoteName.F Duration.Eighth
+                    Note.create5 NoteName.F Duration.QuarterDotted
+                    Note.create5 NoteName.G Duration.Eighth
+                  ]
+
+                  measure
+                  |> withNote (Note.create5 NoteName.F Duration.HalfDotted)
+                  |> withRest (Rest.create Duration.Eighth)
+                  |> withNote (Note.create4 NoteName.BFlat Duration.Eighth)
+
+                  measure
+                  |> withNotes [
+                    Note.create4 NoteName.A Duration.Eighth
+                    |> Note.withChord (Chord.createWithKind NoteName.E "m9(11)")
+                    Note.create4 NoteName.A Duration.Eighth
+                    Note.create4 NoteName.A Duration.Eighth
+                    Note.createTied4 NoteName.A Duration.Eighth
+                    Note.create4 NoteName.A Duration.QuarterDotted
+                    Note.create5 NoteName.D Duration.Eighth
+                  ]
+
+                  measure
+                  |> withNotes [
+                    Note.create4 NoteName.A Duration.Eighth
+                    |> Note.withChord (Chord.createWithKind NoteName.EFlat "7(#11)")
+                    Note.create4 NoteName.A Duration.Eighth
+                    Note.create4 NoteName.A Duration.Quarter
+                    Note.createTied4 NoteName.A Duration.QuarterDotted
+                    Note.create4 NoteName.A Duration.Sixteenth
+                    Note.create4 NoteName.A Duration.ThirtySecond
+                    Note.create5 NoteName.C Duration.ThirtySecond
+                  ]
+
+                  measure
+                  |> withNote (
+                    Note.create4 NoteName.G Duration.Whole
+                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                  )
+                ]
+            }
+          ]
+        },
+        {
+          CurrentTimeSignature = {
+            Numerator = 4
+            Denominator = Duration.Quarter
+          }
+          CurrentKeySignature = KeySignature NoteName.F
+          CurrentClef = Clef.G
+          CurrentOctave = 4
+          LastPitch = NoteName.G |> Pitch.createMiddle |> Some
+          LastDuration = Some Duration.Whole
+          LastChord = None
+        }
+      )
   ]
   <| fun content (expectedResult: ParsedMusic, expectedFinalState: ParserState) ->
     runAndAssert (Parser.Functions.pMusic defaultSettings) content
@@ -682,5 +810,4 @@ let ParserSpec =
     ``parses notes section content``
     ``parses notes section``
     ``parses music``
-
   ]
