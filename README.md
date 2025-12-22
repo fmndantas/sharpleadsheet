@@ -26,7 +26,7 @@ Our goal is to offer a simple and intuitive input syntax, combined with clear an
 
 | Feature | Status |
 | :--- | :---: |
-| Chord symbols | ⏳ In Progress |
+| Chord symbols | ✅ |
 | Text attached to note or rest | ⏳ In Progress |
 | Rhythmic slash notation | ⏳ In Progress |
 | Multiple parts and staves | ⏳ In Progress |
