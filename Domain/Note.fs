@@ -41,6 +41,8 @@ let getPitch note = note.Pitch
 
 let getDuration note = note.Duration
 
+let getChord note = note.Chord
+
 let isTied note = note.Modifiers |> List.contains Tie
 
 let withChord (chord: Chord.T) (note: T) = { note with Chord = Some chord }

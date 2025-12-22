@@ -51,7 +51,7 @@ let ``converts music to xml`` =
   <| fun (music: Validated.Music) (expectedResult: string) ->
     let result = MusicToXml.convert music
 
-    (XmlWrapper.minifyXmlText expectedResult, XmlWrapper.minifyXDocument result)
+    (XmlWrapper.minifyXDocumentText expectedResult, XmlWrapper.minifyXDocument result)
     ||> equal "generated xml is incorrect"
 
 let ``converts note or rest to xml`` =
@@ -163,6 +163,64 @@ let ``converts note or rest to xml`` =
       </note>
       "
       )
+
+    case("6.chord attached to note")
+      .WithData(
+        Duration.Quarter,
+        Note.create4 NoteName.C Duration.Whole
+        |> Note.withChord (Chord.createWithBassAndKind NoteName.CSharp NoteName.GFlat "maj9(#11/13)")
+        |> NoteOrRest.Note
+        |> Measure.CreateEvent.noteOrRestEvent
+      )
+      .WithExpectedResult
+      "
+        <harmony>
+          <root>
+            <root-step>C</root-step>
+            <root-alter>+1</root-alter>
+          </root>
+          <bass>
+            <bass-step>G</bass-step>
+            <bass-alter>-1</bass-alter>
+          </bass>
+          <kind>maj9(#11/13)</kind>
+        </harmony>
+        <note>
+          <pitch>
+            <step>C</step>
+            <octave>4</octave>
+          </pitch>
+          <duration>4</duration>
+          <type>whole</type>
+        </note>
+        "
+
+    case("7.chord attached to rest")
+      .WithData(
+        Duration.Quarter,
+        Rest.create Duration.Whole
+        |> Rest.withChord (Chord.createWithBass NoteName.BFlat NoteName.FSharp)
+        |> NoteOrRest.Rest
+        |> Measure.CreateEvent.noteOrRestEvent
+      )
+      .WithExpectedResult
+      "
+        <harmony>
+          <root>
+            <root-step>B</root-step>
+            <root-alter>-1</root-alter>
+          </root>
+          <bass>
+            <bass-step>F</bass-step>
+            <bass-alter>+1</bass-alter>
+          </bass>
+        </harmony>
+        <note>
+          <rest/>
+          <duration>4</duration>
+          <type>whole</type>
+        </note>
+        "
   ]
   <| fun (divisions, noteOrRestEventAsMeasureEvent) expectedResult ->
     let noteOrRestEvent =
@@ -170,9 +228,15 @@ let ``converts note or rest to xml`` =
       | NoteOrRestEvent e -> e
       | _ -> failwith "expected NoteOrRestEvent"
 
-    let result = MusicToXml.interpretNote divisions noteOrRestEvent
+    let result =
+      (divisions, noteOrRestEvent)
+      ||> MusicToXml.interpretNoteOrRest
+      |> XmlWrapper.element "foo"
+      |> XmlWrapper.minifyXElement
 
-    (XmlWrapper.minifyXmlText expectedResult, XmlWrapper.minifyXElement result)
+    let expectedResult' = "<foo>" + expectedResult + "</foo>"
+
+    (XmlWrapper.minifyXDocumentText expectedResult', result)
     ||> equal "generated xml is incorrect"
 
 let ``converts duration to xml`` =

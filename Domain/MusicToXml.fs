@@ -73,33 +73,63 @@ let interpretDuration (divisions: Duration.T) (d: Duration.T) : XElement list =
       selfEnclosingElement "dot"
   ]
 
+let private noteNameToStep (tagName: string) (n: NoteName.T) : XElement =
+  let value = n |> toString |> (fun s -> s[0] |> toString)
+  leafElement tagName value
+
+let private noteNameToAlter (tagName: string) (n: NoteName.T) : XElement option =
+  let lowerStringNoteName = n.ToString().ToLower()
+
+  (if lowerStringNoteName.Contains "flat" then Some -1
+   elif lowerStringNoteName.Contains "sharp" then Some 1
+   else None)
+  |> Option.map (fun numericAlter -> leafElement tagName (sprintf "%+d" numericAlter))
+
 let interpretPitch (p: Pitch.T) : XElement =
   let noteName = Pitch.getNoteName p
-  let stringNoteName = noteName.ToString()
   let octave = Pitch.getOctave p
-  let step = noteName.ToString()[0]
-
-  let alter =
-    let lowerStringNoteName = stringNoteName.ToLower()
-
-    if lowerStringNoteName.Contains "flat" then -1
-    elif lowerStringNoteName.Contains "sharp" then 1
-    else 0
 
   element "pitch" [
-    leafElement "step" (step.ToString())
-    leafElement "octave" (octave.ToString())
-    if alter <> 0 then
-      leafElement "alter" (sprintf "%+d" alter)
+    p |> Pitch.getNoteName |> noteNameToStep "step"
+    octave |> toString |> leafElement "octave"
+    yield! noteName |> noteNameToAlter "alter" |> Option.toList
   ]
 
-let interpretNote
+let private interpretChordRoot (chord: Chord.T) : XElement =
+  let root = Chord.getRoot chord
+
+  [
+    noteNameToStep "root-step" root
+    yield! root |> noteNameToAlter "root-alter" |> Option.toList
+  ]
+  |> element "root"
+
+let private interpretChordBass (chord: Chord.T) : XElement option =
+  let maybeBass = Chord.getBass chord
+
+  maybeBass
+  |> Option.map (fun bass ->
+    [
+      noteNameToStep "bass-step" bass
+      yield! bass |> noteNameToAlter "bass-alter" |> Option.toList
+    ]
+    |> element "bass")
+
+let private interpretChord (chord: Chord.T) : XElement =
+  [
+    chord |> interpretChordRoot
+    yield! chord |> interpretChordBass |> Option.toList
+    yield! chord |> Chord.getKind |> Option.map (leafElement "kind") |> Option.toList
+  ]
+  |> element "harmony"
+
+let interpretNoteOrRest
   (divisions: Duration.T)
   ({
      NoteOrRest = noteOrRest
      AttachedToNoteOrRestEvents = attachedToNoteOrRestEvents
    }: NoteOrRestEvent)
-  : XElement =
+  : XElement list =
   let xmlTie =
     fun xmlType -> [
       elementWithAttributes "tie" [ attribute "type" xmlType ] []
@@ -108,16 +138,21 @@ let interpretNote
 
   let duration = NoteOrRest.getDuration noteOrRest
 
-  element "note" [
-    match noteOrRest with
-    | NoteOrRest.Rest _ -> selfEnclosingElement "rest"
-    | NoteOrRest.Note note -> yield! [ note |> Note.getPitch |> interpretPitch ]
-    yield! interpretDuration divisions duration
-    if attachedToNoteOrRestEvents |> List.contains StartTie then
-      yield! xmlTie "start"
-    if attachedToNoteOrRestEvents |> List.contains StopTie then
-      yield! xmlTie "stop"
-  ]
+  let chord = noteOrRest |> NoteOrRest.getChord |> Option.map interpretChord
+
+  let note =
+    element "note" [
+      match noteOrRest with
+      | NoteOrRest.Rest _ -> selfEnclosingElement "rest"
+      | NoteOrRest.Note note -> yield! [ note |> Note.getPitch |> interpretPitch ]
+      yield! interpretDuration divisions duration
+      if attachedToNoteOrRestEvents |> List.contains StartTie then
+        yield! xmlTie "start"
+      if attachedToNoteOrRestEvents |> List.contains StopTie then
+        yield! xmlTie "stop"
+    ]
+
+  [ yield! Option.toList chord; note ]
 
 let createMeasureAttributes (m: Validated.Measure) (es: MeasureEvent list) : XElement =
   [
@@ -149,10 +184,10 @@ let createMeasureAttributes (m: Validated.Measure) (es: MeasureEvent list) : XEl
 
 let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement list =
   es
-  |> List.choose (fun e ->
+  |> List.collect (fun e ->
     match e with
-    | NoteOrRestEvent noteOrRestEvent -> (Measure.defineDivisions m, noteOrRestEvent) ||> interpretNote |> Some
-    | _ -> None)
+    | NoteOrRestEvent noteOrRestEvent -> (Measure.defineDivisions m, noteOrRestEvent) ||> interpretNoteOrRest
+    | _ -> [])
 
 let private createFinalBarline (es: MeasureEvent list) : XElement option =
   if List.contains FinalBarlineEvent es then
@@ -165,7 +200,7 @@ let createMeasure (m: Validated.Measure, es: MeasureEvent list) : XElement =
   [
     createMeasureAttributes m es
     yield! createMeasureNotes m es
-    yield! createFinalBarline es |> Option.toList
+    yield! es |> createFinalBarline |> Option.toList
   ]
   |> elementWithAttributes "measure" [ m.MeasureId |> measureId2String |> attribute "number" ]
 
