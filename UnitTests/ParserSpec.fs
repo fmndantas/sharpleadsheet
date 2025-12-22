@@ -32,7 +32,7 @@ let private openSample (file: string) =
   File.ReadAllText file
 
 let private runWithStateAndAssert parser initialState content assertFn =
-  match runParserOnString parser initialState "" content with
+  match runParserOnString parser initialState "unit-test" content with
   | Success(result, finalState, _) -> assertFn result finalState
   | Failure(errorMessage, _, _) -> failtest errorMessage
 
@@ -47,6 +47,7 @@ let private runAndAssert parser content assertFn =
     CurrentOctave = 4
     LastDuration = None
     LastPitch = None
+    LastChord = None
   }
 
   runWithStateAndAssert parser initialState content assertFn
@@ -150,6 +151,7 @@ let ``parses a note`` =
       CurrentOctave = 4
       LastPitch = lastPitch
       LastDuration = lastDuration
+      LastChord = None
     }
 
     runWithStateAndAssert Parser.Functions.pNote currentState content
@@ -157,12 +159,12 @@ let ``parses a note`` =
 
 let ``parses a rest`` =
   testTheory3 "parses a rest" [
-    case("4").WithData(None, "r4").WithExpectedResult(Rest Duration.Quarter)
-    case("8.").WithData(None, "r8.").WithExpectedResult(Rest Duration.EighthDotted)
-    case("1").WithData(None, "r1").WithExpectedResult(Rest Duration.Whole)
-    case("2.").WithData(Some Duration.HalfDotted, "r").WithExpectedResult(Rest Duration.HalfDotted)
-    case("4.").WithData(None, "r").WithExpectedResult(Rest Duration.Sixteenth)
-    case("1.").WithData(Some Duration.WholeDotted, "r16.").WithExpectedResult(Rest Duration.SixteenthDotted)
+    case("4").WithData(None, "r4").WithExpectedResult(Rest.create Duration.Quarter)
+    case("8.").WithData(None, "r8.").WithExpectedResult(Rest.create Duration.EighthDotted)
+    case("1").WithData(None, "r1").WithExpectedResult(Rest.create Duration.Whole)
+    case("2.").WithData(Some Duration.HalfDotted, "r").WithExpectedResult(Rest.create Duration.HalfDotted)
+    case("4.").WithData(None, "r").WithExpectedResult(Rest.create Duration.Sixteenth)
+    case("1.").WithData(Some Duration.WholeDotted, "r16.").WithExpectedResult(Rest.create Duration.SixteenthDotted)
   ]
   <| fun (lastDuration, content) expectedResult ->
     let state = {
@@ -175,10 +177,26 @@ let ``parses a rest`` =
       CurrentOctave = 4
       LastPitch = None
       LastDuration = lastDuration
+      LastChord = None
     }
 
     runWithStateAndAssert Parser.Functions.pRest state content
     <| fun result _ -> result |> equal "rest is incorrect" expectedResult
+
+let ``parses a chord`` =
+  testTheory3 "parses a chord" [
+    caseId(1).WithData("c").WithExpectedResult(Chord.createWithRoot NoteName.C)
+    caseId(2).WithData("b.maj7").WithExpectedResult(Chord.createWithKind NoteName.B "maj7")
+    caseId(3).WithData("e/gs").WithExpectedResult(Chord.createWithBass NoteName.E NoteName.GSharp)
+    caseId(4).WithData("f/bf").WithExpectedResult(Chord.createWithBass NoteName.F NoteName.BFlat)
+    caseId(5)
+      .WithData("fs.maj9(#11)/c")
+      .WithExpectedResult(Chord.createWithBassAndKind NoteName.FSharp NoteName.C "maj9(#11)")
+    caseId(6).WithData("f.add9/bf]").WithExpectedResult(Chord.createWithBassAndKind NoteName.F NoteName.BFlat "add9")
+  ]
+  <| fun content expectedResult ->
+    runAndAssert Parser.Functions.pChord content
+    <| fun result _ -> result |> equal "chord is incorrect" expectedResult
 
 let ``parses notes section content`` =
   testTheory3 "parses notes section content" [
@@ -194,6 +212,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-1.sls"
       )
@@ -232,6 +251,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-2.sls"
       )
@@ -281,6 +301,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-3.sls"
       )
@@ -312,6 +333,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-4.sls"
       )
@@ -340,6 +362,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-5.sls"
       )
@@ -386,6 +409,7 @@ let ``parses notes section content`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
         },
         openSample "sequence-of-notes-6.sls"
       )
@@ -398,29 +422,29 @@ let ``parses notes section content`` =
 
         [
           measure
-          |> withRest Duration.Quarter
+          |> withRest (Rest.create Duration.Quarter)
           |> withRepeteadNote 2 (Note.create4 NoteName.C Duration.Quarter)
           |> withNote (Note.create4 NoteName.D Duration.Quarter)
 
           measure
           |> withNote (Note.create4 NoteName.E Duration.Quarter)
-          |> withRest Duration.HalfDotted
+          |> withRest (Rest.create Duration.HalfDotted)
 
           measure
-          |> withRest Duration.Quarter
+          |> withRest (Rest.create Duration.Quarter)
           |> withNote (Note.create4 NoteName.E Duration.Quarter)
           |> withNote (Note.create4 NoteName.F Duration.Quarter)
-          |> withRest Duration.Eighth
+          |> withRest (Rest.create Duration.Eighth)
           |> withNote (Note.create4 NoteName.E Duration.Eighth)
 
           measure
           |> withNote (Note.create4 NoteName.E Duration.Sixteenth)
-          |> withRest Duration.EighthDotted
-          |> withRest Duration.Quarter
+          |> withRest (Rest.create Duration.EighthDotted)
+          |> withRest (Rest.create Duration.Quarter)
           |> withNote (Note.create4 NoteName.D Duration.Half)
 
           measure
-          |> withRest Duration.Quarter
+          |> withRest (Rest.create Duration.Quarter)
           |> withNote (Note.createTied4 NoteName.D Duration.Quarter)
           |> withNote (Note.createTied4 NoteName.D Duration.Quarter)
           |> withNote (Note.create4 NoteName.D Duration.Eighth)
@@ -435,14 +459,8 @@ let ``parses notes section content`` =
           |> withNote (Note.create4 NoteName.E Duration.Quarter)
         ]
       )
-  ]
-  <| fun (currentState, content) expectedResult ->
-    runWithStateAndAssert Parser.Functions.pNotesSectionContent currentState content
-    <| fun result _ -> result |> equal "notes section content is incorrect" expectedResult
 
-let ``parses notes section`` =
-  testTheory3 "parses notes section" [
-    caseId(7)
+    case("7.chords-1")
       .WithData(
         {
           CurrentTimeSignature = {
@@ -454,6 +472,52 @@ let ``parses notes section`` =
           CurrentOctave = 4
           LastPitch = None
           LastDuration = None
+          LastChord = None
+        },
+        openSample "chords-1.sls"
+      )
+      .WithExpectedResult(
+        let measure =
+          aParsedMeasure ()
+          |> withCommonTimeSignature
+          |> withCNaturalKeySignature
+          |> withClef Clef.G
+
+        [
+          measure
+          |> withNote (
+            Note.create4 NoteName.C Duration.Whole
+            |> Note.withChord (Chord.createWithBassAndKind NoteName.C NoteName.G "maj9")
+          )
+
+          measure
+          |> withRest (
+            Duration.Whole
+            |> Rest.create
+            |> Rest.withChord (Chord.createWithBassAndKind NoteName.A NoteName.E "maj9(#11)")
+          )
+        ]
+      )
+  ]
+  <| fun (currentState, content) expectedResult ->
+    runWithStateAndAssert Parser.Functions.pNotesSectionContent currentState content
+    <| fun result _ -> result |> equal "notes section content is incorrect" expectedResult
+
+let ``parses notes section`` =
+  testTheory3 "parses notes section" [
+    caseId(1)
+      .WithData(
+        {
+          CurrentTimeSignature = {
+            Numerator = 4
+            Denominator = Duration.Quarter
+          }
+          CurrentKeySignature = KeySignature NoteName.C
+          CurrentClef = Clef.G
+          CurrentOctave = 4
+          LastPitch = None
+          LastDuration = None
+          LastChord = None
         },
         openSample "notes-section-1.sls"
       )
@@ -515,14 +579,14 @@ let ``parses music`` =
 
                   measure
                   |> withNote (Note.create4 NoteName.E Duration.Quarter)
-                  |> withRest Duration.Quarter
+                  |> withRest (Rest.create Duration.Quarter)
 
                   measure
                   |> withNote (Note.create4 NoteName.F Duration.Eighth)
                   |> withNote (Note.create4 NoteName.G Duration.Sixteenth)
-                  |> withRest Duration.Sixteenth
+                  |> withRest (Rest.create Duration.Sixteenth)
                   |> withNote (Note.create5 NoteName.AFlat Duration.EighthDotted)
-                  |> withRest Duration.Sixteenth
+                  |> withRest (Rest.create Duration.Sixteenth)
                 ]
             }
           ]
@@ -537,6 +601,7 @@ let ``parses music`` =
           CurrentOctave = 5
           LastPitch = Pitch.create NoteName.AFlat 5 |> Some
           LastDuration = Some Duration.Sixteenth
+          LastChord = None
         }
       )
 
@@ -595,6 +660,135 @@ let ``parses music`` =
           CurrentOctave = 4
           LastPitch = Pitch.createMiddle NoteName.C |> Some
           LastDuration = Some Duration.Eighth
+          LastChord = None
+        }
+      )
+
+    caseId(3)
+      .WithData(openSample "example-3.sls")
+      .WithExpectedResult(
+        {
+          PartDefinitionSections = [
+            {
+              Id = 3 |> PartId |> Some
+              Name = Some "Melodia"
+              Clef = Clef.G
+              TimeSignature = {
+                Numerator = 4
+                Denominator = Duration.Quarter
+              }
+              KeySignature = KeySignature NoteName.F
+            }
+          ]
+          NotesSections = [
+            {
+              PartId = PartId 3
+              Measures =
+                let measure =
+                  aParsedMeasure ()
+                  |> withTimeSignature {
+                    Numerator = 4
+                    Denominator = Duration.Quarter
+                  }
+                  |> withKeySignature (KeySignature NoteName.F)
+                  |> withClef Clef.G
+
+                let quarterRest = Rest.create Duration.Quarter
+
+                [
+                  measure
+                  |> withRest (quarterRest |> Rest.withChord (Chord.createWithKind NoteName.D "m9"))
+                  |> withRepeatedRest 3 quarterRest
+
+                  measure
+                  |> withRest (quarterRest |> Rest.withChord (Chord.createWithKind NoteName.D "m9"))
+                  |> withRepeatedRest 3 quarterRest
+
+                  measure
+                  |> withNotes [
+                    Note.create4 NoteName.A Duration.Eighth
+                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.QuarterDotted
+                    Note.create5 NoteName.D Duration.Eighth
+                  ]
+
+                  measure |> withNote (Note.create5 NoteName.C Duration.Whole)
+
+                  measure
+                  |> withNotes [
+                    Note.create4 NoteName.A Duration.Eighth
+                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.Eighth
+                    Note.create5 NoteName.C Duration.QuarterDotted
+                    Note.create5 NoteName.D Duration.Eighth
+                  ]
+
+                  measure |> withNote (Note.create5 NoteName.C Duration.Whole)
+
+                  measure
+                  |> withNotes [
+                    Note.create5 NoteName.D Duration.Eighth
+                    |> Note.withChord (Chord.createWithKind NoteName.G "m9")
+                    Note.create5 NoteName.F Duration.Eighth
+                    Note.create5 NoteName.F Duration.Eighth
+                    Note.create5 NoteName.F Duration.Eighth
+                    Note.create5 NoteName.F Duration.QuarterDotted
+                    Note.create5 NoteName.G Duration.Eighth
+                  ]
+
+                  measure
+                  |> withNote (Note.create5 NoteName.F Duration.HalfDotted)
+                  |> withRest (Rest.create Duration.Eighth)
+                  |> withNote (Note.create4 NoteName.BFlat Duration.Eighth)
+
+                  measure
+                  |> withNotes [
+                    Note.create4 NoteName.A Duration.Eighth
+                    |> Note.withChord (Chord.createWithKind NoteName.E "m9(11)")
+                    Note.create4 NoteName.A Duration.Eighth
+                    Note.create4 NoteName.A Duration.Eighth
+                    Note.createTied4 NoteName.A Duration.Eighth
+                    Note.create4 NoteName.A Duration.QuarterDotted
+                    Note.create5 NoteName.D Duration.Eighth
+                  ]
+
+                  measure
+                  |> withNotes [
+                    Note.create4 NoteName.A Duration.Eighth
+                    |> Note.withChord (Chord.createWithKind NoteName.EFlat "7(#11)")
+                    Note.create4 NoteName.A Duration.Eighth
+                    Note.create4 NoteName.A Duration.Quarter
+                    Note.createTied4 NoteName.A Duration.QuarterDotted
+                    Note.create4 NoteName.A Duration.Sixteenth
+                    Note.create4 NoteName.A Duration.ThirtySecond
+                    Note.create5 NoteName.C Duration.ThirtySecond
+                  ]
+
+                  measure
+                  |> withNote (
+                    Note.create4 NoteName.G Duration.Whole
+                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                  )
+                ]
+            }
+          ]
+        },
+        {
+          CurrentTimeSignature = {
+            Numerator = 4
+            Denominator = Duration.Quarter
+          }
+          CurrentKeySignature = KeySignature NoteName.F
+          CurrentClef = Clef.G
+          CurrentOctave = 4
+          LastPitch = NoteName.G |> Pitch.createMiddle |> Some
+          LastDuration = Some Duration.Whole
+          LastChord = None
         }
       )
   ]
@@ -612,6 +806,7 @@ let ParserSpec =
     ``parses a duration``
     ``parses a note``
     ``parses a rest``
+    ``parses a chord``
     ``parses notes section content``
     ``parses notes section``
     ``parses music``

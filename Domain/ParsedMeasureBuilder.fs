@@ -36,9 +36,9 @@ let withNote (note: Note.T) (m: ParsedMeasure) : ParsedMeasure = {
       NotesOrRests = List.append m.NotesOrRests [ NoteOrRest.Note note ]
 }
 
-let withRest (duration: Duration.T) (m: ParsedMeasure) : ParsedMeasure = {
+let withRest (rest: Rest.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.append m.NotesOrRests [ duration |> Rest |> NoteOrRest.Rest ]
+      NotesOrRests = List.append m.NotesOrRests [ rest |> NoteOrRest.Rest ]
 }
 
 let withNotes (notes: Note.T list) (m: ParsedMeasure) : ParsedMeasure = {
@@ -49,6 +49,11 @@ let withNotes (notes: Note.T list) (m: ParsedMeasure) : ParsedMeasure = {
 let withRepeteadNote (count: int) (note: Note.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
       NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.Note note))
+}
+
+let withRepeatedRest (count: int) (rest: Rest.T) (m: ParsedMeasure) : ParsedMeasure = {
+  m with
+      NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.Rest rest))
 }
 
 let withSymbols (symbols: NoteOrRest list) (m: ParsedMeasure) : ParsedMeasure = { m with NotesOrRests = symbols }

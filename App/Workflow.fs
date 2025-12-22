@@ -72,6 +72,7 @@ let private defaultState = {
   CurrentOctave = 4
   LastDuration = None
   LastPitch = None
+  LastChord = None
 }
 
 let private parse: Parse =

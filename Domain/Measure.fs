@@ -30,6 +30,7 @@ module Types =
   and AttachedToNoteOrRestEvent =
     | StartTie
     | StopTie
+    | SetChord of Chord.T
 
 open Types
 
@@ -66,7 +67,7 @@ let generateEvents
       FinalBarlineEvent
   ]
 
-  let updatedContext = {
+  let context' = {
     context with
         IsFirstMeasure = false
         CurrentKeySignature = measure.KeySignature
@@ -75,7 +76,7 @@ let generateEvents
         CurrentMeasureIndex = context.CurrentMeasureIndex + 1
   }
 
-  let noteOrRestEvents, updatedContext' =
+  let noteOrRestEvents, context'' =
     measure.NotesOrRests
     |> List.mapFold
       (fun context noteOrRest ->
@@ -93,9 +94,9 @@ let generateEvents
           context with
               IsTieStarted = isNoteStartingATie
         })
-      updatedContext
+      context'
 
-  List.concat [ otherEvents; noteOrRestEvents ], updatedContext'
+  List.concat [ otherEvents; noteOrRestEvents ], context''
 
 let defineDivisions ({ Parsed = measure }: Validated.Measure) : Duration.T =
   if List.isEmpty measure.NotesOrRests then

@@ -34,6 +34,8 @@ type ParserState = {
   CurrentOctave: int
   LastPitch: Pitch.T option
   LastDuration: Duration.T option
+  // TODO: mudar pra nome que implique no fato de que próxima nota ou pausa vai consumir e descartar
+  LastChord: Chord.T option
 }
 
 type DefaultSettings = {
