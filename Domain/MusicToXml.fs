@@ -134,8 +134,8 @@ let interpretNoteOrRest
    }: NoteOrRestEvent)
   : XElement list =
   let xmlTie xmlType = [
-    elementWithAttributes "tie" [ attribute "type" xmlType ] []
-    element "notations" [ elementWithAttributes "tied" [ attribute "type" xmlType ] [] ]
+    selfEnclosingElementWithAttributes "tie" [ attribute "type" xmlType ]
+    element "notations" [ selfEnclosingElementWithAttributes "tied" [ attribute "type" xmlType ] ]
   ]
 
   let duration = NoteOrRest.getDuration noteOrRest
