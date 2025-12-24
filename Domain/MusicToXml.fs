@@ -17,7 +17,7 @@ let createPartList (names: Validated.Part list) : XElement =
     ])
   |> element "part-list"
 
-let measureId2String (MeasureId measureId) = measureId.ToString()
+let measureId2String (MeasureId measureId) = toString measureId
 
 let calculateFifths =
   KeySignature.fifths
@@ -64,26 +64,29 @@ let interpretDuration (divisions: Duration.T) (d: Duration.T) : XElement list =
     | Duration.SixteenthDotted -> "16th"
     | Duration.ThirtySecond -> "32nd"
 
-  let isDotted = d.ToString().ToLower().Contains "dotted"
+  let isDotted = d |> toString |> (fun v -> v.ToLower().Contains "dotted")
 
   [
-    leafElement "duration" (duration.ToString())
+    leafElement "duration" (toString duration)
     leafElement "type" durationType
     if isDotted then
       selfEnclosingElement "dot"
   ]
 
 let private noteNameToStep (tagName: string) (n: NoteName.T) : XElement =
-  let value = n |> toString |> (fun s -> s[0] |> toString)
+  let value =
+    let v = n |> toString
+    v[0] |> toString
+
   leafElement tagName value
 
 let private noteNameToAlter (tagName: string) (n: NoteName.T) : XElement option =
-  let lowerStringNoteName = n.ToString().ToLower()
+  let lowerStringNoteName = n |> toString |> _.ToLower()
 
   (if lowerStringNoteName.Contains "flat" then Some -1
    elif lowerStringNoteName.Contains "sharp" then Some 1
    else None)
-  |> Option.map (fun numericAlter -> leafElement tagName (sprintf "%+d" numericAlter))
+  |> Option.map (sprintf "%+d" >> leafElement tagName)
 
 let interpretPitch (p: Pitch.T) : XElement =
   let noteName = Pitch.getNoteName p
@@ -130,11 +133,11 @@ let interpretNoteOrRest
      AttachedToNoteOrRestEvents = attachedToNoteOrRestEvents
    }: NoteOrRestEvent)
   : XElement list =
-  let xmlTie =
-    fun xmlType -> [
-      elementWithAttributes "tie" [ attribute "type" xmlType ] []
-      element "notations" [ elementWithAttributes "tied" [ attribute "type" xmlType ] [] ]
-    ]
+  // TODO: adicionar elemento sem filho só com atributos
+  let xmlTie xmlType = [
+    elementWithAttributes "tie" [ attribute "type" xmlType ] []
+    element "notations" [ elementWithAttributes "tied" [ attribute "type" xmlType ] [] ]
+  ]
 
   let duration = NoteOrRest.getDuration noteOrRest
 
@@ -164,7 +167,7 @@ let createMeasureAttributes (m: Validated.Measure) (es: MeasureEvent list) : XEl
       | Duration.Sixteenth -> 4
       | Duration.ThirtySecond -> 8
       | _ -> failwith "unsupported duration for divisions"
-    |> _.ToString()
+    |> toString
     |> leafElement "divisions"
     yield!
       es
@@ -173,7 +176,7 @@ let createMeasureAttributes (m: Validated.Measure) (es: MeasureEvent list) : XEl
         | DefineKeySignatureEvent k -> element "key" [ k |> calculateFifths |> leafElement "fifths" ] |> Some
         | DefineTimeSignatureEvent t ->
           element "time" [
-            leafElement "beats" (t.Numerator.ToString())
+            leafElement "beats" (toString t.Numerator)
             t |> calculateBeatType |> leafElement "beat-type"
           ]
           |> Some
@@ -204,7 +207,7 @@ let createMeasure (m: Validated.Measure, es: MeasureEvent list) : XElement =
   ]
   |> elementWithAttributes "measure" [ m.MeasureId |> measureId2String |> attribute "number" ]
 
-let createPart (ps: Validated.Part list) : XElement list =
+let createParts (ps: Validated.Part list) : XElement list =
   ps
   |> List.map (fun part ->
     part.Measures
@@ -223,6 +226,6 @@ let createPart (ps: Validated.Part list) : XElement list =
     |> elementWithAttributes "part" [ part.PartId |> partId2String |> attribute "id" ])
 
 let convert (m: Validated.Music) : XDocument =
-  [ m |> createPartList; yield! createPart m ]
+  [ m |> createPartList; yield! createParts m ]
   |> elementWithAttributes "score-partwise" [ attribute "version" "4.0" ]
   |> document
