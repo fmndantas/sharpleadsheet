@@ -35,13 +35,13 @@ module Types =
 open Types
 
 module CreateEvent =
-  let noteOrRestEventWithExtra (extra: AttachedToNoteOrRestEvent list) (noteOrRest: NoteOrRest) : MeasureEvent =
+  let noteOrRestEventWithAttachedEvents (attached: AttachedToNoteOrRestEvent list) (n: NoteOrRest) : MeasureEvent =
     NoteOrRestEvent {
-      NoteOrRest = noteOrRest
-      AttachedToNoteOrRestEvents = extra
+      NoteOrRest = n
+      AttachedToNoteOrRestEvents = attached
     }
 
-  let noteOrRestEvent (noteOrRest: NoteOrRest) : MeasureEvent = noteOrRestEventWithExtra [] noteOrRest
+  let noteOrRestEvent (n: NoteOrRest) : MeasureEvent = noteOrRestEventWithAttachedEvents [] n
 
 let generateEvents
   (context: MeasureContext)
@@ -84,7 +84,7 @@ let generateEvents
         let isNoteEndingATie = context.IsTieStarted
 
         noteOrRest
-        |> CreateEvent.noteOrRestEventWithExtra [
+        |> CreateEvent.noteOrRestEventWithAttachedEvents [
           if isNoteStartingATie then
             StartTie
           if isNoteEndingATie then
