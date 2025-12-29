@@ -34,7 +34,11 @@ module Functions =
     let str: P<_> = many1Satisfy (System.Char.IsWhiteSpace >> not)
     let num: P<_> = pint32
 
-  let pCommand s = pchar ':' >>. pstring s
+  let pCommand s =
+    pchar ':' >>. pstring s <?> sprintf ":%s" s
+
+  let pEndCommand s =
+    pstring s >>. pchar ':' <?> sprintf "%s:" s
 
   let pCommandWithBacktrack s = pchar ':' >>? pstring s
 
@@ -170,7 +174,7 @@ module Functions =
     ]
 
   let pPartDefinitionSection (settings: DefaultSettings) : P<ParsedPartDefinitionSection> =
-    between (pCommand "part" .>> ws) (pCommand "endpart" .>> ws) (many (pPartDefinitionAttribute .>> ws))
+    between (pCommand "part" .>> ws) (pEndCommand "part" .>> ws) (many (pPartDefinitionAttribute .>> ws))
     |>> (fun partDefinitionAttributes ->
       let mutable partId: PartId option = None
       let mutable name: string option = None
@@ -268,9 +272,9 @@ module Functions =
 
   let pNotesSection: P<ParsedNotesSection> =
     parse {
-      let! partId = pCommand "notes" >>. ws >>. pint32 .>> ws |>> PartId
+      let! partId = pCommand "notes" >>. ws >>. (pint32 <?> "part id") .>> ws |>> PartId
       let! sequenceOfNotes = pNotesSectionContent
-      let! _ = pCommand "endnotes" .>> ws
+      let! _ = pEndCommand "notes" .>> ws
 
       return {
         PartId = partId
