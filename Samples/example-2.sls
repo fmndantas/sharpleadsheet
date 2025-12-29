@@ -4,12 +4,12 @@
   :key g
   :time 1 8
   :clef f
-:endpart
+part:
 
 :notes 2
   c | g16 f
-:endnotes
+notes:
 
 :notes 2
   e d | c8
-:endnotes
+notes:

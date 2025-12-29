@@ -4,4 +4,4 @@
   :key g
   :time 1 8
   :clef g
-:endpart
+part:

@@ -169,7 +169,7 @@ let ``generates measure events`` =
         [
           Note.createTied4 NoteName.C Duration.Whole
           |> NoteOrRest.Note
-          |> Measure.CreateEvent.noteOrRestEventWithExtra [ StartTie ]
+          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie ]
         ],
         []
       )
@@ -190,7 +190,7 @@ let ``generates measure events`` =
         [
           Note.create4 NoteName.C Duration.Whole
           |> NoteOrRest.Note
-          |> Measure.CreateEvent.noteOrRestEventWithExtra [ StopTie ]
+          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StopTie ]
         ],
         []
       )
@@ -207,15 +207,15 @@ let ``generates measure events`` =
         [
           Note.createTied4 NoteName.C Duration.Quarter
           |> NoteOrRest.Note
-          |> Measure.CreateEvent.noteOrRestEventWithExtra [ StartTie ]
+          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie ]
 
           Note.createTied4 NoteName.C Duration.Quarter
           |> NoteOrRest.Note
-          |> Measure.CreateEvent.noteOrRestEventWithExtra [ StartTie; StopTie ]
+          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie; StopTie ]
 
           Note.create4 NoteName.C Duration.Quarter
           |> NoteOrRest.Note
-          |> Measure.CreateEvent.noteOrRestEventWithExtra [ StopTie ]
+          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StopTie ]
         ],
         []
       )

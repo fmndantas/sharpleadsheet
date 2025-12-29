@@ -16,7 +16,11 @@ let element (name: string) (content: XElement list) : XElement = elementWithAttr
 
 let leafElement (name: string) (content: string) : XElement = XElement(XName.Get name, content)
 
-let selfEnclosingElement (name: string) : XElement = XElement(XName.Get name, null)
+let selfEnclosingElementWithAttributes (name: string) (attributes: XAttribute list) : XElement =
+  elementWithAttributes name attributes []
+
+let selfEnclosingElement (name: string) : XElement =
+  selfEnclosingElementWithAttributes name []
 
 let document (root: XElement) : XDocument = XDocument root
 

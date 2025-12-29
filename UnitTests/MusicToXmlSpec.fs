@@ -121,7 +121,7 @@ let ``converts note or rest to xml`` =
         Duration.Quarter,
         Note.createTied4 NoteName.C Duration.Quarter
         |> NoteOrRest.Note
-        |> Measure.CreateEvent.noteOrRestEventWithExtra [ StartTie ]
+        |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie ]
       )
       .WithExpectedResult(
         "
@@ -145,7 +145,7 @@ let ``converts note or rest to xml`` =
         Duration.Quarter,
         Note.create4 NoteName.C Duration.Quarter
         |> NoteOrRest.Note
-        |> Measure.CreateEvent.noteOrRestEventWithExtra [ StopTie ]
+        |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StopTie ]
       )
       .WithExpectedResult(
         "

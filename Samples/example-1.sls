@@ -4,9 +4,9 @@
   :clef g
   :key c
   :time 2 4
-:endpart
+part:
 
 :notes 1
   c8 d e d | c2 |
   e4 r | f8 g16 r o+ af8. r16
-:endnotes
+notes:

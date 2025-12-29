@@ -133,10 +133,9 @@ let interpretNoteOrRest
      AttachedToNoteOrRestEvents = attachedToNoteOrRestEvents
    }: NoteOrRestEvent)
   : XElement list =
-  // TODO: adicionar elemento sem filho só com atributos
   let xmlTie xmlType = [
-    elementWithAttributes "tie" [ attribute "type" xmlType ] []
-    element "notations" [ elementWithAttributes "tied" [ attribute "type" xmlType ] [] ]
+    selfEnclosingElementWithAttributes "tie" [ attribute "type" xmlType ]
+    element "notations" [ selfEnclosingElementWithAttributes "tied" [ attribute "type" xmlType ] ]
   ]
 
   let duration = NoteOrRest.getDuration noteOrRest
