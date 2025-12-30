@@ -10,6 +10,7 @@ open Argu
 open Domain
 open CommonTypes
 open ParsedTypes
+open ParserStateBuilder
 
 open App.CliParser
 
@@ -65,15 +66,15 @@ let private defaultSettings = {
   Clef = Clef.G
 }
 
-let private defaultState = {
-  CurrentKeySignature = defaultSettings.KeySignature
-  CurrentTimeSignature = defaultSettings.TimeSignature
-  CurrentClef = defaultSettings.Clef
-  CurrentOctave = 4
-  LastDuration = None
-  LastPitch = None
-  LastChord = None
-}
+let private defaultState =
+  aParserState ()
+  |> withCurrentKeySignature defaultSettings.KeySignature
+  |> withCurrentTimeSignature defaultSettings.TimeSignature
+  |> withCurrentClef defaultSettings.Clef
+  |> withCurrentOctave 4
+  |> withoutLastDuration
+  |> withoutLastPitch
+  |> withoutLastChord
 
 let private parse: Parse =
   fun path ->

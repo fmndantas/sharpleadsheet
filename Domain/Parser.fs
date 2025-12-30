@@ -5,6 +5,7 @@ open FParsec
 open CommonTypes
 open ParsedTypes
 open ParsedMeasureBuilder
+open ParserStateBuilder
 
 [<AutoOpen>]
 module Types =
@@ -287,15 +288,15 @@ module Functions =
       let! partDefinition = pPartDefinitionSection settings
 
       do!
-        setUserState {
-          CurrentTimeSignature = partDefinition.TimeSignature
-          CurrentKeySignature = partDefinition.KeySignature
-          CurrentClef = partDefinition.Clef
-          CurrentOctave = 4
-          LastPitch = None
-          LastDuration = None
-          LastChord = None
-        }
+        aParserState ()
+        |> withCurrentTimeSignature partDefinition.TimeSignature
+        |> withCurrentKeySignature partDefinition.KeySignature
+        |> withCurrentClef partDefinition.Clef
+        |> withCurrentOctave 4
+        |> withoutLastPitch
+        |> withoutLastDuration
+        |> withoutLastChord
+        |> setUserState
 
       let! notesSection = many1 pNotesSection
 
