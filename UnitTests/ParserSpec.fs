@@ -46,7 +46,7 @@ let ``parses a part definition section`` =
 
   testTheory3 "parses a part definition section" [
     sampleCase(1, "part-definition-1.sls").WithExpectedResult {
-      Id = PartId 1 |> Some
+      Id = 1 |> PartId |> Some
       Name = Some "Piano"
       TimeSignature = {
         Numerator = 2
@@ -57,7 +57,7 @@ let ``parses a part definition section`` =
     }
 
     sampleCase(2, "part-definition-2.sls").WithExpectedResult {
-      Id = PartId 1 |> Some
+      Id = 1 |> PartId |> Some
       Name = Some "guitar"
       TimeSignature = {
         Numerator = 1
@@ -65,6 +65,17 @@ let ``parses a part definition section`` =
       }
       KeySignature = KeySignature NoteName.G
       Clef = Clef.G
+    }
+
+    sampleCase(3, "part-definition-3.sls").WithExpectedResult {
+      Id = 2 |> PartId |> Some
+      Name = Some "cifra"
+      TimeSignature = {
+        Numerator = 11
+        Denominator = Duration.Eighth
+      }
+      KeySignature = KeySignature NoteName.BFlat
+      Clef = Clef.F
     }
   ]
   <| fun content expectedResult ->
@@ -405,6 +416,28 @@ let ``parses notes section`` =
 
         [
           measure |> withNote (Note.create4 NoteName.G Duration.Whole)
+          measure |> withNote (Note.create4 NoteName.C Duration.Whole)
+        ]
+    }
+
+    caseId(2).WithData(aParserState (), openSample "notes-section-2.sls").WithExpectedResult {
+      PartId = PartId 7
+      Measures =
+        let measure =
+          aParsedMeasure () |> withCommonTimeSignature |> withCNaturalKeySignature
+
+        [
+          measure
+          |> withNotes [
+            Note.create4 NoteName.C Duration.Eighth
+            Note.create4 NoteName.D Duration.Eighth
+            Note.create4 NoteName.E Duration.Eighth
+            Note.create4 NoteName.F Duration.Eighth
+            Note.create4 NoteName.G Duration.Eighth
+            Note.create4 NoteName.F Duration.Eighth
+            Note.create4 NoteName.E Duration.Eighth
+            Note.create4 NoteName.D Duration.Eighth
+          ]
           measure |> withNote (Note.create4 NoteName.C Duration.Whole)
         ]
     }
