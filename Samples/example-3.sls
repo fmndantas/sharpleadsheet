@@ -10,7 +10,8 @@ part: # this ends a part definition
 
 :notes 3 # this defines notes for part with id 3, defined above
   # measures are separated by |
-  [d.m9] r4 r r r | # 'r4' represents a rest of quarter note duration 
+  [d.m9] r4 r r r # 'r4' represents a rest of quarter note duration 
+  |
   [d.m9] r4 r r r # '[d.m9]' represents a D minor 9 chord
 notes: # this ends notes for part with id 3
 

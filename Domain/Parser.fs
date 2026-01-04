@@ -162,6 +162,7 @@ module Functions =
 
       return note
     }
+    <!> "pNote"
 
   let pRest: P<Rest.T> =
     parse {
@@ -252,18 +253,19 @@ module Functions =
       return chord
     }
 
-  let pNotesSectionContent: P<ParsedMeasure list> =
-    let pSymbol: P<NotesSectionSymbol> =
-      choice [
-        pNote <!> "pNote" |>> NotesSectionSymbol.Note .>> ws1
-        pRest |>> NotesSectionSymbol.Rest .>> ws1
-        pOctaveManipulation .>> ws1
-        between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord .>> ws1
-        (pComment |>> fun _ -> NotesSectionSymbol.Comment) .>> ws
-      ]
+  let private pNotesSectionSymbol: P<NotesSectionSymbol> =
+    choice [
+      pNote |>> NotesSectionSymbol.Note .>> ws1
+      pRest |>> NotesSectionSymbol.Rest .>> ws1
+      pOctaveManipulation .>> ws1
+      between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord .>> ws1
+      (pComment |>> fun _ -> NotesSectionSymbol.Comment) .>> ws
+    ]
+    <!> "pNotesSectionSymbol"
 
+  let pNotesSectionContent: P<ParsedMeasure list> =
     parse {
-      let! symbolsPerMeasure = sepBy (many pSymbol) (pstring "|" <!> "bar" .>> ws)
+      let! symbolsPerMeasure = sepBy (many pNotesSectionSymbol) (pstring "|" <!> "bar" .>> ws)
 
       let symbolsPerMeasure: NoteOrRest list list =
         symbolsPerMeasure
