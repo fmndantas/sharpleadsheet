@@ -26,9 +26,13 @@ notes: # this ends notes for part with id 3
 notes:
 
 :notes 3
-  [g.m9] d8 f f f f4. g8 |
-  f2. r8 o- bf8 |
-  [e.m9(11)] a8 a a a~ a4. o+ d8 |
+  # elements inside notes section should be separated by at least one space
+  [g.m9]  d8  f  f  f  f4.  g8 
+  |
+  f2. r8 o- bf8 
+  |
+  [e.m9(11)] a8 a a a~ a4. o+ d8 
+  |
   [ef.7(#11)] o- a8 a a4 a4.~ a16 a32 o+ c | # you can use comments to "disable" music c |
   [d.m9] o- g1 |  
 notes:
