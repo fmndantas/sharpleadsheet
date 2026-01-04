@@ -43,7 +43,7 @@ let private runAndAssertOnSuccess parser content assertFn =
 let private runAndAssertOnFailure parser content assertFn =
   match runParserOnString parser (aParserState ()) "runAndAssertOnFailure" content with
   | Success(_, _, _) -> failtest "Expected failure but got success"
-  | Failure(errorMessage, _, _) -> assertFn errorMessage
+  | Failure(errorMessage, parserError, _) -> assertFn errorMessage parserError
 
 let ``parses a part definition section`` =
   let sampleCase (id, sampleName) =
@@ -709,15 +709,15 @@ let ``parses invalid music`` =
     case("2.space between note and rest").WithData(openSample "invalid-music-2.sls").WithExpectedResult(8, 5)
     case("3.space between rest and note").WithData(openSample "invalid-music-3.sls").WithExpectedResult(8, 5)
     case("4.space between chord and note").WithData(openSample "invalid-music-4.sls").WithExpectedResult(8, 16)
-    case("4.space between octave manipulation and note")
+    case("5.space between octave manipulation and note")
       .WithData(openSample "invalid-music-5.sls")
       .WithExpectedResult(10, 9)
   ]
-  <| fun content (row, col) ->
+  <| fun content (ErrorRow, ErrorCol) ->
     runAndAssertOnFailure (Parser.Functions.pMusic defaultSettings) content
-    <| fun error ->
-      error.ToLower()
-      |> stringContains (sprintf "Expected position was not found") (sprintf "ln: %d col: %d" row col)
+    <| fun _ parserError ->
+      (parserError.Position.Line, parserError.Position.Column)
+      |> equal "Error position (Ln, Col) is not the expected" (ErrorRow, ErrorCol)
 
 [<Tests>]
 let ParserSpec =
