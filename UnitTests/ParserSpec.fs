@@ -713,11 +713,11 @@ let ``parses invalid music`` =
       .WithData(openSample "invalid-music-5.sls")
       .WithExpectedResult(10, 9)
   ]
-  <| fun content (ErrorRow, ErrorCol) ->
+  <| fun content (errorRow, errorCol) ->
     runAndAssertOnFailure (Parser.Functions.pMusic defaultSettings) content
     <| fun _ parserError ->
       (parserError.Position.Line, parserError.Position.Column)
-      |> equal "Error position (Ln, Col) is not the expected" (ErrorRow, ErrorCol)
+      |> equal "Error position (Ln, Col) is not the expected" (errorRow, errorCol)
 
 [<Tests>]
 let ParserSpec =
