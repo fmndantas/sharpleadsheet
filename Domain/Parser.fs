@@ -36,7 +36,7 @@ module Functions =
 
   [<AutoOpen>]
   module private Debug =
-    let (<!>) (p: Parser<_, _>) label : Parser<_, _> =
+    let (<!>) (p: P<_>) label : P<_> =
       if bypassDebug then
         p
       else
