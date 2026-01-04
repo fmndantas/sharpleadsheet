@@ -27,18 +27,23 @@ let private defaultSettings = {
   Clef = Clef.G
 }
 
-let private openSample (file: string) =
+let private openSample (file: string) : string =
   let dot = Directory.GetParent(here).FullName
   let file = Path.Join(dot, "Samples", file)
   File.ReadAllText file
 
-let private runWithStateAndAssert parser initialState content assertFn =
-  match runParserOnString parser initialState "unit-test" content with
+let private runWithStateAndAssertOnSuccess parser initialState content assertFn =
+  match runParserOnString parser initialState "runWithStateAndAssertOnSuccess" content with
   | Success(result, finalState, _) -> assertFn result finalState
   | Failure(errorMessage, _, _) -> failtest errorMessage
 
-let private runAndAssert parser content assertFn =
-  runWithStateAndAssert parser (aParserState ()) content assertFn
+let private runAndAssertOnSuccess parser content assertFn =
+  runWithStateAndAssertOnSuccess parser (aParserState ()) content assertFn
+
+let private runAndAssertOnFailure parser content assertFn =
+  match runParserOnString parser (aParserState ()) "runAndAssertOnFailure" content with
+  | Success(_, _, _) -> failtest "Expected failure but got success"
+  | Failure(errorMessage, _, _) -> assertFn errorMessage
 
 let ``parses a part definition section`` =
   let sampleCase (id, sampleName) =
@@ -79,7 +84,7 @@ let ``parses a part definition section`` =
     }
   ]
   <| fun content expectedResult ->
-    runAndAssert (Parser.Functions.pPartDefinitionSection defaultSettings) content
+    runAndAssertOnSuccess (Parser.Functions.pPartDefinitionSection defaultSettings) content
     <| fun result _ -> result |> equal "part definition section is incorrect" expectedResult
 
 let ``parses a note name`` =
@@ -103,7 +108,7 @@ let ``parses a note name`` =
     case("B").WithData("b").WithExpectedResult NoteName.B
   ]
   <| fun data expectedResult ->
-    runAndAssert Parser.Functions.pNoteName data
+    runAndAssertOnSuccess Parser.Functions.pNoteName data
     <| fun result _ -> result |> equal "note name is incorrect" expectedResult
 
 let ``parses a duration`` =
@@ -121,7 +126,7 @@ let ``parses a duration`` =
     case("thirty-second note").WithData("32").WithExpectedResult Duration.ThirtySecond
   ]
   <| fun data expectedResult ->
-    runAndAssert Parser.Functions.pDuration data
+    runAndAssertOnSuccess Parser.Functions.pDuration data
     <| fun result _ -> result |> equal "duration is incorrect" expectedResult
 
 let ``parses a note`` =
@@ -145,7 +150,7 @@ let ``parses a note`` =
       |> withOptionalLastPitch lastPitch
       |> withoptionalLastDuration lastDuration
 
-    runWithStateAndAssert Parser.Functions.pNote currentState content
+    runWithStateAndAssertOnSuccess Parser.Functions.pNote currentState content
     <| fun result _ -> result |> equal "note is incorrect" expectedResult
 
 let ``parses a rest`` =
@@ -166,7 +171,7 @@ let ``parses a rest`` =
       }
       |> withoptionalLastDuration lastDuration
 
-    runWithStateAndAssert Parser.Functions.pRest state content
+    runWithStateAndAssertOnSuccess Parser.Functions.pRest state content
     <| fun result _ -> result |> equal "rest is incorrect" expectedResult
 
 let ``parses a chord`` =
@@ -181,7 +186,7 @@ let ``parses a chord`` =
     caseId(6).WithData("f.add9/bf]").WithExpectedResult(Chord.createWithBassAndKind NoteName.F NoteName.BFlat "add9")
   ]
   <| fun content expectedResult ->
-    runAndAssert Parser.Functions.pChord content
+    runAndAssertOnSuccess Parser.Functions.pChord content
     <| fun result _ -> result |> equal "chord is incorrect" expectedResult
 
 let ``parses notes section content`` =
@@ -403,7 +408,7 @@ let ``parses notes section content`` =
       )
   ]
   <| fun (currentState, content) expectedResult ->
-    runWithStateAndAssert Parser.Functions.pNotesSectionContent currentState content
+    runWithStateAndAssertOnSuccess Parser.Functions.pNotesSectionContent currentState content
     <| fun result _ -> result |> equal "notes section content is incorrect" expectedResult
 
 let ``parses notes section`` =
@@ -443,7 +448,7 @@ let ``parses notes section`` =
     }
   ]
   <| fun (currentState, content) expectedResult ->
-    runWithStateAndAssert Parser.Functions.pNotesSection currentState content
+    runWithStateAndAssertOnSuccess Parser.Functions.pNotesSection currentState content
     <| fun result _ -> result |> equal "notes section is incorrect" expectedResult
 
 let ``parses music`` =
@@ -693,10 +698,26 @@ let ``parses music`` =
       )
   ]
   <| fun content (expectedResult: ParsedMusic, expectedFinalState: ParserState) ->
-    runAndAssert (Parser.Functions.pMusic defaultSettings) content
+    runAndAssertOnSuccess (Parser.Functions.pMusic defaultSettings) content
     <| fun result finalState ->
       result |> equal "music is incorrect" expectedResult
       finalState |> equal "final state is incorrect" expectedFinalState
+
+let ``parses invalid music`` =
+  testTheory3 "parses invalid music" [
+    case("1.space between notes").WithData(openSample "invalid-music-1.sls").WithExpectedResult(8, 11)
+    case("2.space between note and rest").WithData(openSample "invalid-music-2.sls").WithExpectedResult(8, 5)
+    case("3.space between rest and note").WithData(openSample "invalid-music-3.sls").WithExpectedResult(8, 5)
+    case("4.space between chord and note").WithData(openSample "invalid-music-4.sls").WithExpectedResult(8, 16)
+    case("4.space between octave manipulation and note")
+      .WithData(openSample "invalid-music-5.sls")
+      .WithExpectedResult(10, 9)
+  ]
+  <| fun content (row, col) ->
+    runAndAssertOnFailure (Parser.Functions.pMusic defaultSettings) content
+    <| fun error ->
+      error.ToLower()
+      |> stringContains (sprintf "Expected position was not found") (sprintf "ln: %d col: %d" row col)
 
 [<Tests>]
 let ParserSpec =
@@ -710,4 +731,5 @@ let ParserSpec =
     ``parses notes section content``
     ``parses notes section``
     ``parses music``
+    ``parses invalid music``
   ]
