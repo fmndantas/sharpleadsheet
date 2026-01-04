@@ -25,6 +25,7 @@
     <Compile Include="KeySignature.fs"/>
     <Compile Include="ParsedTypes.fs"/>
     <Compile Include="ParsedMeasureBuilder.fs"/>
+    <Compile Include="ParserStateBuilder.fs"/>
     <Compile Include="Parser.fs"/>
     <Compile Include="Validated.fs"/>
     <Compile Include="ValidatedMeasureBuilder.fs"/>

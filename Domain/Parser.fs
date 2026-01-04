@@ -5,6 +5,10 @@ open FParsec
 open CommonTypes
 open ParsedTypes
 open ParsedMeasureBuilder
+open ParserStateBuilder
+
+[<Literal>]
+let bypassDebug = true
 
 [<AutoOpen>]
 module Types =
@@ -15,6 +19,7 @@ module Types =
     | Clef of Clef
     | TimeSignature of TimeSignature
     | KeySignature of KeySignature
+    | Comment
 
   [<RequireQualifiedAccess>]
   type NotesSectionSymbol =
@@ -22,6 +27,7 @@ module Types =
     | Rest of Rest.T
     | OctaveManipulation of int
     | Chord of Chord.T
+    | Comment
 
 module Functions =
   open Types
@@ -29,16 +35,31 @@ module Functions =
   type private P<'a> = Parser<'a, ParserState>
 
   [<AutoOpen>]
+  module private Debug =
+    let (<!>) (p: P<_>) label : P<_> =
+      if bypassDebug then
+        p
+      else
+        fun stream ->
+          printfn "[DEBUG] %A: Entering %s" stream.Position label
+          let reply = p stream
+          printfn "[DEBUG] %A: Leaving %s (%A)" stream.Position label reply.Status
+          reply
+
+  [<AutoOpen>]
   module private Helpers =
-    let ws = spaces
+    let pComment: P<_> = pchar '#' >>. skipRestOfLine true <!> "pComment"
+    let ws: P<_> = spaces <!> "ws"
+    let ws1: P<_> = spaces1 <!> "ws1"
+    let ws1OrComments: P<_> = spaces1 <|> pComment |> many <!> "ws1OrComments"
     let str: P<_> = many1Satisfy (System.Char.IsWhiteSpace >> not)
     let num: P<_> = pint32
 
   let pCommand s =
-    pchar ':' >>. pstring s <?> sprintf ":%s" s
+    pchar ':' >>. pstring s <?> sprintf ":%s" s <!> $"pCommand {s}"
 
   let pEndCommand s =
-    pstring s >>. pchar ':' <?> sprintf "%s:" s
+    pstring s >>. pchar ':' <?> sprintf "%s:" s <!> $"pEndCommand {s}"
 
   let pCommandWithBacktrack s = pchar ':' >>? pstring s
 
@@ -141,6 +162,7 @@ module Functions =
 
       return note
     }
+    <!> "pNote"
 
   let pRest: P<Rest.T> =
     parse {
@@ -160,18 +182,20 @@ module Functions =
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
     choice [
-      pCommandWithBacktrack "id" .>> ws >>. num |>> PartDefinitionAttribute.Id
-      pCommandWithBacktrack "name" .>> ws >>. str |>> PartDefinitionAttribute.Name
-      pCommandWithBacktrack "clef" .>> ws >>. pclef |>> PartDefinitionAttribute.Clef
-      pCommandWithBacktrack "time" .>> ws >>. num .>>. spaces1 .>>. pDuration
+      pCommandWithBacktrack "id" .>> ws1 >>. num |>> PartDefinitionAttribute.Id
+      pCommandWithBacktrack "name" .>> ws1 >>. str |>> PartDefinitionAttribute.Name
+      pCommandWithBacktrack "clef" .>> ws1 >>. pclef |>> PartDefinitionAttribute.Clef
+      pCommandWithBacktrack "time" .>> ws1 >>. num .>>. spaces1 .>>. pDuration
       |>> fun ((numerator, _), denominator) ->
         PartDefinitionAttribute.TimeSignature {
           Numerator = numerator
           Denominator = denominator
         }
-      pCommandWithBacktrack "key" .>> ws >>. pNoteName
+      pCommandWithBacktrack "key" .>> ws1 >>. pNoteName
       |>> fun v -> v |> KeySignature |> PartDefinitionAttribute.KeySignature
+      pComment |>> fun _ -> PartDefinitionAttribute.Comment
     ]
+    <!> "pPartDefinitionAttribute"
 
   let pPartDefinitionSection (settings: DefaultSettings) : P<ParsedPartDefinitionSection> =
     between (pCommand "part" .>> ws) (pEndCommand "part" .>> ws) (many (pPartDefinitionAttribute .>> ws))
@@ -189,7 +213,8 @@ module Functions =
         | PartDefinitionAttribute.Name v -> name <- Some v
         | PartDefinitionAttribute.Clef v -> clef <- Some v
         | PartDefinitionAttribute.TimeSignature v -> timeSignature <- Some v
-        | PartDefinitionAttribute.KeySignature v -> keySignature <- Some v)
+        | PartDefinitionAttribute.KeySignature v -> keySignature <- Some v
+        | _ -> ())
 
       {
         Id = partId
@@ -228,17 +253,19 @@ module Functions =
       return chord
     }
 
+  let private pNotesSectionSymbol: P<NotesSectionSymbol> =
+    choice [
+      pNote |>> NotesSectionSymbol.Note .>> ws1
+      pRest |>> NotesSectionSymbol.Rest .>> ws1
+      pOctaveManipulation .>> ws1
+      between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord .>> ws1
+      (pComment |>> fun _ -> NotesSectionSymbol.Comment) .>> ws
+    ]
+    <!> "pNotesSectionSymbol"
+
   let pNotesSectionContent: P<ParsedMeasure list> =
     parse {
-      let pSymbol: P<NotesSectionSymbol> =
-        choice [
-          pNote |>> NotesSectionSymbol.Note
-          pRest |>> NotesSectionSymbol.Rest
-          pOctaveManipulation
-          between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord
-        ]
-
-      let! symbolsPerMeasure = sepBy (pSymbol .>> ws |> many) (pstring "|" .>> ws)
+      let! symbolsPerMeasure = sepBy (many pNotesSectionSymbol) (pstring "|" <!> "bar" .>> ws)
 
       let symbolsPerMeasure: NoteOrRest list list =
         symbolsPerMeasure
@@ -272,9 +299,9 @@ module Functions =
 
   let pNotesSection: P<ParsedNotesSection> =
     parse {
-      let! partId = pCommand "notes" >>. ws >>. (pint32 <?> "part id") .>> ws |>> PartId
+      let! partId = pCommand "notes" >>. ws1 >>. (pint32 <?> "part id") .>> ws1OrComments |>> PartId
       let! sequenceOfNotes = pNotesSectionContent
-      let! _ = pEndCommand "notes" .>> ws
+      let! _ = pEndCommand "notes" .>> ws1OrComments
 
       return {
         PartId = partId
@@ -284,18 +311,18 @@ module Functions =
 
   let pMusic (settings: DefaultSettings) : P<ParsedMusic> =
     parse {
-      let! partDefinition = pPartDefinitionSection settings
+      let! partDefinition = ws1OrComments >>. pPartDefinitionSection settings .>> ws1OrComments
 
       do!
-        setUserState {
-          CurrentTimeSignature = partDefinition.TimeSignature
-          CurrentKeySignature = partDefinition.KeySignature
-          CurrentClef = partDefinition.Clef
-          CurrentOctave = 4
-          LastPitch = None
-          LastDuration = None
-          LastChord = None
-        }
+        aParserState ()
+        |> withCurrentTimeSignature partDefinition.TimeSignature
+        |> withCurrentKeySignature partDefinition.KeySignature
+        |> withCurrentClef partDefinition.Clef
+        |> withCurrentOctave 4
+        |> withoutLastPitch
+        |> withoutLastDuration
+        |> withoutLastChord
+        |> setUserState
 
       let! notesSection = many1 pNotesSection
 
