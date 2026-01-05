@@ -27,6 +27,8 @@ let private defaultSettings = {
   Clef = Clef.G
 }
 
+let private defaultParserState = aParserState ()
+
 let private openSample (file: string) : string =
   let dot = Directory.GetParent(here).FullName
   let file = Path.Join(dot, "Samples", file)
@@ -38,10 +40,10 @@ let private runWithStateAndAssertOnSuccess parser initialState content assertFn 
   | Failure(errorMessage, _, _) -> failtest errorMessage
 
 let private runAndAssertOnSuccess parser content assertFn =
-  runWithStateAndAssertOnSuccess parser (aParserState ()) content assertFn
+  runWithStateAndAssertOnSuccess parser defaultParserState content assertFn
 
 let private runAndAssertOnFailure parser content assertFn =
-  match runParserOnString parser (aParserState ()) "runAndAssertOnFailure" content with
+  match runParserOnString parser defaultParserState "runAndAssertOnFailure" content with
   | Success(_, _, _) -> failtest "Expected failure but got success"
   | Failure(errorMessage, parserError, _) -> assertFn errorMessage parserError
 
@@ -146,7 +148,7 @@ let ``parses a note`` =
   ]
   <| fun (lastDuration, lastPitch, content) expectedResult ->
     let currentState =
-      aParserState ()
+      defaultParserState
       |> withOptionalLastPitch lastPitch
       |> withoptionalLastDuration lastDuration
 
@@ -164,7 +166,7 @@ let ``parses a rest`` =
   ]
   <| fun (lastDuration, content) expectedResult ->
     let state =
-      aParserState ()
+      defaultParserState
       |> withCurrentTimeSignature {
         Numerator = 1
         Denominator = Duration.Sixteenth
@@ -193,7 +195,7 @@ let ``parses notes section content`` =
   testTheory3 "parses notes section content" [
     caseId(1)
       .WithData(
-        aParserState ()
+        defaultParserState
         |> withCurrentTimeSignature {
           Numerator = 2
           Denominator = Duration.Quarter
@@ -225,7 +227,7 @@ let ``parses notes section content`` =
 
     caseId(2)
       .WithData(
-        aParserState ()
+        defaultParserState
         |> withCurrentTimeSignature {
           Numerator = 3
           Denominator = Duration.Quarter
@@ -269,7 +271,7 @@ let ``parses notes section content`` =
       )
 
     caseId(3)
-      .WithData(aParserState (), openSample "sequence-of-notes-3.sls")
+      .WithData(defaultParserState, openSample "sequence-of-notes-3.sls")
       .WithExpectedResult(
         let measure =
           aParsedMeasure ()
@@ -287,7 +289,7 @@ let ``parses notes section content`` =
       )
 
     caseId(4)
-      .WithData(aParserState (), openSample "sequence-of-notes-4.sls")
+      .WithData(defaultParserState, openSample "sequence-of-notes-4.sls")
       .WithExpectedResult(
         let measure =
           aParsedMeasure ()
@@ -302,7 +304,7 @@ let ``parses notes section content`` =
       )
 
     caseId(5)
-      .WithData(aParserState (), openSample "sequence-of-notes-5.sls")
+      .WithData(defaultParserState, openSample "sequence-of-notes-5.sls")
       .WithExpectedResult(
         let measure =
           aParsedMeasure ()
@@ -335,7 +337,7 @@ let ``parses notes section content`` =
       )
 
     caseId(6)
-      .WithData(aParserState (), openSample "sequence-of-notes-6.sls")
+      .WithData(defaultParserState, openSample "sequence-of-notes-6.sls")
       .WithExpectedResult(
         let measure =
           aParsedMeasure ()
@@ -384,7 +386,7 @@ let ``parses notes section content`` =
       )
 
     case("7.chords-1")
-      .WithData(aParserState (), openSample "chords-1.sls")
+      .WithData(defaultParserState, openSample "chords-1.sls")
       .WithExpectedResult(
         let measure =
           aParsedMeasure ()
@@ -413,7 +415,7 @@ let ``parses notes section content`` =
 
 let ``parses notes section`` =
   testTheory3 "parses notes section" [
-    caseId(1).WithData(aParserState (), openSample "notes-section-1.sls").WithExpectedResult {
+    caseId(1).WithData(defaultParserState, openSample "notes-section-1.sls").WithExpectedResult {
       PartId = PartId 7
       Measures =
         let measure =
@@ -425,7 +427,7 @@ let ``parses notes section`` =
         ]
     }
 
-    caseId(2).WithData(aParserState (), openSample "notes-section-2.sls").WithExpectedResult {
+    caseId(2).WithData(defaultParserState, openSample "notes-section-2.sls").WithExpectedResult {
       PartId = PartId 7
       Measures =
         let measure =
@@ -504,7 +506,7 @@ let ``parses music`` =
             }
           ]
         },
-        aParserState ()
+        defaultParserState
         |> withCurrentTimeSignature {
           Numerator = 2
           Denominator = Duration.Quarter
@@ -559,7 +561,7 @@ let ``parses music`` =
             }
           ]
         },
-        aParserState ()
+        defaultParserState
         |> withCurrentTimeSignature {
           Numerator = 1
           Denominator = Duration.Eighth
@@ -685,7 +687,7 @@ let ``parses music`` =
             }
           ]
         },
-        aParserState ()
+        defaultParserState
         |> withCurrentTimeSignature {
           Numerator = 4
           Denominator = Duration.Quarter
