@@ -7,9 +7,6 @@ open ParsedTypes
 open ParsedMeasureBuilder
 open ParserStateBuilder
 
-[<Literal>]
-let bypassDebug = true
-
 [<AutoOpen>]
 module Types =
   [<RequireQualifiedAccess>]
@@ -37,7 +34,7 @@ module Functions =
   [<AutoOpen>]
   module private Debug =
     let (<!>) (p: P<_>) label : P<_> =
-      if bypassDebug then
+      if true then
         p
       else
         fun stream ->
@@ -48,18 +45,18 @@ module Functions =
 
   [<AutoOpen>]
   module private Helpers =
-    let pComment: P<_> = pchar '#' >>. skipRestOfLine true <!> "pComment"
-    let ws: P<_> = spaces <!> "ws"
-    let ws1: P<_> = spaces1 <!> "ws1"
-    let ws1OrComments: P<_> = spaces1 <|> pComment |> many <!> "ws1OrComments"
+    let pComment: P<_> = pchar '#' >>. skipRestOfLine true
+    let ws: P<_> = spaces
+    let ws1: P<_> = spaces1
+    let ws1OrComments: P<_> = spaces1 <|> pComment |> many
     let str: P<_> = many1Satisfy (System.Char.IsWhiteSpace >> not)
     let num: P<_> = pint32
 
   let pCommand s =
-    pchar ':' >>. pstring s <?> sprintf ":%s" s <!> $"pCommand {s}"
+    pchar ':' >>. pstring s <?> sprintf ":%s" s
 
   let pEndCommand s =
-    pstring s >>. pchar ':' <?> sprintf "%s:" s <!> $"pEndCommand {s}"
+    pstring s >>. pchar ':' <?> sprintf "%s:" s
 
   let pCommandWithBacktrack s = pchar ':' >>? pstring s
 
@@ -162,7 +159,6 @@ module Functions =
 
       return note
     }
-    <!> "pNote"
 
   let pRest: P<Rest.T> =
     parse {
@@ -195,7 +191,6 @@ module Functions =
       |>> fun v -> v |> KeySignature |> PartDefinitionAttribute.KeySignature
       pComment |>> fun _ -> PartDefinitionAttribute.Comment
     ]
-    <!> "pPartDefinitionAttribute"
 
   let pPartDefinitionSection (settings: DefaultSettings) : P<ParsedPartDefinitionSection> =
     between (pCommand "part" .>> ws) (pEndCommand "part" .>> ws) (many (pPartDefinitionAttribute .>> ws))
@@ -261,11 +256,10 @@ module Functions =
       between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord .>> ws1
       (pComment |>> fun _ -> NotesSectionSymbol.Comment) .>> ws
     ]
-    <!> "pNotesSectionSymbol"
 
   let pNotesSectionContent: P<ParsedMeasure list> =
     parse {
-      let! symbolsPerMeasure = sepBy (many pNotesSectionSymbol) (pstring "|" <!> "bar" .>> ws)
+      let! symbolsPerMeasure = sepBy (many pNotesSectionSymbol) (pstring "|" .>> ws)
 
       let symbolsPerMeasure: NoteOrRest list list =
         symbolsPerMeasure
