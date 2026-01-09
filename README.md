@@ -50,20 +50,6 @@ In the meantime, explore the **`Samples`** folder for input file examples.
 
 **SharpLeadsheet is different: it's optimized for simplicity.**
 
-### Design Philosophy
-
-- **Minimal syntax** - Write `c4 d8 e r` instead of verbose XML or complex markup
-- **Lead sheet focused** - Built specifically for jazz, pop, and rhythm charts
-- **No learning curve** - If you can read music, you can write SharpLeadsheet
-- **Fast workflow** - From text to MusicXML in seconds
-
-### Perfect For
-
-- Quick lead sheet transcriptions
-- Rhythm charts for rehearsals
-- Simple arrangements (1-4 parts)
-- Musicians who prefer CLI tools
-
 ---
 
 ## Contribution
