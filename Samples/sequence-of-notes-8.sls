@@ -1,4 +1,4 @@
-# The only requirement is that symbols (expected measure bar) are separated by one or more spaces
+# The only requirement is that symbols (expect measure divider) are separated by one or more spaces
 |[c.maj9/g] c1|c4 d e f|
 |   c1    |
     c1    |
