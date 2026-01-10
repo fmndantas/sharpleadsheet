@@ -25,6 +25,7 @@ module Types =
     | OctaveManipulation of int
     | Chord of Chord.T
     | Comment
+    | MeasureDivider
 
 module Functions =
   open Types
@@ -45,7 +46,7 @@ module Functions =
 
   [<AutoOpen>]
   module private Helpers =
-    let pComment: P<_> = pchar '#' >>. skipRestOfLine true
+    let pComment: P<_> = pchar '#' >>. skipRestOfLine false
     let ws: P<_> = spaces
     let ws1: P<_> = spaces1
     let ws1OrComments: P<_> = spaces1 <|> pComment |> many
@@ -237,6 +238,8 @@ module Functions =
       return NotesSectionSymbol.OctaveManipulation updatedOctave
     }
 
+  let pBar: P<string> = pstring "|"
+
   let pChord: P<Chord.T> =
     parse {
       let pChordKind = manySatisfy (fun c -> c <> ']' && c <> '/')
@@ -250,25 +253,54 @@ module Functions =
 
   let private pNotesSectionSymbol: P<NotesSectionSymbol> =
     choice [
-      pNote |>> NotesSectionSymbol.Note .>> ws1
-      pRest |>> NotesSectionSymbol.Rest .>> ws1
-      pOctaveManipulation .>> ws1
-      between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord .>> ws1
-      (pComment |>> fun _ -> NotesSectionSymbol.Comment) .>> ws
+      pNote |>> NotesSectionSymbol.Note
+      pRest |>> NotesSectionSymbol.Rest
+      pOctaveManipulation
+      between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord
+      pComment |>> fun _ -> NotesSectionSymbol.Comment
+      pBar |>> fun _ -> NotesSectionSymbol.MeasureDivider
     ]
+    >>= fun result ->
+      followedBy (ws >>. pBar) |>> (fun _ -> true) <|> preturn false
+      >>= fun isNextSymbolABar ->
+        (if isNextSymbolABar || result.IsMeasureDivider then
+           spaces
+         else
+           spaces1)
+        >>% result
+
+  let private notesSectionSymbolToNoteOrRest: NotesSectionSymbol -> NoteOrRest option =
+    function
+    | NotesSectionSymbol.Note note -> note |> NoteOrRest.Note |> Some
+    | NotesSectionSymbol.Rest rest -> rest |> NoteOrRest.Rest |> Some
+    | _ -> None
 
   let pNotesSectionContent: P<ParsedMeasure list> =
     parse {
-      let! symbolsPerMeasure = sepBy (many pNotesSectionSymbol) (pstring "|" .>> ws)
+      let! symbols = many pNotesSectionSymbol
 
-      let symbolsPerMeasure: NoteOrRest list list =
-        symbolsPerMeasure
-        |> List.map (
-          List.choose (function
-            | NotesSectionSymbol.Note note -> note |> NoteOrRest.Note |> Some
-            | NotesSectionSymbol.Rest rest -> rest |> NoteOrRest.Rest |> Some
-            | _ -> None)
-        )
+      let symbolsPerMeasure =
+        symbols
+        |> List.fold
+          (fun acc symbol ->
+            if symbol.IsMeasureDivider then
+              [] :: acc
+            else
+              let accHead = acc |> List.tryHead |> Option.defaultValue []
+
+              let updatedAccHead =
+                symbol
+                |> notesSectionSymbolToNoteOrRest
+                |> Option.map (fun noteOrRest -> noteOrRest :: accHead)
+                |> Option.defaultValue accHead
+
+              if List.isEmpty acc then
+                List.singleton updatedAccHead
+              else
+                updatedAccHead :: List.tail acc)
+          []
+        |> List.map List.rev
+        |> List.rev
 
       let! state = getUserState
 

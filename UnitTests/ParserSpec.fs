@@ -385,8 +385,8 @@ let ``parses notes section content`` =
         ]
       )
 
-    case("7.chords-1")
-      .WithData(defaultParserState, openSample "chords-1.sls")
+    caseId(7)
+      .WithData(defaultParserState, openSample "sequence-of-notes-7.sls")
       .WithExpectedResult(
         let measure =
           aParsedMeasure ()
@@ -406,6 +406,44 @@ let ``parses notes section content`` =
             Rest.create Duration.Whole
             |> Rest.withChord (Chord.createWithBassAndKind NoteName.A NoteName.E "maj9(#11)")
           )
+        ]
+      )
+
+    case("8.checking spacing")
+      .WithData(defaultParserState, openSample "sequence-of-notes-8.sls")
+      .WithExpectedResult(
+        let measure =
+          aParsedMeasure ()
+          |> withCommonTimeSignature
+          |> withCNaturalKeySignature
+          |> withClef Clef.G
+
+        [
+          measure
+          |> withNote (
+            Note.create4 NoteName.C Duration.Whole
+            |> Note.withChord (Chord.createWithBassAndKind NoteName.C NoteName.G "maj9")
+          )
+
+          measure
+          |> withNotes [
+            Note.create4 NoteName.C Duration.Quarter
+            Note.create4 NoteName.D Duration.Quarter
+            Note.create4 NoteName.E Duration.Quarter
+            Note.create4 NoteName.F Duration.Quarter
+          ]
+
+          measure |> withNote (Note.create4 NoteName.C Duration.Whole)
+          measure |> withNote (Note.create4 NoteName.C Duration.Whole)
+          measure |> withNote (Note.create4 NoteName.C Duration.Whole)
+
+          measure
+          |> withNotes [
+            Note.createTied4 NoteName.C Duration.Half
+            Note.create4 NoteName.C Duration.Half
+          ]
+
+          measure |> withNote (Note.create4 NoteName.C Duration.Whole)
         ]
       )
   ]
