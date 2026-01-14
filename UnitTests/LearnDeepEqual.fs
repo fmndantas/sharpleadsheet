@@ -1,5 +1,7 @@
 module UnitTests.LearnDeepEqual
 
+open System
+
 open Expecto
 open Expecto.Flip.Expect
 
@@ -11,24 +13,46 @@ open Domain.ParsedTypes
 
 open Domain.ParsedMeasureBuilder
 
-let diffWithExpecto = testCase "diff with expecto" <| fun () -> 1 |> equal "equal" 2
+[<AutoOpen>]
+module private ExpectoDeepEqual =
+  let diffPrinter (actual: obj) (expected: obj) : string =
+    let mutable message = ""
 
-let diffWithDeepEqual =
-  testCase "diff with deep equal"
+    try
+      actual.ShouldDeepEqual expected
+    with ex ->
+      message <- ex.Message
+
+    let fragments =
+      let fs = message.Split(Environment.NewLine).[1..]
+      let h = Environment.NewLine + Array.head fs
+      [| h; yield! Array.tail fs |]
+
+    String.Join(Environment.NewLine, fragments)
+
+  let deepEqual (actual: obj) (expected: obj) =
+    Expect.equalWithDiffPrinter diffPrinter actual expected "DeepEqual comparison failed"
+
+let case1 = testCase "case 1" <| fun () -> 1 |> equal "equal" 2
+
+let case2 =
+  testCase "case 2"
   <| fun () ->
     let actual = {| Value = 1 |}
     let expected = {| Value = 2 |}
-    actual.ShouldDeepEqual expected
+    actual |> deepEqual expected
 
-let diffInNotes =
-  testCase "diff in notes"
+let case3 =
+  testCase "case 3"
   <| fun () ->
     let actual = Note.create4 NoteName.C Duration.Whole
     let expected = Note.create4 NoteName.D Duration.Whole
-    actual.ShouldDeepEqual expected
+    actual |> deepEqual expected
 
-let diffInParsedNotesSection =
-  testCase "diff in parsed notes section"
+// NOTE: It's better to use this way (ShouldDeepEqual)
+// `deepEqual` prints less useful diff for complex types because it includes Expecto's information "<this> vs. <that>".
+let case4 =
+  testCase "case 4"
   <| fun () ->
     let actual = {
       PartId = PartId 1
@@ -48,6 +72,5 @@ let diffInParsedNotesSection =
 
     actual.ShouldDeepEqual expected
 
-[<Tests>]
-let tests =
-  testList "learn deep equal" [ diffWithExpecto; diffWithDeepEqual; diffInParsedNotesSection; diffInNotes ]
+[<PTests>]
+let tests = testList "learn deep equal" [ case1; case2; case3; case4 ]
