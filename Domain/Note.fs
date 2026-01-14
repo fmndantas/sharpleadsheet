@@ -1,6 +1,6 @@
 module Domain.Note
 
-type T = private {
+type T = {
   Pitch: Pitch.T
   Duration: Duration.T
   Modifiers: Modifier list

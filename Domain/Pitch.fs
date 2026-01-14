@@ -1,6 +1,6 @@
 module Domain.Pitch
 
-type T = private {
+type T = {
   NoteName: NoteName.T
   Octave: int
 }

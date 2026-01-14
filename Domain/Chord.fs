@@ -1,6 +1,6 @@
 module Domain.Chord
 
-type T = private {
+type T = {
   Root: NoteName.T
   Bass: NoteName.T option
   Kind: string option
