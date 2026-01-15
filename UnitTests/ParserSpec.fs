@@ -8,6 +8,7 @@ open Expecto.Flip.Expect
 open FParsec
 
 open Case
+open DeepEqualWrapper
 
 open Domain
 open CommonTypes
@@ -449,7 +450,7 @@ let ``parses notes section content`` =
   ]
   <| fun (currentState, content) expectedResult ->
     runWithStateAndAssertOnSuccess Parser.Functions.pNotesSectionContent currentState content
-    <| fun result _ -> result |> equal "notes section content is incorrect" expectedResult
+    <| fun result _ -> result |> deepEqual expectedResult
 
 let ``parses notes section`` =
   testTheory3 "parses notes section" [
