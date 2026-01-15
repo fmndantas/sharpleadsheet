@@ -14,6 +14,7 @@
   <ItemGroup>
     <Compile Include="Case.fs" />
     <Compile Include="LearnDeepEqual.fs" />
+    <Compile Include="DeepEqualWrapper.fs" />
     <Compile Include="ResultSpec.fs" />
     <Compile Include="NoteNameSpec.fs" />
     <Compile Include="DurationSpec.fs" />
