@@ -26,6 +26,7 @@ module Types =
     | Chord of Chord.T
     | Comment
     | MeasureDivider
+    | Text of string
 
 module Functions =
   open Types
@@ -149,6 +150,7 @@ module Functions =
       let note =
         Note.create' state.CurrentOctave (List.choose id [ maybeTie ]) noteName duration
         |> Note.maybeWithChord state.LastChord
+        |> Note.maybeWithText state.LastText
 
       do!
         updateUserState (fun s -> {
@@ -156,6 +158,7 @@ module Functions =
               LastPitch = note |> Note.getPitch |> Some
               LastDuration = note |> Note.getDuration |> Some
               LastChord = None
+              LastText = None
         })
 
       return note
@@ -251,6 +254,13 @@ module Functions =
       return chord
     }
 
+  let pText: P<string> =
+    parse {
+      let! text = pstring "t:" >>. str
+      do! updateUserState (withLastText text)
+      return text
+    }
+
   let private pNotesSectionSymbol: P<NotesSectionSymbol> =
     choice [
       pNote |>> NotesSectionSymbol.Note
@@ -259,6 +269,7 @@ module Functions =
       between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord
       pComment |>> fun _ -> NotesSectionSymbol.Comment
       pBar |>> fun _ -> NotesSectionSymbol.MeasureDivider
+      pText |>> NotesSectionSymbol.Text
     ]
     >>= fun result ->
       followedBy (ws >>. pBar) |>> (fun _ -> true) <|> preturn false

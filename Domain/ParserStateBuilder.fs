@@ -14,6 +14,7 @@ let aParserState () : ParserState = {
   LastPitch = None
   LastDuration = None
   LastChord = None
+  LastText = None
 }
 
 let withCurrentTimeSignature (t: TimeSignature) (s: ParserState) = { s with CurrentTimeSignature = t }
@@ -41,3 +42,5 @@ let withoutLastPitch (s: ParserState) = { s with LastPitch = None }
 let withoutLastDuration (s: ParserState) = { s with LastDuration = None }
 
 let withoutLastChord (s: ParserState) = { s with LastChord = None }
+
+let withLastText (t: string) (s: ParserState) = { s with LastText = Some t }

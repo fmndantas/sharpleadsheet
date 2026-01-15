@@ -447,6 +447,21 @@ let ``parses notes section content`` =
           measure |> withNote (Note.create4 NoteName.C Duration.Whole)
         ]
       )
+
+    caseId(9)
+      .WithData(defaultParserState, openSample "sequence-of-notes-9.sls")
+      .WithExpectedResult(
+        let measure =
+          aParsedMeasure ()
+          |> withCommonTimeSignature
+          |> withCNaturalKeySignature
+          |> withClef Clef.G
+
+        [
+          measure
+          |> withNote ((NoteName.C, Duration.Whole) ||> Note.create4 |> Note.withText "verse")
+        ]
+      )
   ]
   <| fun (currentState, content) expectedResult ->
     runWithStateAndAssertOnSuccess Parser.Functions.pNotesSectionContent currentState content
