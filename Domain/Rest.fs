@@ -8,6 +8,16 @@ type T = {
 
 and Modifier = Text of string
 
+[<AutoOpen>]
+module private Helper =
+  let addModifier (m: Modifier) (rest: T) : T = {
+    rest with
+        Modifiers = m :: rest.Modifiers
+  }
+
+  let maybeAddModifier (m: Modifier option) (rest: T) : T =
+    m |> Option.map (rest |> flip2 addModifier) |> Option.defaultValue rest
+
 let create (duration: Duration.T) : T = {
   Duration = duration
   Modifiers = []
@@ -17,14 +27,6 @@ let create (duration: Duration.T) : T = {
 let getDuration ({ Duration = duration }: T) : Duration.T = duration
 
 let getChord ({ Chord = chord }: T) = chord
-
-let private addModifier (m: Modifier) (rest: T) : T = {
-  rest with
-      Modifiers = m :: rest.Modifiers
-}
-
-let private maybeAddModifier (m: Modifier option) (rest: T) : T =
-  m |> Option.map (rest |> flip2 addModifier) |> Option.defaultValue rest
 
 let withChord (chord: Chord.T) (rest: T) : T = { rest with Chord = Some chord }
 
