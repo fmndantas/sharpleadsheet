@@ -154,13 +154,12 @@ module Functions =
         |> Note.maybeWithText state.LastText
 
       do!
-        updateUserState (fun s -> {
-          s with
-              LastPitch = note |> Note.getPitch |> Some
-              LastDuration = note |> Note.getDuration |> Some
-              LastChord = None
-              LastText = None
-        })
+        updateUserState (
+          withLastPitch (note |> Note.getPitch)
+          >> withLastDuration (note |> Note.getDuration)
+          >> withoutLastChord
+          >> withoutLastText
+        )
 
       return note
     }
