@@ -253,6 +253,11 @@ module Functions =
       return chord
     }
 
+  let pModifier prefix : P<ParsedModifier> =
+    pstring (sprintf "%s:" prefix)
+    >>. (between (pchar '{') (pchar '}') (manySatisfy (fun c -> c <> '}')) <|> str)
+    |>> fun content -> { Prefix = prefix; Content = content }
+
   let pText: P<string> =
     parse {
       let! text = pstring "t:" >>. str

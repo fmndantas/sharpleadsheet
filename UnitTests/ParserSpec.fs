@@ -156,6 +156,16 @@ let ``parses a note`` =
     runWithStateAndAssertOnSuccess Parser.Functions.pNote currentState content
     <| fun result _ -> result |> equal "note is incorrect" expectedResult
 
+let ``parses a note modifier`` =
+  testTheory3 "parses a note modifier" [
+    case("text.a").WithData("t", "t:verse").WithExpectedResult { Prefix = "t"; Content = "verse" }
+    case("text.b").WithData("t", "t:{verse}").WithExpectedResult { Prefix = "t"; Content = "verse" }
+    case("text.c").WithData("t", "t:{a b c}").WithExpectedResult { Prefix = "t"; Content = "a b c" }
+  ]
+  <| fun (prefix, data) expectedResult ->
+    runAndAssertOnSuccess (Parser.Functions.pModifier prefix) data
+    <| fun result _ -> result |> equal "note modifier is incorrect" expectedResult
+
 let ``parses a rest`` =
   testTheory3 "parses a rest" [
     case("4").WithData(None, "r4").WithExpectedResult(Rest.create Duration.Quarter)
@@ -784,6 +794,7 @@ let ParserSpec =
     ``parses a note name``
     ``parses a duration``
     ``parses a note``
+    ``parses a note modifier``
     ``parses a rest``
     ``parses a chord``
     ``parses notes section content``

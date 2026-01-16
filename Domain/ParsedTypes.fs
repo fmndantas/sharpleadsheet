@@ -2,6 +2,8 @@ module Domain.ParsedTypes
 
 open CommonTypes
 
+type ParsedModifier = { Prefix: string; Content: string }
+
 type ParsedMusic = {
   PartDefinitionSections: ParsedPartDefinitionSection list
   NotesSections: ParsedNotesSection list
