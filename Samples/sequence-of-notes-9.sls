@@ -1,5 +1,4 @@
 # Text attached to note
-| t:verse c1 |
-# | t:"chorus 1" c |
+t:verse c1 |
 # Text attached to rest
-# | text:"verse 2" r |
+t:chorus r |

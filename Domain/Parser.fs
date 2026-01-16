@@ -170,14 +170,13 @@ module Functions =
       let! maybeDuration = pstring "r" >>. opt pDuration
       let duration = getUpdatedDuration state maybeDuration
 
-      do!
-        updateUserState (fun s -> {
-          s with
-              LastDuration = Some duration
-              LastChord = None
-        })
+      do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
 
-      return Rest.create duration |> Rest.maybeWithChord state.LastChord
+      return
+        duration
+        |> Rest.create
+        |> Rest.maybeWithChord state.LastChord
+        |> Rest.maybeWithText state.LastText
     }
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
