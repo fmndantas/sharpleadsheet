@@ -137,7 +137,7 @@ module Functions =
     |> Option.orElse state.LastDuration
     |> Option.defaultValue state.CurrentTimeSignature.Denominator
 
-  let pTie: P<Note.Modifier> = pstring "~" |>> fun _ -> Note.Tie
+  let pTie: P<unit> = pstring "~" |>> fun _ -> ()
 
   let pNote: P<Note.T> =
     parse {
@@ -148,7 +148,8 @@ module Functions =
       let! maybeTie = opt pTie
 
       let note =
-        Note.create' state.CurrentOctave (List.choose id [ maybeTie ]) noteName duration
+        Note.create state.CurrentOctave noteName duration
+        |> Note.maybeWithTie maybeTie
         |> Note.maybeWithChord state.LastChord
         |> Note.maybeWithText state.LastText
 

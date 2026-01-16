@@ -22,7 +22,7 @@ let create octave noteName duration = {
 }
 
 /// Create a note with modifiers
-let create' octave modifiers noteName duration = {
+let private create' octave modifiers noteName duration = {
   Pitch = Pitch.create noteName octave
   Duration = duration
   Modifiers = modifiers
@@ -33,9 +33,7 @@ let create2 = create 2
 
 let create4 = create 4
 
-let create4' = create' 4
-
-let createTied4 = create4' [ Tie ]
+let createTied4 = create' 4 [ Tie ]
 
 let create5 = create 5
 
@@ -65,3 +63,6 @@ let withText (text: string) (note: T) = addModifier (Text text) note
 
 let maybeWithText (text: string option) (note: T) =
   maybeAddModifier (Option.map Text text) note
+
+let maybeWithTie (tie: unit option) (note: T) =
+  maybeAddModifier (Option.map (fun _ -> Tie) tie) note
