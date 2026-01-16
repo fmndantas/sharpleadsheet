@@ -1,6 +1,6 @@
 module Domain.Rest
 
-type T = private {
+type T = {
   Duration: Duration.T
   Modifiers: Modifier list
   Chord: Chord.T option
@@ -31,3 +31,6 @@ let withChord (chord: Chord.T) (rest: T) : T = { rest with Chord = Some chord }
 let maybeWithChord (chord: Chord.T option) (rest: T) : T = { rest with Chord = chord }
 
 let withText (text: string) (rest: T) = addModifier (Text text) rest
+
+let maybeWithText (text: string option) (rest: T) : T =
+  maybeAddModifier (Option.map Text text) rest

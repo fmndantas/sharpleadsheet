@@ -470,8 +470,10 @@ let ``parses notes section content`` =
         [
           measure
           |> withNote (Note.create4 NoteName.C Duration.Whole |> Note.withText "verse")
-
-          measure |> withRest (Rest.create Duration.Whole |> Rest.withText "chorus 1")
+          measure |> withRest (Rest.create Duration.Whole |> Rest.withText "chorus")
+          measure |> withRest (Rest.create Duration.Whole |> Rest.withText "verse 2")
+          measure
+          |> withNote (Note.create4 NoteName.D Duration.Whole |> Note.withText "this_is_a_string")
         ]
       )
   ]

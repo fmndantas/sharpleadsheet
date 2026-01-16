@@ -260,9 +260,9 @@ module Functions =
 
   let pText: P<string> =
     parse {
-      let! text = pstring "t:" >>. str
-      do! updateUserState (withLastText text)
-      return text
+      let! { Content = content } = pModifier "t"
+      do! updateUserState (withLastText content)
+      return content
     }
 
   let private pNotesSectionSymbol: P<NotesSectionSymbol> =

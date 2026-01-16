@@ -44,3 +44,5 @@ let withoutLastDuration (s: ParserState) = { s with LastDuration = None }
 let withoutLastChord (s: ParserState) = { s with LastChord = None }
 
 let withLastText (t: string) (s: ParserState) = { s with LastText = Some t }
+
+let withoutLastText (s: ParserState) = { s with LastText = None }
