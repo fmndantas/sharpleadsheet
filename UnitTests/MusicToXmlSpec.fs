@@ -221,6 +221,32 @@ let ``converts note or rest to xml`` =
           <type>whole</type>
         </note>
         "
+
+    case("8.text attached to note")
+      .WithData(
+        Duration.Quarter,
+        (NoteName.C, Duration.Whole)
+        ||> Note.create4
+        |> Note.withText "text attached to note"
+        |> NoteOrRest.Note
+        |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ Text "text attached to note" ]
+      )
+      .WithExpectedResult
+      "
+      <direction placement=\"above\">
+        <direction-type>
+          <words>text attached to note</words>
+        </direction-type>
+      </direction>
+      <note>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <type>whole</type>
+      </note>
+      "
   ]
   <| fun (divisions, noteOrRestEventAsMeasureEvent) expectedResult ->
     let noteOrRestEvent =

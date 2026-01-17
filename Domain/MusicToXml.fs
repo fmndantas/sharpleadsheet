@@ -140,6 +140,17 @@ let interpretNoteOrRest
 
   let duration = NoteOrRest.getDuration noteOrRest
 
+  let text =
+    attachedToNoteOrRestEvents
+    |> List.tryFind _.IsText
+    |> Option.bind (function
+      | Text t ->
+        elementWithAttributes "direction" [ attribute "placement" "above" ] [
+          element "direction-type" [ leafElement "words" t ]
+        ]
+        |> Some
+      | _ -> None)
+
   let chord = noteOrRest |> NoteOrRest.getChord |> Option.map interpretChord
 
   let note =
@@ -154,7 +165,7 @@ let interpretNoteOrRest
         yield! xmlTie "stop"
     ]
 
-  [ yield! Option.toList chord; note ]
+  [ yield! Option.toList chord; yield! Option.toList text; note ]
 
 let createMeasureAttributes (m: Validated.Measure) (es: MeasureEvent list) : XElement =
   [
