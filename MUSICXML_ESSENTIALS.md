@@ -893,6 +893,128 @@ musescore test.musicxml
 
 ---
 
+## Text Attachments
+
+To attach text above or below a note or rest, use the `<direction>` element. It must appear **before** the note/rest it applies to.
+
+### Basic Structure
+
+```xml
+<direction placement="above">
+  <direction-type>
+    <words>dolce</words>
+  </direction-type>
+</direction>
+<note>
+  <!-- the note this text applies to -->
+</note>
+```
+
+### Required Elements
+
+- `<direction>` - Container for the text attachment
+  - `placement` attribute: `"above"` or `"below"` (position relative to staff)
+- `<direction-type>` - Specifies the type of direction
+- `<words>` - The actual text to display
+
+### Positioning
+
+**placement attribute:**
+- `"above"` - Text appears above the staff
+- `"below"` - Text appears below the staff
+
+### Examples
+
+#### Text Above a Note
+```xml
+<direction placement="above">
+  <direction-type>
+    <words>molto espressivo</words>
+  </direction-type>
+</direction>
+<note>
+  <pitch>
+    <step>C</step>
+    <octave>5</octave>
+  </pitch>
+  <duration>4</duration>
+  <type>quarter</type>
+</note>
+```
+
+#### Text Below a Rest
+```xml
+<direction placement="below">
+  <direction-type>
+    <words>tacet</words>
+  </direction-type>
+</direction>
+<note>
+  <rest/>
+  <duration>8</duration>
+  <type>half</type>
+</note>
+```
+
+#### Multiple Text Directions
+```xml
+<direction placement="above">
+  <direction-type>
+    <words>p</words>  <!-- piano dynamic -->
+  </direction-type>
+</direction>
+<direction placement="above">
+  <direction-type>
+    <words>dolce</words>
+  </direction-type>
+</direction>
+<note>
+  <pitch>
+    <step>E</step>
+    <octave>4</octave>
+  </pitch>
+  <duration>2</duration>
+  <type>quarter</type>
+</note>
+```
+
+### Advanced: Text Formatting
+
+You can add formatting attributes to `<words>`:
+
+```xml
+<words font-weight="bold" font-size="12">forte</words>
+<words font-style="italic">cantabile</words>
+```
+
+**Common attributes:**
+- `font-weight`: `"normal"` or `"bold"`
+- `font-style`: `"normal"` or `"italic"`
+- `font-size`: point size (number)
+- `font-family`: font name (e.g., "Times New Roman")
+
+### Order Matters
+
+`<direction>` elements must come **before** the note they apply to, within the measure:
+
+```xml
+<measure number="1">
+  <attributes>...</attributes>
+  
+  <!-- Direction comes FIRST -->
+  <direction placement="above">
+    <direction-type>
+      <words>legato</words>
+    </direction-type>
+  </direction>
+  
+  <!-- Then the note -->
+  <note>...</note>
+</measure>
+```
+
+---
+
 ## Summary: What You Need to Implement
 
 1. **Header generation** - part-list with IDs and names
@@ -903,5 +1025,6 @@ musescore test.musicxml
 6. **Dotted notes** - add `<dot/>` element
 7. **Chord symbols** (optional) - add `<harmony>` before notes with root, kind, and optional bass
 8. **Barlines** (optional) - add `<barline>` with style for final bars, repeats, and sections
+9. **Text attachments** (optional) - add `<direction>` with `<words>` for text above/below notes
 
 **That's it.** MuseScore renders everything else beautifully.

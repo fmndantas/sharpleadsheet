@@ -12,32 +12,35 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Case.fs"/>
-    <Compile Include="ResultSpec.fs"/>
-    <Compile Include="NoteNameSpec.fs"/>
-    <Compile Include="DurationSpec.fs"/>
-    <Compile Include="KeySignatureSpec.fs"/>
-    <Compile Include="MeasureSpec.fs"/>
-    <Compile Include="XmlWrapperSpec.fs"/>
-    <Compile Include="MusicToXmlSpec.fs"/>
-    <Compile Include="ParserSpec.fs"/>
-    <Compile Include="ValidatedSpec.fs"/>
-    <Compile Include="Program.fs"/>
+    <Compile Include="Case.fs" />
+    <Compile Include="LearnDeepEqual.fs" />
+    <Compile Include="DeepEqualWrapper.fs" />
+    <Compile Include="ResultSpec.fs" />
+    <Compile Include="NoteNameSpec.fs" />
+    <Compile Include="DurationSpec.fs" />
+    <Compile Include="KeySignatureSpec.fs" />
+    <Compile Include="MeasureSpec.fs" />
+    <Compile Include="XmlWrapperSpec.fs" />
+    <Compile Include="MusicToXmlSpec.fs" />
+    <Compile Include="ParserSpec.fs" />
+    <Compile Include="ValidatedSpec.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.4"/>
-    <PackageReference Include="Expecto" Version="10.2.3"/>
-    <PackageReference Include="FParsec" Version="1.1.1"/>
-    <PackageReference Include="FsUnit" Version="7.1.1"/>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1"/>
-    <PackageReference Include="NUnit" Version="4.4.0"/>
-    <PackageReference Include="NUnit.Analyzers" Version="4.11.2"/>
-    <PackageReference Include="NUnit3TestAdapter" Version="5.2.0"/>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="DeepEqual" Version="5.1.0" />
+    <PackageReference Include="Expecto" Version="10.2.3" />
+    <PackageReference Include="FParsec" Version="1.1.1" />
+    <PackageReference Include="FsUnit" Version="7.1.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="NUnit" Version="4.4.0" />
+    <PackageReference Include="NUnit.Analyzers" Version="4.11.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="5.2.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Domain\Domain.fsproj"/>
+    <ProjectReference Include="..\Domain\Domain.fsproj" />
   </ItemGroup>
 
 </Project>

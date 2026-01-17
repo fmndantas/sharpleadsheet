@@ -2,6 +2,8 @@ module Domain.ParsedTypes
 
 open CommonTypes
 
+type ParsedModifier = { Prefix: string; Content: string }
+
 type ParsedMusic = {
   PartDefinitionSections: ParsedPartDefinitionSection list
   NotesSections: ParsedNotesSection list
@@ -36,6 +38,7 @@ type ParserState = {
   LastDuration: Duration.T option
   // TODO: change LastChord to another name that implies it'll be consumed by next note or rest
   LastChord: Chord.T option
+  LastText: string option
 }
 
 type DefaultSettings = {

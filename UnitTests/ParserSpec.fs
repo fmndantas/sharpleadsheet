@@ -8,6 +8,7 @@ open Expecto.Flip.Expect
 open FParsec
 
 open Case
+open DeepEqualWrapper
 
 open Domain
 open CommonTypes
@@ -154,6 +155,16 @@ let ``parses a note`` =
 
     runWithStateAndAssertOnSuccess Parser.Functions.pNote currentState content
     <| fun result _ -> result |> equal "note is incorrect" expectedResult
+
+let ``parses a note modifier`` =
+  testTheory3 "parses a note modifier" [
+    case("text.a").WithData("t", "t:verse").WithExpectedResult { Prefix = "t"; Content = "verse" }
+    case("text.b").WithData("t", "t:{verse}").WithExpectedResult { Prefix = "t"; Content = "verse" }
+    case("text.c").WithData("t", "t:{a b c}").WithExpectedResult { Prefix = "t"; Content = "a b c" }
+  ]
+  <| fun (prefix, data) expectedResult ->
+    runAndAssertOnSuccess (Parser.Functions.pModifier prefix) data
+    <| fun result _ -> result |> equal "note modifier is incorrect" expectedResult
 
 let ``parses a rest`` =
   testTheory3 "parses a rest" [
@@ -446,10 +457,29 @@ let ``parses notes section content`` =
           measure |> withNote (Note.create4 NoteName.C Duration.Whole)
         ]
       )
+
+    caseId(9)
+      .WithData(defaultParserState, openSample "sequence-of-notes-9.sls")
+      .WithExpectedResult(
+        let measure =
+          aParsedMeasure ()
+          |> withCommonTimeSignature
+          |> withCNaturalKeySignature
+          |> withClef Clef.G
+
+        [
+          measure
+          |> withNote (Note.create4 NoteName.C Duration.Whole |> Note.withText "verse")
+          measure |> withRest (Rest.create Duration.Whole |> Rest.withText "chorus")
+          measure |> withRest (Rest.create Duration.Whole |> Rest.withText "verse 2")
+          measure
+          |> withNote (Note.create4 NoteName.D Duration.Whole |> Note.withText "this_is_a_string")
+        ]
+      )
   ]
   <| fun (currentState, content) expectedResult ->
     runWithStateAndAssertOnSuccess Parser.Functions.pNotesSectionContent currentState content
-    <| fun result _ -> result |> equal "notes section content is incorrect" expectedResult
+    <| fun result _ -> result |> deepEqual expectedResult
 
 let ``parses notes section`` =
   testTheory3 "parses notes section" [
@@ -766,6 +796,7 @@ let ParserSpec =
     ``parses a note name``
     ``parses a duration``
     ``parses a note``
+    ``parses a note modifier``
     ``parses a rest``
     ``parses a chord``
     ``parses notes section content``

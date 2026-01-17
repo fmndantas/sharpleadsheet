@@ -26,6 +26,7 @@ module Types =
     | Chord of Chord.T
     | Comment
     | MeasureDivider
+    | Text of string
 
 module Functions =
   open Types
@@ -136,7 +137,7 @@ module Functions =
     |> Option.orElse state.LastDuration
     |> Option.defaultValue state.CurrentTimeSignature.Denominator
 
-  let pTie: P<Note.Modifier> = pstring "~" |>> fun _ -> Note.Tie
+  let pTie: P<unit> = pstring "~" |>> fun _ -> ()
 
   let pNote: P<Note.T> =
     parse {
@@ -147,16 +148,18 @@ module Functions =
       let! maybeTie = opt pTie
 
       let note =
-        Note.create' state.CurrentOctave (List.choose id [ maybeTie ]) noteName duration
+        Note.create state.CurrentOctave noteName duration
+        |> Note.maybeWithTie maybeTie
         |> Note.maybeWithChord state.LastChord
+        |> Note.maybeWithText state.LastText
 
       do!
-        updateUserState (fun s -> {
-          s with
-              LastPitch = note |> Note.getPitch |> Some
-              LastDuration = note |> Note.getDuration |> Some
-              LastChord = None
-        })
+        updateUserState (
+          withLastPitch (note |> Note.getPitch)
+          >> withLastDuration (note |> Note.getDuration)
+          >> withoutLastChord
+          >> withoutLastText
+        )
 
       return note
     }
@@ -167,14 +170,13 @@ module Functions =
       let! maybeDuration = pstring "r" >>. opt pDuration
       let duration = getUpdatedDuration state maybeDuration
 
-      do!
-        updateUserState (fun s -> {
-          s with
-              LastDuration = Some duration
-              LastChord = None
-        })
+      do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
 
-      return Rest.create duration |> Rest.maybeWithChord state.LastChord
+      return
+        duration
+        |> Rest.create
+        |> Rest.maybeWithChord state.LastChord
+        |> Rest.maybeWithText state.LastText
     }
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
@@ -251,6 +253,18 @@ module Functions =
       return chord
     }
 
+  let pModifier prefix : P<ParsedModifier> =
+    pstring (sprintf "%s:" prefix)
+    >>. (between (pchar '{') (pchar '}') (manySatisfy (fun c -> c <> '}')) <|> str)
+    |>> fun content -> { Prefix = prefix; Content = content }
+
+  let pText: P<string> =
+    parse {
+      let! { Content = content } = pModifier "t"
+      do! updateUserState (withLastText content)
+      return content
+    }
+
   let private pNotesSectionSymbol: P<NotesSectionSymbol> =
     choice [
       pNote |>> NotesSectionSymbol.Note
@@ -259,6 +273,7 @@ module Functions =
       between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord
       pComment |>> fun _ -> NotesSectionSymbol.Comment
       pBar |>> fun _ -> NotesSectionSymbol.MeasureDivider
+      pText |>> NotesSectionSymbol.Text
     ]
     >>= fun result ->
       followedBy (ws >>. pBar) |>> (fun _ -> true) <|> preturn false
