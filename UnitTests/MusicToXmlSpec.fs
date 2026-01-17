@@ -1,5 +1,6 @@
 module UnitTests.MusicToXmlSpec
 
+open System
 open System.IO
 
 open Expecto
@@ -12,7 +13,6 @@ open CommonTypes
 open ParsedMeasureBuilder
 open Validated
 open ValidatedMeasureBuilder
-
 open Measure.Types
 
 [<Literal>]
@@ -231,10 +231,10 @@ let ``converts note or rest to xml`` =
     let result =
       (divisions, noteOrRestEvent)
       ||> MusicToXml.interpretNoteOrRest
-      |> XmlWrapper.element "foo"
+      |> XmlWrapper.element "dummyWrapper"
       |> XmlWrapper.minifyXElement
 
-    let expectedResult' = "<foo>" + expectedResult + "</foo>"
+    let expectedResult' = "<dummyWrapper>" + expectedResult + "</dummyWrapper>"
 
     (XmlWrapper.minifyXDocumentText expectedResult', result)
     ||> equal "generated xml is incorrect"
@@ -251,16 +251,20 @@ let ``converts duration to xml`` =
     caseId(8).WithData(Duration.ThirtySecond, Duration.SixteenthDotted).WithExpectedResult(3, "16th", true)
   ]
   <| fun (divisions, duration) (expectedDuration, expectedType, hasDot) ->
-    (divisions, duration)
-    ||> MusicToXml.interpretDuration
-    |> List.map XmlWrapper.minifyXElement
-    |> String.concat ""
-    |> equal
-      "generated xml is incorrect"
-      (if hasDot then
-         sprintf "<duration>%d</duration><type>%s</type><dot/>" expectedDuration expectedType
-       else
-         sprintf "<duration>%d</duration><type>%s</type>" expectedDuration expectedType)
+    let minifiedResult =
+      (divisions, duration)
+      ||> MusicToXml.interpretDuration
+      |> List.map XmlWrapper.minifyXElement
+
+    [
+      ("duration", toString expectedDuration) ||> XmlWrapper.leafElement
+      XmlWrapper.leafElement "type" expectedType
+      if hasDot then
+        XmlWrapper.selfEnclosingElement "dot"
+    ]
+    |> List.indexed
+    |> List.iter (fun (i, item) ->
+      contains (sprintf "item %d not found" i) (XmlWrapper.minifyXElement item) minifiedResult)
 
 let ``converts pitch to xml`` =
   testTheory3 "converts pitch to xml" [
@@ -287,10 +291,14 @@ let ``converts pitch to xml`` =
     |> XmlWrapper.minifyXElement
     |> equal
       "generated xml is incorrect"
-      (if alter = 0 then
-         sprintf "<pitch><step>%s</step><octave>%d</octave></pitch>" step octave
-       else
-         sprintf "<pitch><step>%s</step><octave>%d</octave><alter>%+d</alter></pitch>" step octave alter)
+      (sprintf
+        "<pitch><step>%s</step><octave>%d</octave>%s</pitch>"
+        step
+        octave
+        (if alter = 0 then
+           String.Empty
+         else
+           sprintf "<alter>%+d</alter>" alter))
 
 [<Tests>]
 let MusicToXmlSpec =
