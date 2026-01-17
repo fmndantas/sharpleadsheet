@@ -5,6 +5,7 @@ type T = {
   Modifiers: Modifier list
 }
 
+// TODO: just one modifier of each type
 and Modifier =
   | Text of string
   | Chord of Chord.T

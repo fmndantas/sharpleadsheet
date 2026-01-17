@@ -27,6 +27,12 @@ module Types =
     AttachedToNoteOrRestEvents: AttachedToNoteOrRestEvent list
   }
 
+  // TODO: think about have events here that don't make sense in Validated.Music entities
+  // for example: StartTie can be expressed with Note/Rest.Modifier.Tie and StartTie is not needed
+  // StopTie not; reason: it does make sense only in musicxml context
+  // SetChord can be expressed as Note/Rest.Modifier.Chord
+  // This idea is reinforced by the fact that I'm feeling duplication evil in unit tests:
+  // Note does not need to have modifier and but the test will pass (because interpret note uses measure events)
   and AttachedToNoteOrRestEvent =
     | StartTie
     | StopTie
@@ -35,6 +41,13 @@ module Types =
 
 open Types
 
+// TODO: idea: make this module more builder like
+// example: note |> withStartTie |> with...
+// CreateEvent -> Event
+// noteOrRestEvent
+//   -> note
+//   -> rest
+// delete noteOrRestEventWithAttachedEvents
 module CreateEvent =
   let noteOrRestEventWithAttachedEvents (attached: AttachedToNoteOrRestEvent list) (n: NoteOrRest) : MeasureEvent =
     NoteOrRestEvent {

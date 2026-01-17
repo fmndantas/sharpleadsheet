@@ -151,6 +151,7 @@ let interpretNoteOrRest
         |> Some
       | _ -> None)
 
+  // TODO: chord does not use measure event!
   let chord = noteOrRest |> NoteOrRest.getChord |> Option.map interpretChord
 
   let note =

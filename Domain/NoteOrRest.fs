@@ -22,4 +22,5 @@ let isTied (n: NoteOrRest) : bool =
   | NoteOrRest.Note note -> Note.isTied note
   | NoteOrRest.Rest _ -> false
 
-let hasChord: NoteOrRest -> bool = getChord >> Option.isSome
+// TODO: remove
+// let hasChord: NoteOrRest -> bool = getChord >> Option.isSome

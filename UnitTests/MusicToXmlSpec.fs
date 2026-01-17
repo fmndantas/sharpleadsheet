@@ -250,6 +250,8 @@ let ``converts note or rest to xml`` =
   ]
   <| fun (divisions, noteOrRestEventAsMeasureEvent) expectedResult ->
     let noteOrRestEvent =
+      // TODO: how to get rid of this function?
+      // Actually, not possible
       match noteOrRestEventAsMeasureEvent with
       | NoteOrRestEvent e -> e
       | _ -> failwith "expected NoteOrRestEvent"

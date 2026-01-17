@@ -8,6 +8,7 @@ type T = {
   Modifiers: Modifier list
 }
 
+// TODO: just one modifier of each type?
 and Modifier =
   | Tie
   | Text of string
@@ -27,9 +28,11 @@ module private Helper =
         Modifiers = m :: note.Modifiers
   }
 
+  // TODO: This is duplicated in Rest.fs
   let maybeGetModifier<'a> (m: Modifier -> bool) (f: Modifier -> 'a option) (note: T) : 'a option =
     note.Modifiers |> List.tryFind m |> Option.bind f
 
+  // TODO: This is duplicated in Rest.fs
   let maybeAddModifier (m: Modifier option) (note: T) : T =
     m |> Option.map (note |> flip2 addModifier) |> Option.defaultValue note
 
