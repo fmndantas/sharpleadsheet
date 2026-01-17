@@ -12,6 +12,11 @@ let getChord (n: NoteOrRest) : Chord.T option =
   | NoteOrRest.Note note -> Note.getChord note
   | NoteOrRest.Rest rest -> Rest.getChord rest
 
+let getText (n: NoteOrRest) : string option =
+  match n with
+  | NoteOrRest.Note note -> Note.getText note
+  | NoteOrRest.Rest rest -> Rest.getText rest
+
 let isTied (n: NoteOrRest) : bool =
   match n with
   | NoteOrRest.Note note -> Note.isTied note

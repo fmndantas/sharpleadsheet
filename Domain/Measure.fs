@@ -31,6 +31,7 @@ module Types =
     | StartTie
     | StopTie
     | SetChord of Chord.T
+    | Text of string
 
 open Types
 
@@ -89,6 +90,7 @@ let generateEvents
             StartTie
           if isNoteEndingATie then
             StopTie
+          yield! noteOrRest |> NoteOrRest.getText |> Option.map Text |> Option.toList
         ],
         {
           context with

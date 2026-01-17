@@ -14,6 +14,7 @@ open ValidatedMeasureBuilder
 open Measure.Types
 
 let ``generates measure events`` =
+  // C, 4/4
   let emptyMeasure =
     aParsedMeasure ()
     |> withCNaturalKeySignature
@@ -238,19 +239,50 @@ let ``generates measure events`` =
         [ FinalBarlineEvent ],
         []
       )
+
+    case("text attached to note")
+      .WithData(
+        measureContext,
+        emptyMeasure
+        |> withNote (Note.create4 NoteName.C Duration.Whole |> Note.withText "note text")
+      )
+      .WithExpectedResult(
+        withNextMeasureIndex measureContext,
+        [
+          Note.create4 NoteName.C Duration.Whole
+          |> Note.withText "note text"
+          |> NoteOrRest.Note
+          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ Text "note text" ]
+        ],
+        []
+      )
+
+    case("text attached to rest")
+      .WithData(
+        measureContext,
+        emptyMeasure
+        |> withRest (Rest.create Duration.Whole |> Rest.withText "rest text")
+      )
+      .WithExpectedResult(
+        withNextMeasureIndex measureContext,
+        [
+          Rest.create Duration.Whole
+          |> Rest.withText "rest text"
+          |> NoteOrRest.Rest
+          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ Text "rest text" ]
+        ],
+        []
+      )
   ]
   <| fun (context, measure) (expectedContext, eventsShouldInclude, eventsShouldNotInclude) ->
     let events, context =
       measure |> toValidatedMeasure 1 |> Measure.generateEvents context
 
     for item in eventsShouldInclude do
-      events
-      |> contains (sprintf "expected measure event not found: \"%A\"" item) item
+      events |> contains "expected measure event not found" item
 
     for item in eventsShouldNotInclude do
-      events
-      |> List.contains item
-      |> isFalse (sprintf "unexpected measure event found: \"%A\"" item)
+      events |> List.contains item |> isFalse "unexpected measure event found"
 
     context |> equal "context is different from expected" expectedContext
 

@@ -60,6 +60,12 @@ let getChord (note: T) : Chord.T option =
     | Chord c -> Some c
     | _ -> None)
 
+let getText (note: T) : string option =
+  note
+  |> maybeGetModifier _.IsText (function
+    | Text t -> Some t
+    | _ -> None)
+
 let isTied (note: T) : bool = note.Modifiers |> List.contains Tie
 
 let withChord (chord: Chord.T) (note: T) : T = addModifier (Chord chord) note

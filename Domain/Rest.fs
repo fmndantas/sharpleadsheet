@@ -32,6 +32,12 @@ let getChord (rest: T) : Chord.T option =
     | Chord c -> Some c
     | _ -> None)
 
+let getText (rest: T) : string option =
+  rest
+  |> maybeGetModifier _.IsText (function
+    | Text t -> Some t
+    | _ -> None)
+
 let withChord (chord: Chord.T) (rest: T) : T = addModifier (Chord chord) rest
 
 let maybeWithChord (chord: Chord.T option) (rest: T) : T =
