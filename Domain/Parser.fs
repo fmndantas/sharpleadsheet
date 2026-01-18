@@ -20,7 +20,7 @@ module Types =
 
   [<RequireQualifiedAccess>]
   type NotesSectionSymbol =
-    | Note of Note.T
+    | Note of ParsedNote
     | Rest of Rest.T
     | OctaveManipulation of int
     | Chord of Chord.T
@@ -139,7 +139,7 @@ module Functions =
 
   let pTie: P<unit> = pstring "~" |>> fun _ -> ()
 
-  let pNote: P<Note.T> =
+  let pNote: P<ParsedNote> =
     parse {
       let! noteName = pNoteName
       let! maybeParsedDuration = opt pDuration
@@ -149,19 +149,21 @@ module Functions =
 
       let note =
         Note.create state.CurrentOctave noteName duration
-        |> Note.maybeWithTie maybeTie
         |> Note.maybeWithChord state.LastChord
         |> Note.maybeWithText state.LastText
 
       do!
         updateUserState (
-          withLastPitch (note |> Note.getPitch)
-          >> withLastDuration (note |> Note.getDuration)
+          withLastPitch (Note.getPitch note)
+          >> withLastDuration (Note.getDuration note)
           >> withoutLastChord
           >> withoutLastText
         )
 
-      return note
+      return {
+        Note = note
+        IsTied = maybeTie.IsSome
+      }
     }
 
   let pRest: P<Rest.T> =
@@ -286,7 +288,11 @@ module Functions =
 
   let private notesSectionSymbolToNoteOrRest: NotesSectionSymbol -> NoteOrRest.T option =
     function
-    | NotesSectionSymbol.Note note -> note |> NoteOrRest.fromNote |> Some
+    | NotesSectionSymbol.Note parsedNote ->
+      parsedNote.Note
+      |> NoteOrRest.fromNote
+      |> (if parsedNote.IsTied then NoteOrRest.withTie else id)
+      |> Some
     | NotesSectionSymbol.Rest rest -> rest |> NoteOrRest.fromRest |> Some
     | _ -> None
 

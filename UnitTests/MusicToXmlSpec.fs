@@ -119,8 +119,8 @@ let ``converts note or rest to xml`` =
     case("4.tie start")
       .WithData(
         Duration.Quarter,
-        Note.createTied4 NoteName.C Duration.Quarter
-        |> NoteOrRest.fromNote
+        Note.create4 NoteName.C Duration.Quarter
+        |> NoteOrRest.fromNoteWithTie
         |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie ]
       )
       .WithExpectedResult(

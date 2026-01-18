@@ -29,6 +29,11 @@ and ParsedMeasure = {
   NotesOrRests: NoteOrRest.T list
 }
 
+type ParsedNote = {
+  Note: Note.T
+  IsTied: bool
+}
+
 type ParserState = {
   CurrentTimeSignature: TimeSignature
   CurrentKeySignature: KeySignature

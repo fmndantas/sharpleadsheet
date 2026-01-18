@@ -154,7 +154,7 @@ let ``parses a note`` =
       |> withoptionalLastDuration lastDuration
 
     runWithStateAndAssertOnSuccess Parser.Functions.pNote currentState content
-    <| fun result _ -> result |> equal "note is incorrect" expectedResult
+    <| fun result _ -> result.Note |> equal "note is incorrect" expectedResult
 
 let ``parses a note modifier`` =
   testTheory3 "parses a note modifier" [
@@ -381,17 +381,17 @@ let ``parses notes section content`` =
 
           measure
           |> withRest (Rest.create Duration.Quarter)
-          |> withNote (Note.createTied4 NoteName.D Duration.Quarter)
-          |> withNote (Note.createTied4 NoteName.D Duration.Quarter)
+          |> withSymbol (Note.create4 NoteName.D Duration.Quarter |> NoteOrRest.fromNoteWithTie)
+          |> withSymbol (Note.create4 NoteName.D Duration.Quarter |> NoteOrRest.fromNoteWithTie)
           |> withNote (Note.create4 NoteName.D Duration.Eighth)
           |> withNote (Note.create4 NoteName.E Duration.Eighth)
 
           measure
-          |> withNote (Note.createTied4 NoteName.F Duration.Quarter)
+          |> withSymbol (Note.create4 NoteName.F Duration.Quarter |> NoteOrRest.fromNoteWithTie)
           |> withNote (Note.create4 NoteName.F Duration.Eighth)
           |> withNote (Note.create4 NoteName.E Duration.Eighth)
           |> withNote (Note.create4 NoteName.F Duration.Eighth)
-          |> withNote (Note.createTied4 NoteName.E Duration.Eighth)
+          |> withSymbol (Note.create4 NoteName.E Duration.Eighth |> NoteOrRest.fromNoteWithTie)
           |> withNote (Note.create4 NoteName.E Duration.Quarter)
         ]
       )
@@ -449,10 +449,8 @@ let ``parses notes section content`` =
           measure |> withNote (Note.create4 NoteName.C Duration.Whole)
 
           measure
-          |> withNotes [
-            Note.createTied4 NoteName.C Duration.Half
-            Note.create4 NoteName.C Duration.Half
-          ]
+          |> withSymbol (Note.create4 NoteName.C Duration.Half |> NoteOrRest.fromNoteWithTie)
+          |> withNote (Note.create4 NoteName.C Duration.Half)
 
           measure |> withNote (Note.create4 NoteName.C Duration.Whole)
         ]
@@ -673,14 +671,17 @@ let ``parses music`` =
                 let quarterRest = Rest.create Duration.Quarter
 
                 [
+                  // 0
                   measure
                   |> withRest (quarterRest |> Rest.withChord (Chord.createWithKind NoteName.D "m9"))
                   |> withRepeatedRest 3 quarterRest
 
+                  // 1
                   measure
                   |> withRest (quarterRest |> Rest.withChord (Chord.createWithKind NoteName.D "m9"))
                   |> withRepeatedRest 3 quarterRest
 
+                  // 2
                   measure
                   |> withNotes [
                     Note.create4 NoteName.A Duration.Eighth
@@ -692,8 +693,10 @@ let ``parses music`` =
                     Note.create5 NoteName.D Duration.Eighth
                   ]
 
+                  // 3
                   measure |> withNote (Note.create5 NoteName.C Duration.Whole)
 
+                  // 4
                   measure
                   |> withNotes [
                     Note.create4 NoteName.A Duration.Eighth
@@ -705,8 +708,10 @@ let ``parses music`` =
                     Note.create5 NoteName.D Duration.Eighth
                   ]
 
+                  // 5
                   measure |> withNote (Note.create5 NoteName.C Duration.Whole)
 
+                  // 6
                   measure
                   |> withNotes [
                     Note.create5 NoteName.D Duration.Eighth
@@ -718,34 +723,42 @@ let ``parses music`` =
                     Note.create5 NoteName.G Duration.Eighth
                   ]
 
+                  // 7
                   measure
                   |> withNote (Note.create5 NoteName.F Duration.HalfDotted)
                   |> withRest (Rest.create Duration.Eighth)
                   |> withNote (Note.create4 NoteName.BFlat Duration.Eighth)
 
+                  // 8
                   measure
                   |> withNotes [
                     Note.create4 NoteName.A Duration.Eighth
                     |> Note.withChord (Chord.createWithKind NoteName.E "m9(11)")
                     Note.create4 NoteName.A Duration.Eighth
                     Note.create4 NoteName.A Duration.Eighth
-                    Note.createTied4 NoteName.A Duration.Eighth
+                  ]
+                  |> withSymbol (Note.create4 NoteName.A Duration.Eighth |> NoteOrRest.fromNoteWithTie)
+                  |> withNotes [
                     Note.create4 NoteName.A Duration.QuarterDotted
                     Note.create5 NoteName.D Duration.Eighth
                   ]
 
+                  // 9
                   measure
                   |> withNotes [
                     Note.create4 NoteName.A Duration.Eighth
                     |> Note.withChord (Chord.createWithKind NoteName.EFlat "7(#11)")
                     Note.create4 NoteName.A Duration.Eighth
                     Note.create4 NoteName.A Duration.Quarter
-                    Note.createTied4 NoteName.A Duration.QuarterDotted
+                  ]
+                  |> withSymbol (Note.create4 NoteName.A Duration.QuarterDotted |> NoteOrRest.fromNoteWithTie)
+                  |> withNotes [
                     Note.create4 NoteName.A Duration.Sixteenth
                     Note.create4 NoteName.A Duration.ThirtySecond
                     Note.create5 NoteName.C Duration.ThirtySecond
                   ]
 
+                  // 10
                   measure
                   |> withNote (
                     Note.create4 NoteName.G Duration.Whole
@@ -770,8 +783,8 @@ let ``parses music`` =
   <| fun content (expectedResult: ParsedMusic, expectedFinalState: ParserState) ->
     runAndAssertOnSuccess (Parser.Functions.pMusic defaultSettings) content
     <| fun result finalState ->
-      result |> equal "music is incorrect" expectedResult
-      finalState |> equal "final state is incorrect" expectedFinalState
+      result |> deepEqual expectedResult
+      finalState |> deepEqual expectedFinalState
 
 let ``parses invalid music`` =
   testTheory3 "parses invalid music" [

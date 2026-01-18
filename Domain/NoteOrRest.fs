@@ -10,7 +10,18 @@ and NoteOrRestChoiceType =
   | Note of Note.T
   | Rest of Rest.T
 
-and Modifier = exn
+and Modifier = Tie
+
+let fromNote (n: Note.T) : T = { NoteOrRest = Note n; Modifiers = [] }
+
+let fromRest (r: Rest.T) : T = { NoteOrRest = Rest r; Modifiers = [] }
+
+let withTie (n: T) : T = {
+  n with
+      Modifiers = Tie :: n.Modifiers
+}
+
+let fromNoteWithTie: Note.T -> T = fromNote >> withTie
 
 let getDuration (n: T) : Duration.T =
   match n.NoteOrRest with
@@ -28,18 +39,11 @@ let getText (n: T) : string option =
   | Rest rest -> Rest.getText rest
 
 let isTied (n: T) : bool =
-  match n.NoteOrRest with
-  | Note note -> Note.isTied note
-  | Rest _ -> false
-
-let fromNote (n: Note.T) : T = { NoteOrRest = Note n; Modifiers = [] }
-
-let fromRest (r: Rest.T) : T = { NoteOrRest = Rest r; Modifiers = [] }
+  n.Modifiers
+  |> List.exists (function
+    | Tie -> true)
 
 let fold (noteF: Note.T -> 'a) (restF: Rest.T -> 'a) (n: T) : 'a =
   match n.NoteOrRest with
   | Note n -> noteF n
   | Rest r -> restF r
-
-// TODO: remove
-// let hasChord: NoteOrRest -> bool = getChord >> Option.isSome

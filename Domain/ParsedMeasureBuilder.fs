@@ -43,7 +43,7 @@ let withRest (rest: Rest.T) (m: ParsedMeasure) : ParsedMeasure = {
 
 let withNotes (notes: Note.T list) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.map NoteOrRest.fromNote notes
+      NotesOrRests = [ yield! m.NotesOrRests; yield! List.map NoteOrRest.fromNote notes ]
 }
 
 let withRepeteadNote (count: int) (note: Note.T) (m: ParsedMeasure) : ParsedMeasure = {
@@ -56,5 +56,15 @@ let withRepeatedRest (count: int) (rest: Rest.T) (m: ParsedMeasure) : ParsedMeas
       NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.fromRest rest))
 }
 
-// TODO: withSymbols is a good name?
+// TODO: "Symbol" or "Symbols" are good names?
+let withSymbol (symbol: NoteOrRest.T) (m: ParsedMeasure) : ParsedMeasure = {
+  m with
+      NotesOrRests = List.append m.NotesOrRests [ symbol ]
+}
+
 let withSymbols (symbols: NoteOrRest.T list) (m: ParsedMeasure) : ParsedMeasure = { m with NotesOrRests = symbols }
+
+let withRepeteadSymbols (count: int) (symbol: NoteOrRest.T) (m: ParsedMeasure) : ParsedMeasure = {
+  m with
+      NotesOrRests = List.append m.NotesOrRests (List.replicate count symbol)
+}

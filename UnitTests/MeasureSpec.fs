@@ -161,15 +161,19 @@ let ``generates measure events`` =
       )
 
     case("starting tie note")
-      .WithData(measureContext, emptyMeasure |> withNote (Note.createTied4 NoteName.C Duration.Whole))
+      .WithData(
+        measureContext,
+        emptyMeasure
+        |> withSymbol (Note.create4 NoteName.C Duration.Whole |> NoteOrRest.fromNoteWithTie)
+      )
       .WithExpectedResult(
         withNextMeasureIndex {
           measureContext with
               IsTieStarted = true
         },
         [
-          Note.createTied4 NoteName.C Duration.Whole
-          |> NoteOrRest.fromNote
+          Note.create4 NoteName.C Duration.Whole
+          |> NoteOrRest.fromNoteWithTie
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie ]
         ],
         []
@@ -200,18 +204,18 @@ let ``generates measure events`` =
       .WithData(
         measureContext,
         emptyMeasure
-        |> withRepeteadNote 3 (Note.createTied4 NoteName.C Duration.Quarter)
+        |> withRepeteadSymbols 3 (Note.create4 NoteName.C Duration.Quarter |> NoteOrRest.fromNoteWithTie)
         |> withNote (Note.create4 NoteName.C Duration.Quarter)
       )
       .WithExpectedResult(
         withNextMeasureIndex measureContext,
         [
-          Note.createTied4 NoteName.C Duration.Quarter
-          |> NoteOrRest.fromNote
+          Note.create4 NoteName.C Duration.Quarter
+          |> NoteOrRest.fromNoteWithTie
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie ]
 
-          Note.createTied4 NoteName.C Duration.Quarter
-          |> NoteOrRest.fromNote
+          Note.create4 NoteName.C Duration.Quarter
+          |> NoteOrRest.fromNoteWithTie
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie; StopTie ]
 
           Note.create4 NoteName.C Duration.Quarter
