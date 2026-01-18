@@ -185,7 +185,7 @@ let ``parses a rest`` =
       |> withoptionalLastDuration lastDuration
 
     runWithStateAndAssertOnSuccess Parser.Functions.pRest state content
-    <| fun result _ -> result |> equal "rest is incorrect" expectedResult
+    <| fun result _ -> result.Rest |> equal "rest is incorrect" expectedResult
 
 let ``parses a chord`` =
   testTheory3 "parses a chord" [
@@ -407,15 +407,17 @@ let ``parses notes section content`` =
 
         [
           measure
-          |> withNote (
+          |> withSymbol (
             Note.create4 NoteName.C Duration.Whole
-            |> Note.withChord (Chord.createWithBassAndKind NoteName.C NoteName.G "maj9")
+            |> NoteOrRest.fromNote
+            |> NoteOrRest.withChord (Chord.createWithBassAndKind NoteName.C NoteName.G "maj9")
           )
 
           measure
-          |> withRest (
+          |> withSymbol (
             Rest.create Duration.Whole
-            |> Rest.withChord (Chord.createWithBassAndKind NoteName.A NoteName.E "maj9(#11)")
+            |> NoteOrRest.fromRest
+            |> NoteOrRest.withChord (Chord.createWithBassAndKind NoteName.A NoteName.E "maj9(#11)")
           )
         ]
       )
@@ -431,9 +433,10 @@ let ``parses notes section content`` =
 
         [
           measure
-          |> withNote (
+          |> withSymbol (
             Note.create4 NoteName.C Duration.Whole
-            |> Note.withChord (Chord.createWithBassAndKind NoteName.C NoteName.G "maj9")
+            |> NoteOrRest.fromNote
+            |> NoteOrRest.withChord (Chord.createWithBassAndKind NoteName.C NoteName.G "maj9")
           )
 
           measure
@@ -673,19 +676,30 @@ let ``parses music`` =
                 [
                   // 0
                   measure
-                  |> withRest (quarterRest |> Rest.withChord (Chord.createWithKind NoteName.D "m9"))
+                  |> withSymbol (
+                    quarterRest
+                    |> NoteOrRest.fromRest
+                    |> NoteOrRest.withChord (Chord.createWithKind NoteName.D "m9")
+                  )
                   |> withRepeatedRest 3 quarterRest
 
                   // 1
                   measure
-                  |> withRest (quarterRest |> Rest.withChord (Chord.createWithKind NoteName.D "m9"))
+                  |> withSymbol (
+                    quarterRest
+                    |> NoteOrRest.fromRest
+                    |> NoteOrRest.withChord (Chord.createWithKind NoteName.D "m9")
+                  )
                   |> withRepeatedRest 3 quarterRest
 
                   // 2
                   measure
-                  |> withNotes [
+                  |> withSymbol (
                     Note.create4 NoteName.A Duration.Eighth
-                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                    |> NoteOrRest.fromNote
+                    |> NoteOrRest.withChord (Chord.createWithKind NoteName.D "m9")
+                  )
+                  |> withNotes [
                     Note.create5 NoteName.C Duration.Eighth
                     Note.create5 NoteName.C Duration.Eighth
                     Note.create5 NoteName.C Duration.Eighth
@@ -698,9 +712,12 @@ let ``parses music`` =
 
                   // 4
                   measure
-                  |> withNotes [
+                  |> withSymbol (
                     Note.create4 NoteName.A Duration.Eighth
-                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                    |> NoteOrRest.fromNote
+                    |> NoteOrRest.withChord (Chord.createWithKind NoteName.D "m9")
+                  )
+                  |> withNotes [
                     Note.create5 NoteName.C Duration.Eighth
                     Note.create5 NoteName.C Duration.Eighth
                     Note.create5 NoteName.C Duration.Eighth
@@ -713,9 +730,12 @@ let ``parses music`` =
 
                   // 6
                   measure
-                  |> withNotes [
+                  |> withSymbol (
                     Note.create5 NoteName.D Duration.Eighth
-                    |> Note.withChord (Chord.createWithKind NoteName.G "m9")
+                    |> NoteOrRest.fromNote
+                    |> NoteOrRest.withChord (Chord.createWithKind NoteName.G "m9")
+                  )
+                  |> withNotes [
                     Note.create5 NoteName.F Duration.Eighth
                     Note.create5 NoteName.F Duration.Eighth
                     Note.create5 NoteName.F Duration.Eighth
@@ -731,9 +751,12 @@ let ``parses music`` =
 
                   // 8
                   measure
-                  |> withNotes [
+                  |> withSymbol (
                     Note.create4 NoteName.A Duration.Eighth
-                    |> Note.withChord (Chord.createWithKind NoteName.E "m9(11)")
+                    |> NoteOrRest.fromNote
+                    |> NoteOrRest.withChord (Chord.createWithKind NoteName.E "m9(11)")
+                  )
+                  |> withNotes [
                     Note.create4 NoteName.A Duration.Eighth
                     Note.create4 NoteName.A Duration.Eighth
                   ]
@@ -745,9 +768,12 @@ let ``parses music`` =
 
                   // 9
                   measure
-                  |> withNotes [
+                  |> withSymbol (
                     Note.create4 NoteName.A Duration.Eighth
-                    |> Note.withChord (Chord.createWithKind NoteName.EFlat "7(#11)")
+                    |> NoteOrRest.fromNote
+                    |> NoteOrRest.withChord (Chord.createWithKind NoteName.EFlat "7(#11)")
+                  )
+                  |> withNotes [
                     Note.create4 NoteName.A Duration.Eighth
                     Note.create4 NoteName.A Duration.Quarter
                   ]
@@ -760,9 +786,10 @@ let ``parses music`` =
 
                   // 10
                   measure
-                  |> withNote (
+                  |> withSymbol (
                     Note.create4 NoteName.G Duration.Whole
-                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                    |> NoteOrRest.fromNote
+                    |> NoteOrRest.withChord (Chord.createWithKind NoteName.D "m9")
                   )
                 ]
             }

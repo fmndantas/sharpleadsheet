@@ -46,22 +46,11 @@ let getPitch (note: T) : Pitch.T = note.Pitch
 
 let getDuration (note: T) : Duration.T = note.Duration
 
-let getChord (note: T) : Chord.T option =
-  note
-  |> maybeGetModifier _.IsChord (function
-    | Chord c -> Some c
-    | _ -> None)
-
 let getText (note: T) : string option =
   note
   |> maybeGetModifier _.IsText (function
     | Text t -> Some t
     | _ -> None)
-
-let withChord (chord: Chord.T) (note: T) : T = addModifier (Chord chord) note
-
-let maybeWithChord (chord: Chord.T option) (note: T) : T =
-  maybeAddModifier (Option.map Chord chord) note
 
 let withText (text: string) (note: T) : T = addModifier (Text text) note
 

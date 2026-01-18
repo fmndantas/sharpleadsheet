@@ -10,16 +10,28 @@ and NoteOrRestChoiceType =
   | Note of Note.T
   | Rest of Rest.T
 
-and Modifier = Tie
+and Modifier =
+  | Tie
+  | Chord of Chord.T
 
 let fromNote (n: Note.T) : T = { NoteOrRest = Note n; Modifiers = [] }
 
 let fromRest (r: Rest.T) : T = { NoteOrRest = Rest r; Modifiers = [] }
 
+// TODO: create addModifier
+
 let withTie (n: T) : T = {
   n with
       Modifiers = Tie :: n.Modifiers
 }
+
+let withChord (chord: Chord.T) (n: T) : T = {
+  n with
+      Modifiers = Chord chord :: n.Modifiers
+}
+
+let withChordOption (chord: Chord.T option) (n: T) : T =
+  chord |> Option.map (n |> (withChord |> flip2)) |> Option.defaultValue n
 
 let fromNoteWithTie: Note.T -> T = fromNote >> withTie
 
@@ -29,9 +41,11 @@ let getDuration (n: T) : Duration.T =
   | Rest rest -> Rest.getDuration rest
 
 let getChord (n: T) : Chord.T option =
-  match n.NoteOrRest with
-  | Note note -> Note.getChord note
-  | Rest rest -> Rest.getChord rest
+  n.Modifiers
+  |> List.tryFind _.IsChord
+  |> Option.bind (function
+    | Chord v -> Some v
+    | _ -> None)
 
 let getText (n: T) : string option =
   match n.NoteOrRest with

@@ -168,8 +168,8 @@ let ``converts note or rest to xml`` =
       .WithData(
         Duration.Quarter,
         Note.create4 NoteName.C Duration.Whole
-        |> Note.withChord (Chord.createWithBassAndKind NoteName.CSharp NoteName.GFlat "maj9(#11/13)")
         |> NoteOrRest.fromNote
+        |> NoteOrRest.withChord (Chord.createWithBassAndKind NoteName.CSharp NoteName.GFlat "maj9(#11/13)")
         |> Measure.CreateEvent.noteOrRestEvent
       )
       .WithExpectedResult
@@ -199,8 +199,8 @@ let ``converts note or rest to xml`` =
       .WithData(
         Duration.Quarter,
         Rest.create Duration.Whole
-        |> Rest.withChord (Chord.createWithBass NoteName.BFlat NoteName.FSharp)
         |> NoteOrRest.fromRest
+        |> NoteOrRest.withChord (Chord.createWithBass NoteName.BFlat NoteName.FSharp)
         |> Measure.CreateEvent.noteOrRestEvent
       )
       .WithExpectedResult

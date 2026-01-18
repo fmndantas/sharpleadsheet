@@ -21,7 +21,7 @@ module Types =
   [<RequireQualifiedAccess>]
   type NotesSectionSymbol =
     | Note of ParsedNote
-    | Rest of Rest.T
+    | Rest of ParsedRest
     | OctaveManipulation of int
     | Chord of Chord.T
     | Comment
@@ -149,7 +149,6 @@ module Functions =
 
       let note =
         Note.create state.CurrentOctave noteName duration
-        |> Note.maybeWithChord state.LastChord
         |> Note.maybeWithText state.LastText
 
       do!
@@ -163,10 +162,11 @@ module Functions =
       return {
         Note = note
         IsTied = maybeTie.IsSome
+        Chord = state.LastChord
       }
     }
 
-  let pRest: P<Rest.T> =
+  let pRest: P<ParsedRest> =
     parse {
       let! state = getUserState
       let! maybeDuration = pstring "r" >>. opt pDuration
@@ -174,11 +174,12 @@ module Functions =
 
       do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
 
-      return
+      let rest =
         duration
         |> Rest.create
-        |> Rest.maybeWithChord state.LastChord
         |> Rest.maybeWithText state.LastText
+
+      return { Rest = rest; Chord = state.LastChord }
     }
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
@@ -286,14 +287,20 @@ module Functions =
            spaces1)
         >>% result
 
+  // TODO: is it possible to refactor things in common here?
   let private notesSectionSymbolToNoteOrRest: NotesSectionSymbol -> NoteOrRest.T option =
     function
     | NotesSectionSymbol.Note parsedNote ->
       parsedNote.Note
       |> NoteOrRest.fromNote
       |> (if parsedNote.IsTied then NoteOrRest.withTie else id)
+      |> NoteOrRest.withChordOption parsedNote.Chord
       |> Some
-    | NotesSectionSymbol.Rest rest -> rest |> NoteOrRest.fromRest |> Some
+    | NotesSectionSymbol.Rest parsedRest ->
+      parsedRest.Rest
+      |> NoteOrRest.fromRest
+      |> NoteOrRest.withChordOption parsedRest.Chord
+      |> Some
     | _ -> None
 
   let pNotesSectionContent: P<ParsedMeasure list> =
