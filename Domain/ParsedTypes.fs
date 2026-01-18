@@ -26,7 +26,7 @@ and ParsedMeasure = {
   TimeSignature: TimeSignature
   KeySignature: KeySignature
   Clef: Clef
-  NotesOrRests: NoteOrRest list
+  NotesOrRests: NoteOrRest.T list
 }
 
 type ParserState = {

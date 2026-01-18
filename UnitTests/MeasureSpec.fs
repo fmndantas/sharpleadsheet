@@ -155,7 +155,7 @@ let ``generates measure events`` =
         List.replicate
           4
           (Note.create4 NoteName.C Duration.Quarter
-           |> NoteOrRest.Note
+           |> NoteOrRest.fromNote
            |> Measure.CreateEvent.noteOrRestEvent),
         []
       )
@@ -169,7 +169,7 @@ let ``generates measure events`` =
         },
         [
           Note.createTied4 NoteName.C Duration.Whole
-          |> NoteOrRest.Note
+          |> NoteOrRest.fromNote
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie ]
         ],
         []
@@ -190,7 +190,7 @@ let ``generates measure events`` =
         },
         [
           Note.create4 NoteName.C Duration.Whole
-          |> NoteOrRest.Note
+          |> NoteOrRest.fromNote
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StopTie ]
         ],
         []
@@ -207,15 +207,15 @@ let ``generates measure events`` =
         withNextMeasureIndex measureContext,
         [
           Note.createTied4 NoteName.C Duration.Quarter
-          |> NoteOrRest.Note
+          |> NoteOrRest.fromNote
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie ]
 
           Note.createTied4 NoteName.C Duration.Quarter
-          |> NoteOrRest.Note
+          |> NoteOrRest.fromNote
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie; StopTie ]
 
           Note.create4 NoteName.C Duration.Quarter
-          |> NoteOrRest.Note
+          |> NoteOrRest.fromNote
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StopTie ]
         ],
         []
@@ -251,7 +251,7 @@ let ``generates measure events`` =
         [
           Note.create4 NoteName.C Duration.Whole
           |> Note.withText "note text"
-          |> NoteOrRest.Note
+          |> NoteOrRest.fromNote
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ Text "note text" ]
         ],
         []
@@ -268,7 +268,7 @@ let ``generates measure events`` =
         [
           Rest.create Duration.Whole
           |> Rest.withText "rest text"
-          |> NoteOrRest.Rest
+          |> NoteOrRest.fromRest
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ Text "rest text" ]
         ],
         []

@@ -1,26 +1,45 @@
 module Domain.NoteOrRest
 
-open CommonTypes
+type T = {
+  NoteOrRest: NoteOrRestChoiceType
+  Modifiers: Modifier list
+}
 
-let getDuration (n: NoteOrRest) : Duration.T =
-  match n with
-  | NoteOrRest.Note note -> Note.getDuration note
-  | NoteOrRest.Rest rest -> Rest.getDuration rest
+// TODO: think in a better name for this type
+and NoteOrRestChoiceType =
+  | Note of Note.T
+  | Rest of Rest.T
 
-let getChord (n: NoteOrRest) : Chord.T option =
-  match n with
-  | NoteOrRest.Note note -> Note.getChord note
-  | NoteOrRest.Rest rest -> Rest.getChord rest
+and Modifier = exn
 
-let getText (n: NoteOrRest) : string option =
-  match n with
-  | NoteOrRest.Note note -> Note.getText note
-  | NoteOrRest.Rest rest -> Rest.getText rest
+let getDuration (n: T) : Duration.T =
+  match n.NoteOrRest with
+  | Note note -> Note.getDuration note
+  | Rest rest -> Rest.getDuration rest
 
-let isTied (n: NoteOrRest) : bool =
-  match n with
-  | NoteOrRest.Note note -> Note.isTied note
-  | NoteOrRest.Rest _ -> false
+let getChord (n: T) : Chord.T option =
+  match n.NoteOrRest with
+  | Note note -> Note.getChord note
+  | Rest rest -> Rest.getChord rest
+
+let getText (n: T) : string option =
+  match n.NoteOrRest with
+  | Note note -> Note.getText note
+  | Rest rest -> Rest.getText rest
+
+let isTied (n: T) : bool =
+  match n.NoteOrRest with
+  | Note note -> Note.isTied note
+  | Rest _ -> false
+
+let fromNote (n: Note.T) : T = { NoteOrRest = Note n; Modifiers = [] }
+
+let fromRest (r: Rest.T) : T = { NoteOrRest = Rest r; Modifiers = [] }
+
+let fold (noteF: Note.T -> 'a) (restF: Rest.T -> 'a) (n: T) : 'a =
+  match n.NoteOrRest with
+  | Note n -> noteF n
+  | Rest r -> restF r
 
 // TODO: remove
 // let hasChord: NoteOrRest -> bool = getChord >> Option.isSome

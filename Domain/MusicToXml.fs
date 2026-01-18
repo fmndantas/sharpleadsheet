@@ -156,9 +156,7 @@ let interpretNoteOrRest
 
   let note =
     element "note" [
-      match noteOrRest with
-      | NoteOrRest.Rest _ -> selfEnclosingElement "rest"
-      | NoteOrRest.Note note -> yield! [ note |> Note.getPitch |> interpretPitch ]
+      NoteOrRest.fold (Note.getPitch >> interpretPitch) (fun _ -> selfEnclosingElement "rest") noteOrRest
       yield! interpretDuration divisions duration
       if attachedToNoteOrRestEvents |> List.contains StartTie then
         yield! xmlTie "start"

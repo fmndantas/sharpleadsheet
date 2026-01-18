@@ -33,27 +33,28 @@ let withClef (clef: Clef) (m: ParsedMeasure) : ParsedMeasure = { m with Clef = c
 
 let withNote (note: Note.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.append m.NotesOrRests [ NoteOrRest.Note note ]
+      NotesOrRests = List.append m.NotesOrRests [ NoteOrRest.fromNote note ]
 }
 
 let withRest (rest: Rest.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.append m.NotesOrRests [ rest |> NoteOrRest.Rest ]
+      NotesOrRests = List.append m.NotesOrRests [ NoteOrRest.fromRest rest ]
 }
 
 let withNotes (notes: Note.T list) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.map NoteOrRest.Note notes
+      NotesOrRests = List.map NoteOrRest.fromNote notes
 }
 
 let withRepeteadNote (count: int) (note: Note.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.Note note))
+      NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.fromNote note))
 }
 
 let withRepeatedRest (count: int) (rest: Rest.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.Rest rest))
+      NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.fromRest rest))
 }
 
-let withSymbols (symbols: NoteOrRest list) (m: ParsedMeasure) : ParsedMeasure = { m with NotesOrRests = symbols }
+// TODO: withSymbols is a good name?
+let withSymbols (symbols: NoteOrRest.T list) (m: ParsedMeasure) : ParsedMeasure = { m with NotesOrRests = symbols }

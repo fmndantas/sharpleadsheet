@@ -23,7 +23,7 @@ module Types =
     | FinalBarlineEvent
 
   and NoteOrRestEvent = {
-    NoteOrRest: NoteOrRest
+    NoteOrRest: NoteOrRest.T
     AttachedToNoteOrRestEvents: AttachedToNoteOrRestEvent list
   }
 
@@ -49,13 +49,13 @@ open Types
 //   -> rest
 // delete noteOrRestEventWithAttachedEvents
 module CreateEvent =
-  let noteOrRestEventWithAttachedEvents (attached: AttachedToNoteOrRestEvent list) (n: NoteOrRest) : MeasureEvent =
+  let noteOrRestEventWithAttachedEvents (attached: AttachedToNoteOrRestEvent list) (n: NoteOrRest.T) : MeasureEvent =
     NoteOrRestEvent {
       NoteOrRest = n
       AttachedToNoteOrRestEvents = attached
     }
 
-  let noteOrRestEvent (n: NoteOrRest) : MeasureEvent = noteOrRestEventWithAttachedEvents [] n
+  let noteOrRestEvent (n: NoteOrRest.T) : MeasureEvent = noteOrRestEventWithAttachedEvents [] n
 
 let generateEvents
   (context: MeasureContext)

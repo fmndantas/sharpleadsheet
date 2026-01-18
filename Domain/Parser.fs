@@ -284,10 +284,10 @@ module Functions =
            spaces1)
         >>% result
 
-  let private notesSectionSymbolToNoteOrRest: NotesSectionSymbol -> NoteOrRest option =
+  let private notesSectionSymbolToNoteOrRest: NotesSectionSymbol -> NoteOrRest.T option =
     function
-    | NotesSectionSymbol.Note note -> note |> NoteOrRest.Note |> Some
-    | NotesSectionSymbol.Rest rest -> rest |> NoteOrRest.Rest |> Some
+    | NotesSectionSymbol.Note note -> note |> NoteOrRest.fromNote |> Some
+    | NotesSectionSymbol.Rest rest -> rest |> NoteOrRest.fromRest |> Some
     | _ -> None
 
   let pNotesSectionContent: P<ParsedMeasure list> =
