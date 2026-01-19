@@ -38,7 +38,7 @@ let fromRest (r: Rest.T) : T = { NoteOrRest = Rest r; Modifiers = [] }
 let isTied (n: T) : bool =
   n.Modifiers
   |> List.exists (function
-    | Tie -> true
+    | Tie when n.NoteOrRest.IsNote -> true
     | _ -> false)
 
 let getDuration (n: T) : Duration.T =
