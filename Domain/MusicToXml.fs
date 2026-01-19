@@ -140,25 +140,22 @@ let interpretNoteOrRest
 
   let duration = NoteOrRest.getDuration noteOrRest
 
-  let text =
-    attachedToNoteOrRestEvents
-    |> List.tryFind _.IsText
-    |> Option.bind (function
-      | Text t ->
-        elementWithAttributes "direction" [ attribute "placement" "above" ] [
-          element "direction-type" [ leafElement "words" t ]
-        ]
-        |> Some
-      | _ -> None)
-
-  // TODO: chord does not use measure event!
   let chord = noteOrRest |> NoteOrRest.getChord |> Option.map interpretChord
+
+  let text =
+    noteOrRest
+    |> NoteOrRest.getText
+    |> Option.map (fun t ->
+      elementWithAttributes "direction" [ attribute "placement" "above" ] [
+        element "direction-type" [ leafElement "words" t ]
+      ])
 
   let note =
     element "note" [
-      NoteOrRest.fold (Note.getPitch >> interpretPitch) (fun _ -> selfEnclosingElement "rest") noteOrRest
+      noteOrRest
+      |> NoteOrRest.fold (Note.getPitch >> interpretPitch) (fun _ -> selfEnclosingElement "rest")
       yield! interpretDuration divisions duration
-      if attachedToNoteOrRestEvents |> List.contains StartTie then
+      if NoteOrRest.isTied noteOrRest then
         yield! xmlTie "start"
       if attachedToNoteOrRestEvents |> List.contains StopTie then
         yield! xmlTie "stop"

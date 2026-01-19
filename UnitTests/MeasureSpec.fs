@@ -156,7 +156,7 @@ let ``generates measure events`` =
           4
           (Note.create4 NoteName.C Duration.Quarter
            |> NoteOrRest.fromNote
-           |> Measure.CreateEvent.noteOrRestEvent),
+           |> Measure.Event.noteOrRest),
         []
       )
 
@@ -174,7 +174,7 @@ let ``generates measure events`` =
         [
           Note.create4 NoteName.C Duration.Whole
           |> NoteOrRest.fromNoteWithTie
-          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie ]
+          |> Measure.Event.noteOrRest
         ],
         []
       )
@@ -195,7 +195,8 @@ let ``generates measure events`` =
         [
           Note.create4 NoteName.C Duration.Whole
           |> NoteOrRest.fromNote
-          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StopTie ]
+          |> Measure.Event.noteOrRest
+          |> Measure.Event.withStopTie
         ],
         []
       )
@@ -212,15 +213,17 @@ let ``generates measure events`` =
         [
           Note.create4 NoteName.C Duration.Quarter
           |> NoteOrRest.fromNoteWithTie
-          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie ]
+          |> Measure.Event.noteOrRest
 
           Note.create4 NoteName.C Duration.Quarter
           |> NoteOrRest.fromNoteWithTie
-          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie; StopTie ]
+          |> Measure.Event.noteOrRest
+          |> Measure.Event.withStopTie
 
           Note.create4 NoteName.C Duration.Quarter
           |> NoteOrRest.fromNote
-          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StopTie ]
+          |> Measure.Event.noteOrRest
+          |> Measure.Event.withStopTie
         ],
         []
       )
@@ -260,7 +263,7 @@ let ``generates measure events`` =
           Note.create4 NoteName.C Duration.Whole
           |> NoteOrRest.fromNote
           |> NoteOrRest.withText "note text"
-          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ Text "note text" ]
+          |> Measure.Event.noteOrRest
         ],
         []
       )
@@ -281,7 +284,7 @@ let ``generates measure events`` =
           Rest.create Duration.Whole
           |> NoteOrRest.fromRest
           |> NoteOrRest.withText "rest text"
-          |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ Text "rest text" ]
+          |> Measure.Event.noteOrRest
         ],
         []
       )

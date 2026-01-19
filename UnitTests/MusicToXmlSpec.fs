@@ -59,9 +59,10 @@ let ``converts note or rest to xml`` =
     caseId(1)
       .WithData(
         Duration.Quarter,
-        Note.create4 NoteName.C Duration.Whole
+        (NoteName.C, Duration.Whole)
+        ||> Note.create4
         |> NoteOrRest.fromNote
-        |> Measure.CreateEvent.noteOrRestEvent
+        |> Measure.Event.noteOrRest
       )
       .WithExpectedResult(
         "
@@ -82,7 +83,7 @@ let ``converts note or rest to xml`` =
         Duration.Quarter
         |> Rest.create
         |> NoteOrRest.fromRest
-        |> Measure.CreateEvent.noteOrRestEvent
+        |> Measure.Event.noteOrRest
       )
       .WithExpectedResult(
         "
@@ -97,9 +98,10 @@ let ``converts note or rest to xml`` =
     caseId(3)
       .WithData(
         Duration.Sixteenth,
-        Note.create4 NoteName.FSharp Duration.EighthDotted
+        (NoteName.FSharp, Duration.EighthDotted)
+        ||> Note.create4
         |> NoteOrRest.fromNote
-        |> Measure.CreateEvent.noteOrRestEvent
+        |> Measure.Event.noteOrRest
       )
       .WithExpectedResult(
         "
@@ -119,9 +121,10 @@ let ``converts note or rest to xml`` =
     case("4.tie start")
       .WithData(
         Duration.Quarter,
-        Note.create4 NoteName.C Duration.Quarter
+        (NoteName.C, Duration.Quarter)
+        ||> Note.create4
         |> NoteOrRest.fromNoteWithTie
-        |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StartTie ]
+        |> Measure.Event.noteOrRest
       )
       .WithExpectedResult(
         "
@@ -143,9 +146,11 @@ let ``converts note or rest to xml`` =
     case("5.tie stop")
       .WithData(
         Duration.Quarter,
-        Note.create4 NoteName.C Duration.Quarter
+        (NoteName.C, Duration.Quarter)
+        ||> Note.create4
         |> NoteOrRest.fromNote
-        |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ StopTie ]
+        |> Measure.Event.noteOrRest
+        |> Measure.Event.withStopTie
       )
       .WithExpectedResult(
         "
@@ -167,10 +172,11 @@ let ``converts note or rest to xml`` =
     case("6.chord attached to note")
       .WithData(
         Duration.Quarter,
-        Note.create4 NoteName.C Duration.Whole
+        (NoteName.C, Duration.Whole)
+        ||> Note.create4
         |> NoteOrRest.fromNote
         |> NoteOrRest.withChord (Chord.createWithBassAndKind NoteName.CSharp NoteName.GFlat "maj9(#11/13)")
-        |> Measure.CreateEvent.noteOrRestEvent
+        |> Measure.Event.noteOrRest
       )
       .WithExpectedResult
       "
@@ -201,7 +207,7 @@ let ``converts note or rest to xml`` =
         Rest.create Duration.Whole
         |> NoteOrRest.fromRest
         |> NoteOrRest.withChord (Chord.createWithBass NoteName.BFlat NoteName.FSharp)
-        |> Measure.CreateEvent.noteOrRestEvent
+        |> Measure.Event.noteOrRest
       )
       .WithExpectedResult
       "
@@ -229,7 +235,7 @@ let ``converts note or rest to xml`` =
         ||> Note.create4
         |> NoteOrRest.fromNote
         |> NoteOrRest.withText "text attached to note"
-        |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ Text "text attached to note" ]
+        |> Measure.Event.noteOrRest
       )
       .WithExpectedResult
       "

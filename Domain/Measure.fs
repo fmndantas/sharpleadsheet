@@ -27,35 +27,25 @@ module Types =
     AttachedToNoteOrRestEvents: AttachedToNoteOrRestEvent list
   }
 
-  // TODO: think about have events here that don't make sense in Validated.Music entities
-  // for example: StartTie can be expressed with Note/Rest.Modifier.Tie and StartTie is not needed
-  // StopTie not; reason: it does make sense only in musicxml context
-  // SetChord can be expressed as Note/Rest.Modifier.Chord
-  // This idea is reinforced by the fact that I'm feeling duplication evil in unit tests:
-  // Note does not need to have modifier and but the test will pass (because interpret note uses measure events)
-  and AttachedToNoteOrRestEvent =
-    | StartTie
-    | StopTie
-    | SetChord of Chord.T
-    | Text of string
+  and AttachedToNoteOrRestEvent = | StopTie
 
 open Types
 
-// TODO: idea: make this module more builder like
-// example: note |> withStartTie |> with...
-// CreateEvent -> Event
-// noteOrRestEvent
-//   -> note
-//   -> rest
-// delete noteOrRestEventWithAttachedEvents
-module CreateEvent =
-  let noteOrRestEventWithAttachedEvents (attached: AttachedToNoteOrRestEvent list) (n: NoteOrRest.T) : MeasureEvent =
+module Event =
+  let noteOrRest (n: NoteOrRest.T) : MeasureEvent =
     NoteOrRestEvent {
       NoteOrRest = n
-      AttachedToNoteOrRestEvents = attached
+      AttachedToNoteOrRestEvents = []
     }
 
-  let noteOrRestEvent (n: NoteOrRest.T) : MeasureEvent = noteOrRestEventWithAttachedEvents [] n
+  let withStopTie (e: MeasureEvent) : MeasureEvent =
+    match e with
+    | NoteOrRestEvent e ->
+      NoteOrRestEvent {
+        e with
+            AttachedToNoteOrRestEvents = StopTie :: e.AttachedToNoteOrRestEvents
+      }
+    | other -> other
 
 let generateEvents
   (context: MeasureContext)
@@ -98,13 +88,8 @@ let generateEvents
         let isNoteEndingATie = context.IsTieStarted
 
         noteOrRest
-        |> CreateEvent.noteOrRestEventWithAttachedEvents [
-          if isNoteStartingATie then
-            StartTie
-          if isNoteEndingATie then
-            StopTie
-          yield! noteOrRest |> NoteOrRest.getText |> Option.map Text |> Option.toList
-        ],
+        |> Event.noteOrRest
+        |> (if isNoteEndingATie then Event.withStopTie else id),
         {
           context with
               IsTieStarted = isNoteStartingATie
