@@ -19,31 +19,31 @@ module Types =
     | DefineKeySignatureEvent of KeySignature
     | DefineTimeSignatureEvent of TimeSignature
     | DefineClefEvent of Clef
-    | NoteOrRestEvent of NoteOrRestEvent
+    | VoiceEntryEvent of VoiceEntryEvent
     | FinalBarlineEvent
 
-  and NoteOrRestEvent = {
-    NoteOrRest: NoteOrRest.T
-    AttachedToNoteOrRestEvents: AttachedToNoteOrRestEvent list
+  and VoiceEntryEvent = {
+    VoiceEntry: VoiceEntry.T
+    EventsAttachedToVoiceEntry: EventAttachedToVoiceEntry list
   }
 
-  and AttachedToNoteOrRestEvent = | StopTie
+  and EventAttachedToVoiceEntry = | StopTie
 
 open Types
 
 module Event =
-  let noteOrRest (n: NoteOrRest.T) : MeasureEvent =
-    NoteOrRestEvent {
-      NoteOrRest = n
-      AttachedToNoteOrRestEvents = []
+  let voiceEntry (n: VoiceEntry.T) : MeasureEvent =
+    VoiceEntryEvent {
+      VoiceEntry = n
+      EventsAttachedToVoiceEntry = []
     }
 
   let withStopTie (e: MeasureEvent) : MeasureEvent =
     match e with
-    | NoteOrRestEvent e ->
-      NoteOrRestEvent {
+    | VoiceEntryEvent e ->
+      VoiceEntryEvent {
         e with
-            AttachedToNoteOrRestEvents = StopTie :: e.AttachedToNoteOrRestEvents
+            EventsAttachedToVoiceEntry = StopTie :: e.EventsAttachedToVoiceEntry
       }
     | other -> other
 
@@ -80,15 +80,15 @@ let generateEvents
         CurrentMeasureIndex = context.CurrentMeasureIndex + 1
   }
 
-  let noteOrRestEvents, context'' =
-    measure.NotesOrRests
+  let voiceEntryEvents, context'' =
+    measure.VoiceEntries
     |> List.mapFold
-      (fun context noteOrRest ->
-        let isNoteStartingATie = NoteOrRest.isTied noteOrRest
+      (fun context voiceEntry ->
+        let isNoteStartingATie = VoiceEntry.isTied voiceEntry
         let isNoteEndingATie = context.IsTieStarted
 
-        noteOrRest
-        |> Event.noteOrRest
+        voiceEntry
+        |> Event.voiceEntry
         |> modifyIfTrue isNoteEndingATie Event.withStopTie,
         {
           context with
@@ -96,10 +96,10 @@ let generateEvents
         })
       context'
 
-  List.concat [ otherEvents; noteOrRestEvents ], context''
+  List.concat [ otherEvents; voiceEntryEvents ], context''
 
 let defineDivisions ({ Parsed = measure }: Validated.Measure) : Duration.T =
-  if List.isEmpty measure.NotesOrRests then
+  if List.isEmpty measure.VoiceEntries then
     Duration.Quarter
   else
     let dottedToStraight =
@@ -111,8 +111,8 @@ let defineDivisions ({ Parsed = measure }: Validated.Measure) : Duration.T =
       | Duration.SixteenthDotted -> Duration.ThirtySecond
       | v -> v
 
-    measure.NotesOrRests
-    |> List.map (NoteOrRest.getDuration >> dottedToStraight)
+    measure.VoiceEntries
+    |> List.map (VoiceEntry.getDuration >> dottedToStraight)
     |> List.minBy Duration.getEquivalenceToMinimalDuration
     |> function
       | Duration.Whole

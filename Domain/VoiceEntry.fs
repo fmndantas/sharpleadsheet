@@ -1,12 +1,8 @@
-module Domain.NoteOrRest
+module Domain.VoiceEntry
 
-type T = {
-  NoteOrRest: NoteOrRestChoiceType
-  Modifiers: Modifier list
-}
+type T = { Kind: Kind; Modifiers: Modifier list }
 
-// TODO: think in a better name for this type
-and NoteOrRestChoiceType =
+and Kind =
   | Note of Note.T
   | Rest of Rest.T
 
@@ -29,20 +25,20 @@ let withText (text: string) (n: T) : T = addModifier (Text text) n
 let withTextOption (text: string option) (n: T) : T =
   text |> Option.map (n |> (withText |> flip2)) |> Option.defaultValue n
 
-let fromNote (n: Note.T) : T = { NoteOrRest = Note n; Modifiers = [] }
+let fromNote (n: Note.T) : T = { Kind = Note n; Modifiers = [] }
 
 let fromNoteWithTie: Note.T -> T = fromNote >> withTie
 
-let fromRest (r: Rest.T) : T = { NoteOrRest = Rest r; Modifiers = [] }
+let fromRest (r: Rest.T) : T = { Kind = Rest r; Modifiers = [] }
 
 let isTied (n: T) : bool =
   n.Modifiers
   |> List.exists (function
-    | Tie when n.NoteOrRest.IsNote -> true
+    | Tie when n.Kind.IsNote -> true
     | _ -> false)
 
 let getDuration (n: T) : Duration.T =
-  match n.NoteOrRest with
+  match n.Kind with
   | Note note -> Note.getDuration note
   | Rest rest -> Rest.getDuration rest
 
@@ -61,6 +57,6 @@ let getText (n: T) : string option =
     | _ -> None)
 
 let fold (noteF: Note.T -> 'a) (restF: Rest.T -> 'a) (n: T) : 'a =
-  match n.NoteOrRest with
+  match n.Kind with
   | Note n -> noteF n
   | Rest r -> restF r

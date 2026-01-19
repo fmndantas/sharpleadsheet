@@ -23,7 +23,7 @@ Its goal is to offer a simple and intuitive input syntax, combined with clear an
 | Feature | Status |
 | :--- | :---: |
 | Chord symbols | ✅ |
-| Text attached to note or rest | ⏳ In Progress |
+| Text attached to voice entry | ⏳ In Progress |
 | Rhythmic slash notation | ⏳ In Progress |
 | Multiple parts and staves | ⏳ In Progress |
 | Simple repeats | ⏳ In Progress |

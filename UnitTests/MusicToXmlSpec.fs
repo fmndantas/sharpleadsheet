@@ -54,15 +54,15 @@ let ``converts music to xml`` =
     (XmlWrapper.minifyXDocumentText expectedResult, XmlWrapper.minifyXDocument result)
     ||> equal "generated xml is incorrect"
 
-let ``converts note or rest to xml`` =
-  testTheory3 "converts note or rest to xml" [
+let ``converts voice entry to xml`` =
+  testTheory3 "converts voice entry to xml" [
     caseId(1)
       .WithData(
         Duration.Quarter,
         (NoteName.C, Duration.Whole)
         ||> Note.create4
-        |> NoteOrRest.fromNote
-        |> Measure.Event.noteOrRest
+        |> VoiceEntry.fromNote
+        |> Measure.Event.voiceEntry
       )
       .WithExpectedResult(
         "
@@ -82,8 +82,8 @@ let ``converts note or rest to xml`` =
         Duration.Quarter,
         Duration.Quarter
         |> Rest.create
-        |> NoteOrRest.fromRest
-        |> Measure.Event.noteOrRest
+        |> VoiceEntry.fromRest
+        |> Measure.Event.voiceEntry
       )
       .WithExpectedResult(
         "
@@ -100,8 +100,8 @@ let ``converts note or rest to xml`` =
         Duration.Sixteenth,
         (NoteName.FSharp, Duration.EighthDotted)
         ||> Note.create4
-        |> NoteOrRest.fromNote
-        |> Measure.Event.noteOrRest
+        |> VoiceEntry.fromNote
+        |> Measure.Event.voiceEntry
       )
       .WithExpectedResult(
         "
@@ -123,8 +123,8 @@ let ``converts note or rest to xml`` =
         Duration.Quarter,
         (NoteName.C, Duration.Quarter)
         ||> Note.create4
-        |> NoteOrRest.fromNoteWithTie
-        |> Measure.Event.noteOrRest
+        |> VoiceEntry.fromNoteWithTie
+        |> Measure.Event.voiceEntry
       )
       .WithExpectedResult(
         "
@@ -148,8 +148,8 @@ let ``converts note or rest to xml`` =
         Duration.Quarter,
         (NoteName.C, Duration.Quarter)
         ||> Note.create4
-        |> NoteOrRest.fromNote
-        |> Measure.Event.noteOrRest
+        |> VoiceEntry.fromNote
+        |> Measure.Event.voiceEntry
         |> Measure.Event.withStopTie
       )
       .WithExpectedResult(
@@ -174,9 +174,9 @@ let ``converts note or rest to xml`` =
         Duration.Quarter,
         (NoteName.C, Duration.Whole)
         ||> Note.create4
-        |> NoteOrRest.fromNote
-        |> NoteOrRest.withChord (Chord.createWithBassAndKind NoteName.CSharp NoteName.GFlat "maj9(#11/13)")
-        |> Measure.Event.noteOrRest
+        |> VoiceEntry.fromNote
+        |> VoiceEntry.withChord (Chord.createWithBassAndKind NoteName.CSharp NoteName.GFlat "maj9(#11/13)")
+        |> Measure.Event.voiceEntry
       )
       .WithExpectedResult
       "
@@ -205,9 +205,9 @@ let ``converts note or rest to xml`` =
       .WithData(
         Duration.Quarter,
         Rest.create Duration.Whole
-        |> NoteOrRest.fromRest
-        |> NoteOrRest.withChord (Chord.createWithBass NoteName.BFlat NoteName.FSharp)
-        |> Measure.Event.noteOrRest
+        |> VoiceEntry.fromRest
+        |> VoiceEntry.withChord (Chord.createWithBass NoteName.BFlat NoteName.FSharp)
+        |> Measure.Event.voiceEntry
       )
       .WithExpectedResult
       "
@@ -233,9 +233,9 @@ let ``converts note or rest to xml`` =
         Duration.Quarter,
         (NoteName.C, Duration.Whole)
         ||> Note.create4
-        |> NoteOrRest.fromNote
-        |> NoteOrRest.withText "text attached to note"
-        |> Measure.Event.noteOrRest
+        |> VoiceEntry.fromNote
+        |> VoiceEntry.withText "text attached to note"
+        |> Measure.Event.voiceEntry
       )
       .WithExpectedResult
       "
@@ -254,21 +254,21 @@ let ``converts note or rest to xml`` =
       </note>
       "
   ]
-  <| fun (divisions, noteOrRestEventAsMeasureEvent) expectedResult ->
-    let noteOrRestEvent =
-      match noteOrRestEventAsMeasureEvent with
-      | NoteOrRestEvent e -> e
-      | _ -> failwith "expected NoteOrRestEvent"
+  <| fun (divisions, measureEvent) expectedResult ->
+    let voiceEntryEvent =
+      match measureEvent with
+      | VoiceEntryEvent e -> e
+      | _ -> failwith $"expected {nameof VoiceEntryEvent}"
 
     let result =
-      (divisions, noteOrRestEvent)
-      ||> MusicToXml.interpretNoteOrRest
+      (divisions, voiceEntryEvent)
+      ||> MusicToXml.interpretVoiceEntry
       |> XmlWrapper.element "dummyWrapper"
       |> XmlWrapper.minifyXElement
 
-    let expectedResult' = "<dummyWrapper>" + expectedResult + "</dummyWrapper>"
-
-    (XmlWrapper.minifyXDocumentText expectedResult', result)
+    ("<dummyWrapper>" + expectedResult + "</dummyWrapper>"
+     |> XmlWrapper.minifyXDocumentText,
+     result)
     ||> equal "generated xml is incorrect"
 
 let ``converts duration to xml`` =
@@ -336,7 +336,7 @@ let ``converts pitch to xml`` =
 let MusicToXmlSpec =
   testList "music to xml" [
     ``converts music to xml``
-    ``converts note or rest to xml``
+    ``converts voice entry to xml``
     ``converts duration to xml``
     ``converts pitch to xml``
   ]

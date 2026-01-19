@@ -78,7 +78,7 @@ let private validateMeasure (partId: PartId) (measure: Measure) : Result<Measure
     measure.Parsed.TimeSignature
 
   if
-    (List.replicate numerator denominator, List.map NoteOrRest.getDuration measure.Parsed.NotesOrRests)
+    (List.replicate numerator denominator, List.map VoiceEntry.getDuration measure.Parsed.VoiceEntries)
     ||> Duration.getEquivalenceBetweenLists
   then
     Ok measure

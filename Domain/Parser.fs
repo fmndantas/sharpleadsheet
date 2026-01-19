@@ -287,20 +287,20 @@ module Functions =
            spaces1)
         >>% result
 
-  let private notesSectionSymbolToNoteOrRest: NotesSectionSymbol -> NoteOrRest.T option =
+  let private notesSectionSymbolToVoiceEntry: NotesSectionSymbol -> VoiceEntry.T option =
     function
     | NotesSectionSymbol.Note parsedNote ->
       parsedNote.Note
-      |> NoteOrRest.fromNote
-      |> modifyIfTrue parsedNote.IsTied NoteOrRest.withTie
-      |> NoteOrRest.withChordOption parsedNote.Chord
-      |> NoteOrRest.withTextOption parsedNote.Text
+      |> VoiceEntry.fromNote
+      |> modifyIfTrue parsedNote.IsTied VoiceEntry.withTie
+      |> VoiceEntry.withChordOption parsedNote.Chord
+      |> VoiceEntry.withTextOption parsedNote.Text
       |> Some
     | NotesSectionSymbol.Rest parsedRest ->
       parsedRest.Rest
-      |> NoteOrRest.fromRest
-      |> NoteOrRest.withChordOption parsedRest.Chord
-      |> NoteOrRest.withTextOption parsedRest.Text
+      |> VoiceEntry.fromRest
+      |> VoiceEntry.withChordOption parsedRest.Chord
+      |> VoiceEntry.withTextOption parsedRest.Text
       |> Some
     | _ -> None
 
@@ -319,8 +319,8 @@ module Functions =
 
               let updatedAccHead =
                 symbol
-                |> notesSectionSymbolToNoteOrRest
-                |> Option.map (fun noteOrRest -> noteOrRest :: accHead)
+                |> notesSectionSymbolToVoiceEntry
+                |> Option.map (fun voiceEntry -> voiceEntry :: accHead)
                 |> Option.defaultValue accHead
 
               if List.isEmpty acc then
@@ -342,7 +342,7 @@ module Functions =
         |> withKeySignature keySignature
         |> withTimeSignature timeSignature
         |> withClef clef
-        |> withSymbols symbols
+        |> withVoiceEntries symbols
 
       let updatedMeasures =
         symbolsPerMeasure

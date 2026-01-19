@@ -21,7 +21,7 @@
     <Compile Include="Rest.fs"/>
     <Compile Include="Note.fs"/>
     <Compile Include="CommonTypes.fs"/>
-    <Compile Include="NoteOrRest.fs"/>
+    <Compile Include="VoiceEntry.fs"/>
     <Compile Include="KeySignature.fs"/>
     <Compile Include="ParsedTypes.fs"/>
     <Compile Include="ParsedMeasureBuilder.fs"/>
