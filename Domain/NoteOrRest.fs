@@ -35,6 +35,12 @@ let fromNoteWithTie: Note.T -> T = fromNote >> withTie
 
 let fromRest (r: Rest.T) : T = { NoteOrRest = Rest r; Modifiers = [] }
 
+let isTied (n: T) : bool =
+  n.Modifiers
+  |> List.exists (function
+    | Tie -> true
+    | _ -> false)
+
 let getDuration (n: T) : Duration.T =
   match n.NoteOrRest with
   | Note note -> Note.getDuration note
@@ -53,12 +59,6 @@ let getText (n: T) : string option =
   |> Option.bind (function
     | Text v -> Some v
     | _ -> None)
-
-let isTied (n: T) : bool =
-  n.Modifiers
-  |> List.exists (function
-    | Tie -> true
-    | _ -> false)
 
 let fold (noteF: Note.T -> 'a) (restF: Rest.T -> 'a) (n: T) : 'a =
   match n.NoteOrRest with
