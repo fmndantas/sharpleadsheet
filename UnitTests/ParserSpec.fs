@@ -698,6 +698,7 @@ let ``parses music`` =
                     quarterRest
                     |> NoteOrRest.fromRest
                     |> NoteOrRest.withChord (Chord.createWithKind NoteName.D "m9")
+                    |> NoteOrRest.withText "intro"
                   )
                   |> withRepeatedRest 3 quarterRest
 
@@ -716,6 +717,7 @@ let ``parses music`` =
                     Note.create4 NoteName.A Duration.Eighth
                     |> NoteOrRest.fromNote
                     |> NoteOrRest.withChord (Chord.createWithKind NoteName.D "m9")
+                    |> NoteOrRest.withText "verse"
                   )
                   |> withNotes [
                     Note.create5 NoteName.C Duration.Eighth
