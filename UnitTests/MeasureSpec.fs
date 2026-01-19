@@ -248,14 +248,18 @@ let ``generates measure events`` =
       .WithData(
         measureContext,
         emptyMeasure
-        |> withNote (Note.create4 NoteName.C Duration.Whole |> Note.withText "note text")
+        |> withSymbol (
+          Note.create4 NoteName.C Duration.Whole
+          |> NoteOrRest.fromNote
+          |> NoteOrRest.withText "note text"
+        )
       )
       .WithExpectedResult(
         withNextMeasureIndex measureContext,
         [
           Note.create4 NoteName.C Duration.Whole
-          |> Note.withText "note text"
           |> NoteOrRest.fromNote
+          |> NoteOrRest.withText "note text"
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ Text "note text" ]
         ],
         []
@@ -265,14 +269,18 @@ let ``generates measure events`` =
       .WithData(
         measureContext,
         emptyMeasure
-        |> withRest (Rest.create Duration.Whole |> Rest.withText "rest text")
+        |> withSymbol (
+          Rest.create Duration.Whole
+          |> NoteOrRest.fromRest
+          |> NoteOrRest.withText "rest text"
+        )
       )
       .WithExpectedResult(
         withNextMeasureIndex measureContext,
         [
           Rest.create Duration.Whole
-          |> Rest.withText "rest text"
           |> NoteOrRest.fromRest
+          |> NoteOrRest.withText "rest text"
           |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ Text "rest text" ]
         ],
         []

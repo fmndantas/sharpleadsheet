@@ -33,11 +33,13 @@ type ParsedNote = {
   Note: Note.T
   IsTied: bool
   Chord: Chord.T option
+  Text: string option
 }
 
 type ParsedRest = {
   Rest: Rest.T
   Chord: Chord.T option
+  Text: string option
 }
 
 type ParserState = {

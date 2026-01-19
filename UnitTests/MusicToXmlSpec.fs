@@ -227,8 +227,8 @@ let ``converts note or rest to xml`` =
         Duration.Quarter,
         (NoteName.C, Duration.Whole)
         ||> Note.create4
-        |> Note.withText "text attached to note"
         |> NoteOrRest.fromNote
+        |> NoteOrRest.withText "text attached to note"
         |> Measure.CreateEvent.noteOrRestEventWithAttachedEvents [ Text "text attached to note" ]
       )
       .WithExpectedResult

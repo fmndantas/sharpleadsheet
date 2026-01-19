@@ -147,9 +147,7 @@ module Functions =
       let duration = getUpdatedDuration state maybeParsedDuration
       let! maybeTie = opt pTie
 
-      let note =
-        Note.create state.CurrentOctave noteName duration
-        |> Note.maybeWithText state.LastText
+      let note = Note.create state.CurrentOctave noteName duration
 
       do!
         updateUserState (
@@ -163,6 +161,7 @@ module Functions =
         Note = note
         IsTied = maybeTie.IsSome
         Chord = state.LastChord
+        Text = state.LastText
       }
     }
 
@@ -174,12 +173,13 @@ module Functions =
 
       do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
 
-      let rest =
-        duration
-        |> Rest.create
-        |> Rest.maybeWithText state.LastText
+      let rest = Rest.create duration
 
-      return { Rest = rest; Chord = state.LastChord }
+      return {
+        Rest = rest
+        Chord = state.LastChord
+        Text = state.LastText
+      }
     }
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
@@ -295,11 +295,13 @@ module Functions =
       |> NoteOrRest.fromNote
       |> (if parsedNote.IsTied then NoteOrRest.withTie else id)
       |> NoteOrRest.withChordOption parsedNote.Chord
+      |> NoteOrRest.withTextOption parsedNote.Text
       |> Some
     | NotesSectionSymbol.Rest parsedRest ->
       parsedRest.Rest
       |> NoteOrRest.fromRest
       |> NoteOrRest.withChordOption parsedRest.Chord
+      |> NoteOrRest.withTextOption parsedRest.Text
       |> Some
     | _ -> None
 

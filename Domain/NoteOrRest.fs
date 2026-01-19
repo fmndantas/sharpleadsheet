@@ -13,10 +13,7 @@ and NoteOrRestChoiceType =
 and Modifier =
   | Tie
   | Chord of Chord.T
-
-let fromNote (n: Note.T) : T = { NoteOrRest = Note n; Modifiers = [] }
-
-let fromRest (r: Rest.T) : T = { NoteOrRest = Rest r; Modifiers = [] }
+  | Text of string
 
 let private addModifier (m: Modifier) (n: T) = { n with Modifiers = m :: n.Modifiers }
 
@@ -27,7 +24,16 @@ let withChord (chord: Chord.T) (n: T) : T = addModifier (Chord chord) n
 let withChordOption (chord: Chord.T option) (n: T) : T =
   chord |> Option.map (n |> (withChord |> flip2)) |> Option.defaultValue n
 
+let withText (text: string) (n: T) : T = addModifier (Text text) n
+
+let withTextOption (text: string option) (n: T) : T =
+  text |> Option.map (n |> (withText |> flip2)) |> Option.defaultValue n
+
+let fromNote (n: Note.T) : T = { NoteOrRest = Note n; Modifiers = [] }
+
 let fromNoteWithTie: Note.T -> T = fromNote >> withTie
+
+let fromRest (r: Rest.T) : T = { NoteOrRest = Rest r; Modifiers = [] }
 
 let getDuration (n: T) : Duration.T =
   match n.NoteOrRest with
@@ -42,9 +48,11 @@ let getChord (n: T) : Chord.T option =
     | _ -> None)
 
 let getText (n: T) : string option =
-  match n.NoteOrRest with
-  | Note note -> Note.getText note
-  | Rest rest -> Rest.getText rest
+  n.Modifiers
+  |> List.tryFind _.IsText
+  |> Option.bind (function
+    | Text v -> Some v
+    | _ -> None)
 
 let isTied (n: T) : bool =
   n.Modifiers
