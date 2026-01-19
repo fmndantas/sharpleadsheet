@@ -287,7 +287,6 @@ module Functions =
            spaces1)
         >>% result
 
-  // TODO: is it possible to refactor things in common here?
   let private notesSectionSymbolToNoteOrRest: NotesSectionSymbol -> NoteOrRest.T option =
     function
     | NotesSectionSymbol.Note parsedNote ->
