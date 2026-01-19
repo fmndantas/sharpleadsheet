@@ -2,7 +2,7 @@ module Domain.Measure
 
 open CommonTypes
 
-open Operators
+open GenericFunctions
 
 module Types =
   type MeasureContext = {
@@ -89,7 +89,7 @@ let generateEvents
 
         noteOrRest
         |> Event.noteOrRest
-        |> (if isNoteEndingATie then Event.withStopTie else id),
+        |> modifyIfTrue isNoteEndingATie Event.withStopTie,
         {
           context with
               IsTieStarted = isNoteStartingATie

@@ -8,3 +8,5 @@ let toString<'a> (v: 'a) = v.ToString()
 let debug description x =
   printfn "%s -> %A" description x
   x
+
+let modifyIfTrue (isTrue: bool) (f: 'a -> 'a) = if isTrue then f else id

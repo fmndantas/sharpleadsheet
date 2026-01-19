@@ -157,6 +157,7 @@ let interpretNoteOrRest
       yield! interpretDuration divisions duration
       if NoteOrRest.isTied noteOrRest then
         yield! xmlTie "start"
+      // TODO: move this to Note.Event
       if attachedToNoteOrRestEvents |> List.contains StopTie then
         yield! xmlTie "stop"
     ]

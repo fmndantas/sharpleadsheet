@@ -292,7 +292,7 @@ module Functions =
     | NotesSectionSymbol.Note parsedNote ->
       parsedNote.Note
       |> NoteOrRest.fromNote
-      |> (if parsedNote.IsTied then NoteOrRest.withTie else id)
+      |> modifyIfTrue parsedNote.IsTied NoteOrRest.withTie
       |> NoteOrRest.withChordOption parsedNote.Chord
       |> NoteOrRest.withTextOption parsedNote.Text
       |> Some
