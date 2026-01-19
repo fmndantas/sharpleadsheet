@@ -47,6 +47,9 @@ module Event =
       }
     | other -> other
 
+  let hasStopTie (e: VoiceEntryEvent) =
+    List.contains StopTie e.EventsAttachedToVoiceEntry
+
 let generateEvents
   (context: MeasureContext)
   ({ Parsed = measure }: Validated.Measure)

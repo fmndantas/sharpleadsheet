@@ -126,13 +126,9 @@ let private interpretChord (chord: Chord.T) : XElement =
   ]
   |> element "harmony"
 
-let interpretVoiceEntry
-  (divisions: Duration.T)
-  ({
-     VoiceEntry = voiceEntry
-     EventsAttachedToVoiceEntry = es
-   }: VoiceEntryEvent)
-  : XElement list =
+let interpretVoiceEntry (divisions: Duration.T) (voiceEntryEvent: VoiceEntryEvent) : XElement list =
+  let voiceEntry = voiceEntryEvent.VoiceEntry
+
   let xmlTie xmlType = [
     selfEnclosingElementWithAttributes "tie" [ attribute "type" xmlType ]
     element "notations" [ selfEnclosingElementWithAttributes "tied" [ attribute "type" xmlType ] ]
@@ -157,8 +153,7 @@ let interpretVoiceEntry
       yield! interpretDuration divisions duration
       if VoiceEntry.isTied voiceEntry then
         yield! xmlTie "start"
-      // TODO: move this to Note.Event
-      if es |> List.contains StopTie then
+      if Measure.Event.hasStopTie voiceEntryEvent then
         yield! xmlTie "stop"
     ]
 
