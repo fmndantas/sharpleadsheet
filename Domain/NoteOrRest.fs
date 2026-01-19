@@ -18,17 +18,11 @@ let fromNote (n: Note.T) : T = { NoteOrRest = Note n; Modifiers = [] }
 
 let fromRest (r: Rest.T) : T = { NoteOrRest = Rest r; Modifiers = [] }
 
-// TODO: create addModifier
+let private addModifier (m: Modifier) (n: T) = { n with Modifiers = m :: n.Modifiers }
 
-let withTie (n: T) : T = {
-  n with
-      Modifiers = Tie :: n.Modifiers
-}
+let withTie: T -> T = addModifier Tie
 
-let withChord (chord: Chord.T) (n: T) : T = {
-  n with
-      Modifiers = Chord chord :: n.Modifiers
-}
+let withChord (chord: Chord.T) (n: T) : T = addModifier (Chord chord) n
 
 let withChordOption (chord: Chord.T option) (n: T) : T =
   chord |> Option.map (n |> (withChord |> flip2)) |> Option.defaultValue n
@@ -55,7 +49,8 @@ let getText (n: T) : string option =
 let isTied (n: T) : bool =
   n.Modifiers
   |> List.exists (function
-    | Tie -> true)
+    | Tie -> true
+    | _ -> false)
 
 let fold (noteF: Note.T -> 'a) (restF: Rest.T -> 'a) (n: T) : 'a =
   match n.NoteOrRest with
