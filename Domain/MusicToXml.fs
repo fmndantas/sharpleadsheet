@@ -126,8 +126,10 @@ let private interpretChord (chord: Chord.T) : XElement =
   ]
   |> element "harmony"
 
-let interpretVoiceEntry (divisions: Duration.T) (voiceEntryEvent: VoiceEntryEvent) : XElement list =
-  let voiceEntry = voiceEntryEvent.VoiceEntry
+let interpretVoiceEntry
+  (divisions: Duration.T)
+  ({ VoiceEntry = voiceEntry } as voiceEntryEvent: VoiceEntryEvent)
+  : XElement list =
 
   let xmlTie xmlType = [
     selfEnclosingElementWithAttributes "tie" [ attribute "type" xmlType ]
