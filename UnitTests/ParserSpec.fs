@@ -154,7 +154,7 @@ let ``parses a note`` =
       |> withoptionalLastDuration lastDuration
 
     runWithStateAndAssertOnSuccess Parser.Functions.pNote currentState content
-    <| fun result _ -> result |> equal "note is incorrect" expectedResult
+    <| fun result _ -> result.Note |> equal "note is incorrect" expectedResult
 
 let ``parses a note modifier`` =
   testTheory3 "parses a note modifier" [
@@ -185,7 +185,7 @@ let ``parses a rest`` =
       |> withoptionalLastDuration lastDuration
 
     runWithStateAndAssertOnSuccess Parser.Functions.pRest state content
-    <| fun result _ -> result |> equal "rest is incorrect" expectedResult
+    <| fun result _ -> result.Rest |> equal "rest is incorrect" expectedResult
 
 let ``parses a chord`` =
   testTheory3 "parses a chord" [
@@ -381,17 +381,17 @@ let ``parses notes section content`` =
 
           measure
           |> withRest (Rest.create Duration.Quarter)
-          |> withNote (Note.createTied4 NoteName.D Duration.Quarter)
-          |> withNote (Note.createTied4 NoteName.D Duration.Quarter)
+          |> withVoiceEntry (Note.create4 NoteName.D Duration.Quarter |> VoiceEntry.fromNoteWithTie)
+          |> withVoiceEntry (Note.create4 NoteName.D Duration.Quarter |> VoiceEntry.fromNoteWithTie)
           |> withNote (Note.create4 NoteName.D Duration.Eighth)
           |> withNote (Note.create4 NoteName.E Duration.Eighth)
 
           measure
-          |> withNote (Note.createTied4 NoteName.F Duration.Quarter)
+          |> withVoiceEntry (Note.create4 NoteName.F Duration.Quarter |> VoiceEntry.fromNoteWithTie)
           |> withNote (Note.create4 NoteName.F Duration.Eighth)
           |> withNote (Note.create4 NoteName.E Duration.Eighth)
           |> withNote (Note.create4 NoteName.F Duration.Eighth)
-          |> withNote (Note.createTied4 NoteName.E Duration.Eighth)
+          |> withVoiceEntry (Note.create4 NoteName.E Duration.Eighth |> VoiceEntry.fromNoteWithTie)
           |> withNote (Note.create4 NoteName.E Duration.Quarter)
         ]
       )
@@ -407,15 +407,17 @@ let ``parses notes section content`` =
 
         [
           measure
-          |> withNote (
+          |> withVoiceEntry (
             Note.create4 NoteName.C Duration.Whole
-            |> Note.withChord (Chord.createWithBassAndKind NoteName.C NoteName.G "maj9")
+            |> VoiceEntry.fromNote
+            |> VoiceEntry.withChord (Chord.createWithBassAndKind NoteName.C NoteName.G "maj9")
           )
 
           measure
-          |> withRest (
+          |> withVoiceEntry (
             Rest.create Duration.Whole
-            |> Rest.withChord (Chord.createWithBassAndKind NoteName.A NoteName.E "maj9(#11)")
+            |> VoiceEntry.fromRest
+            |> VoiceEntry.withChord (Chord.createWithBassAndKind NoteName.A NoteName.E "maj9(#11)")
           )
         ]
       )
@@ -431,9 +433,10 @@ let ``parses notes section content`` =
 
         [
           measure
-          |> withNote (
+          |> withVoiceEntry (
             Note.create4 NoteName.C Duration.Whole
-            |> Note.withChord (Chord.createWithBassAndKind NoteName.C NoteName.G "maj9")
+            |> VoiceEntry.fromNote
+            |> VoiceEntry.withChord (Chord.createWithBassAndKind NoteName.C NoteName.G "maj9")
           )
 
           measure
@@ -449,10 +452,8 @@ let ``parses notes section content`` =
           measure |> withNote (Note.create4 NoteName.C Duration.Whole)
 
           measure
-          |> withNotes [
-            Note.createTied4 NoteName.C Duration.Half
-            Note.create4 NoteName.C Duration.Half
-          ]
+          |> withVoiceEntry (Note.create4 NoteName.C Duration.Half |> VoiceEntry.fromNoteWithTie)
+          |> withNote (Note.create4 NoteName.C Duration.Half)
 
           measure |> withNote (Note.create4 NoteName.C Duration.Whole)
         ]
@@ -469,11 +470,29 @@ let ``parses notes section content`` =
 
         [
           measure
-          |> withNote (Note.create4 NoteName.C Duration.Whole |> Note.withText "verse")
-          measure |> withRest (Rest.create Duration.Whole |> Rest.withText "chorus")
-          measure |> withRest (Rest.create Duration.Whole |> Rest.withText "verse 2")
+          |> withVoiceEntry (
+            Note.create4 NoteName.C Duration.Whole
+            |> VoiceEntry.fromNote
+            |> VoiceEntry.withText "verse"
+          )
           measure
-          |> withNote (Note.create4 NoteName.D Duration.Whole |> Note.withText "this_is_a_string")
+          |> withVoiceEntry (
+            Rest.create Duration.Whole
+            |> VoiceEntry.fromRest
+            |> VoiceEntry.withText "chorus"
+          )
+          measure
+          |> withVoiceEntry (
+            Rest.create Duration.Whole
+            |> VoiceEntry.fromRest
+            |> VoiceEntry.withText "verse 2"
+          )
+          measure
+          |> withVoiceEntry (
+            Note.create4 NoteName.D Duration.Whole
+            |> VoiceEntry.fromNote
+            |> VoiceEntry.withText "this_is_a_string"
+          )
         ]
       )
   ]
@@ -673,18 +692,34 @@ let ``parses music`` =
                 let quarterRest = Rest.create Duration.Quarter
 
                 [
+                  // 0
                   measure
-                  |> withRest (quarterRest |> Rest.withChord (Chord.createWithKind NoteName.D "m9"))
+                  |> withVoiceEntry (
+                    quarterRest
+                    |> VoiceEntry.fromRest
+                    |> VoiceEntry.withChord (Chord.createWithKind NoteName.D "m9")
+                    |> VoiceEntry.withText "intro"
+                  )
                   |> withRepeatedRest 3 quarterRest
 
+                  // 1
                   measure
-                  |> withRest (quarterRest |> Rest.withChord (Chord.createWithKind NoteName.D "m9"))
+                  |> withVoiceEntry (
+                    quarterRest
+                    |> VoiceEntry.fromRest
+                    |> VoiceEntry.withChord (Chord.createWithKind NoteName.D "m9")
+                  )
                   |> withRepeatedRest 3 quarterRest
 
+                  // 2
                   measure
-                  |> withNotes [
+                  |> withVoiceEntry (
                     Note.create4 NoteName.A Duration.Eighth
-                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                    |> VoiceEntry.fromNote
+                    |> VoiceEntry.withChord (Chord.createWithKind NoteName.D "m9")
+                    |> VoiceEntry.withText "verse"
+                  )
+                  |> withNotes [
                     Note.create5 NoteName.C Duration.Eighth
                     Note.create5 NoteName.C Duration.Eighth
                     Note.create5 NoteName.C Duration.Eighth
@@ -692,12 +727,17 @@ let ``parses music`` =
                     Note.create5 NoteName.D Duration.Eighth
                   ]
 
+                  // 3
                   measure |> withNote (Note.create5 NoteName.C Duration.Whole)
 
+                  // 4
                   measure
-                  |> withNotes [
+                  |> withVoiceEntry (
                     Note.create4 NoteName.A Duration.Eighth
-                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                    |> VoiceEntry.fromNote
+                    |> VoiceEntry.withChord (Chord.createWithKind NoteName.D "m9")
+                  )
+                  |> withNotes [
                     Note.create5 NoteName.C Duration.Eighth
                     Note.create5 NoteName.C Duration.Eighth
                     Note.create5 NoteName.C Duration.Eighth
@@ -705,12 +745,17 @@ let ``parses music`` =
                     Note.create5 NoteName.D Duration.Eighth
                   ]
 
+                  // 5
                   measure |> withNote (Note.create5 NoteName.C Duration.Whole)
 
+                  // 6
                   measure
-                  |> withNotes [
+                  |> withVoiceEntry (
                     Note.create5 NoteName.D Duration.Eighth
-                    |> Note.withChord (Chord.createWithKind NoteName.G "m9")
+                    |> VoiceEntry.fromNote
+                    |> VoiceEntry.withChord (Chord.createWithKind NoteName.G "m9")
+                  )
+                  |> withNotes [
                     Note.create5 NoteName.F Duration.Eighth
                     Note.create5 NoteName.F Duration.Eighth
                     Note.create5 NoteName.F Duration.Eighth
@@ -718,38 +763,53 @@ let ``parses music`` =
                     Note.create5 NoteName.G Duration.Eighth
                   ]
 
+                  // 7
                   measure
                   |> withNote (Note.create5 NoteName.F Duration.HalfDotted)
                   |> withRest (Rest.create Duration.Eighth)
                   |> withNote (Note.create4 NoteName.BFlat Duration.Eighth)
 
+                  // 8
                   measure
+                  |> withVoiceEntry (
+                    Note.create4 NoteName.A Duration.Eighth
+                    |> VoiceEntry.fromNote
+                    |> VoiceEntry.withChord (Chord.createWithKind NoteName.E "m9(11)")
+                  )
                   |> withNotes [
                     Note.create4 NoteName.A Duration.Eighth
-                    |> Note.withChord (Chord.createWithKind NoteName.E "m9(11)")
                     Note.create4 NoteName.A Duration.Eighth
-                    Note.create4 NoteName.A Duration.Eighth
-                    Note.createTied4 NoteName.A Duration.Eighth
+                  ]
+                  |> withVoiceEntry (Note.create4 NoteName.A Duration.Eighth |> VoiceEntry.fromNoteWithTie)
+                  |> withNotes [
                     Note.create4 NoteName.A Duration.QuarterDotted
                     Note.create5 NoteName.D Duration.Eighth
                   ]
 
+                  // 9
                   measure
+                  |> withVoiceEntry (
+                    Note.create4 NoteName.A Duration.Eighth
+                    |> VoiceEntry.fromNote
+                    |> VoiceEntry.withChord (Chord.createWithKind NoteName.EFlat "7(#11)")
+                  )
                   |> withNotes [
                     Note.create4 NoteName.A Duration.Eighth
-                    |> Note.withChord (Chord.createWithKind NoteName.EFlat "7(#11)")
-                    Note.create4 NoteName.A Duration.Eighth
                     Note.create4 NoteName.A Duration.Quarter
-                    Note.createTied4 NoteName.A Duration.QuarterDotted
+                  ]
+                  |> withVoiceEntry (Note.create4 NoteName.A Duration.QuarterDotted |> VoiceEntry.fromNoteWithTie)
+                  |> withNotes [
                     Note.create4 NoteName.A Duration.Sixteenth
                     Note.create4 NoteName.A Duration.ThirtySecond
                     Note.create5 NoteName.C Duration.ThirtySecond
                   ]
 
+                  // 10
                   measure
-                  |> withNote (
+                  |> withVoiceEntry (
                     Note.create4 NoteName.G Duration.Whole
-                    |> Note.withChord (Chord.createWithKind NoteName.D "m9")
+                    |> VoiceEntry.fromNote
+                    |> VoiceEntry.withChord (Chord.createWithKind NoteName.D "m9")
                   )
                 ]
             }
@@ -770,8 +830,8 @@ let ``parses music`` =
   <| fun content (expectedResult: ParsedMusic, expectedFinalState: ParserState) ->
     runAndAssertOnSuccess (Parser.Functions.pMusic defaultSettings) content
     <| fun result finalState ->
-      result |> equal "music is incorrect" expectedResult
-      finalState |> equal "final state is incorrect" expectedFinalState
+      result |> deepEqual expectedResult
+      finalState |> deepEqual expectedFinalState
 
 let ``parses invalid music`` =
   testTheory3 "parses invalid music" [

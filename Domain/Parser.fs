@@ -20,8 +20,8 @@ module Types =
 
   [<RequireQualifiedAccess>]
   type NotesSectionSymbol =
-    | Note of Note.T
-    | Rest of Rest.T
+    | Note of ParsedNote
+    | Rest of ParsedRest
     | OctaveManipulation of int
     | Chord of Chord.T
     | Comment
@@ -139,7 +139,7 @@ module Functions =
 
   let pTie: P<unit> = pstring "~" |>> fun _ -> ()
 
-  let pNote: P<Note.T> =
+  let pNote: P<ParsedNote> =
     parse {
       let! noteName = pNoteName
       let! maybeParsedDuration = opt pDuration
@@ -147,24 +147,25 @@ module Functions =
       let duration = getUpdatedDuration state maybeParsedDuration
       let! maybeTie = opt pTie
 
-      let note =
-        Note.create state.CurrentOctave noteName duration
-        |> Note.maybeWithTie maybeTie
-        |> Note.maybeWithChord state.LastChord
-        |> Note.maybeWithText state.LastText
+      let note = Note.create state.CurrentOctave noteName duration
 
       do!
         updateUserState (
-          withLastPitch (note |> Note.getPitch)
-          >> withLastDuration (note |> Note.getDuration)
+          withLastPitch (Note.getPitch note)
+          >> withLastDuration (Note.getDuration note)
           >> withoutLastChord
           >> withoutLastText
         )
 
-      return note
+      return {
+        Note = note
+        IsTied = maybeTie.IsSome
+        Chord = state.LastChord
+        Text = state.LastText
+      }
     }
 
-  let pRest: P<Rest.T> =
+  let pRest: P<ParsedRest> =
     parse {
       let! state = getUserState
       let! maybeDuration = pstring "r" >>. opt pDuration
@@ -172,11 +173,13 @@ module Functions =
 
       do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
 
-      return
-        duration
-        |> Rest.create
-        |> Rest.maybeWithChord state.LastChord
-        |> Rest.maybeWithText state.LastText
+      let rest = Rest.create duration
+
+      return {
+        Rest = rest
+        Chord = state.LastChord
+        Text = state.LastText
+      }
     }
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
@@ -284,10 +287,21 @@ module Functions =
            spaces1)
         >>% result
 
-  let private notesSectionSymbolToNoteOrRest: NotesSectionSymbol -> NoteOrRest option =
+  let private notesSectionSymbolToVoiceEntry: NotesSectionSymbol -> VoiceEntry.T option =
     function
-    | NotesSectionSymbol.Note note -> note |> NoteOrRest.Note |> Some
-    | NotesSectionSymbol.Rest rest -> rest |> NoteOrRest.Rest |> Some
+    | NotesSectionSymbol.Note parsedNote ->
+      parsedNote.Note
+      |> VoiceEntry.fromNote
+      |> modifyIfTrue parsedNote.IsTied VoiceEntry.withTie
+      |> VoiceEntry.withChordOption parsedNote.Chord
+      |> VoiceEntry.withTextOption parsedNote.Text
+      |> Some
+    | NotesSectionSymbol.Rest parsedRest ->
+      parsedRest.Rest
+      |> VoiceEntry.fromRest
+      |> VoiceEntry.withChordOption parsedRest.Chord
+      |> VoiceEntry.withTextOption parsedRest.Text
+      |> Some
     | _ -> None
 
   let pNotesSectionContent: P<ParsedMeasure list> =
@@ -305,8 +319,8 @@ module Functions =
 
               let updatedAccHead =
                 symbol
-                |> notesSectionSymbolToNoteOrRest
-                |> Option.map (fun noteOrRest -> noteOrRest :: accHead)
+                |> notesSectionSymbolToVoiceEntry
+                |> Option.map (fun voiceEntry -> voiceEntry :: accHead)
                 |> Option.defaultValue accHead
 
               if List.isEmpty acc then
@@ -328,7 +342,7 @@ module Functions =
         |> withKeySignature keySignature
         |> withTimeSignature timeSignature
         |> withClef clef
-        |> withSymbols symbols
+        |> withVoiceEntries symbols
 
       let updatedMeasures =
         symbolsPerMeasure

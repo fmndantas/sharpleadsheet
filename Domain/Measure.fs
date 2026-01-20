@@ -2,7 +2,7 @@ module Domain.Measure
 
 open CommonTypes
 
-open Operators
+open GenericFunctions
 
 module Types =
   type MeasureContext = {
@@ -19,30 +19,36 @@ module Types =
     | DefineKeySignatureEvent of KeySignature
     | DefineTimeSignatureEvent of TimeSignature
     | DefineClefEvent of Clef
-    | NoteOrRestEvent of NoteOrRestEvent
+    | VoiceEntryEvent of VoiceEntryEvent
     | FinalBarlineEvent
 
-  and NoteOrRestEvent = {
-    NoteOrRest: NoteOrRest
-    AttachedToNoteOrRestEvents: AttachedToNoteOrRestEvent list
+  and VoiceEntryEvent = {
+    VoiceEntry: VoiceEntry.T
+    EventsAttachedToVoiceEntry: EventAttachedToVoiceEntry list
   }
 
-  and AttachedToNoteOrRestEvent =
-    | StartTie
-    | StopTie
-    | SetChord of Chord.T
-    | Text of string
+  and EventAttachedToVoiceEntry = | StopTie
 
 open Types
 
-module CreateEvent =
-  let noteOrRestEventWithAttachedEvents (attached: AttachedToNoteOrRestEvent list) (n: NoteOrRest) : MeasureEvent =
-    NoteOrRestEvent {
-      NoteOrRest = n
-      AttachedToNoteOrRestEvents = attached
+module Event =
+  let voiceEntry (n: VoiceEntry.T) : MeasureEvent =
+    VoiceEntryEvent {
+      VoiceEntry = n
+      EventsAttachedToVoiceEntry = []
     }
 
-  let noteOrRestEvent (n: NoteOrRest) : MeasureEvent = noteOrRestEventWithAttachedEvents [] n
+  let withStopTie (e: MeasureEvent) : MeasureEvent =
+    match e with
+    | VoiceEntryEvent e ->
+      VoiceEntryEvent {
+        e with
+            EventsAttachedToVoiceEntry = StopTie :: e.EventsAttachedToVoiceEntry
+      }
+    | other -> other
+
+  let hasStopTie (e: VoiceEntryEvent) =
+    List.contains StopTie e.EventsAttachedToVoiceEntry
 
 let generateEvents
   (context: MeasureContext)
@@ -77,31 +83,26 @@ let generateEvents
         CurrentMeasureIndex = context.CurrentMeasureIndex + 1
   }
 
-  let noteOrRestEvents, context'' =
-    measure.NotesOrRests
+  let voiceEntryEvents, context'' =
+    measure.VoiceEntries
     |> List.mapFold
-      (fun context noteOrRest ->
-        let isNoteStartingATie = NoteOrRest.isTied noteOrRest
+      (fun context voiceEntry ->
+        let isNoteStartingATie = VoiceEntry.isTied voiceEntry
         let isNoteEndingATie = context.IsTieStarted
 
-        noteOrRest
-        |> CreateEvent.noteOrRestEventWithAttachedEvents [
-          if isNoteStartingATie then
-            StartTie
-          if isNoteEndingATie then
-            StopTie
-          yield! noteOrRest |> NoteOrRest.getText |> Option.map Text |> Option.toList
-        ],
+        voiceEntry
+        |> Event.voiceEntry
+        |> modifyIfTrue isNoteEndingATie Event.withStopTie,
         {
           context with
               IsTieStarted = isNoteStartingATie
         })
       context'
 
-  List.concat [ otherEvents; noteOrRestEvents ], context''
+  List.concat [ otherEvents; voiceEntryEvents ], context''
 
 let defineDivisions ({ Parsed = measure }: Validated.Measure) : Duration.T =
-  if List.isEmpty measure.NotesOrRests then
+  if List.isEmpty measure.VoiceEntries then
     Duration.Quarter
   else
     let dottedToStraight =
@@ -113,8 +114,8 @@ let defineDivisions ({ Parsed = measure }: Validated.Measure) : Duration.T =
       | Duration.SixteenthDotted -> Duration.ThirtySecond
       | v -> v
 
-    measure.NotesOrRests
-    |> List.map (NoteOrRest.getDuration >> dottedToStraight)
+    measure.VoiceEntries
+    |> List.map (VoiceEntry.getDuration >> dottedToStraight)
     |> List.minBy Duration.getEquivalenceToMinimalDuration
     |> function
       | Duration.Whole

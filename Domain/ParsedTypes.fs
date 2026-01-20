@@ -26,7 +26,20 @@ and ParsedMeasure = {
   TimeSignature: TimeSignature
   KeySignature: KeySignature
   Clef: Clef
-  NotesOrRests: NoteOrRest list
+  VoiceEntries: VoiceEntry.T list
+}
+
+type ParsedNote = {
+  Note: Note.T
+  IsTied: bool
+  Chord: Chord.T option
+  Text: string option
+}
+
+type ParsedRest = {
+  Rest: Rest.T
+  Chord: Chord.T option
+  Text: string option
 }
 
 type ParserState = {

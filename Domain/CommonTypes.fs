@@ -10,12 +10,6 @@ type TimeSignature = {
 
 type KeySignature = KeySignature of NoteName.T
 
-// TODO: think in a better name for this type
-[<RequireQualifiedAccess>]
-type NoteOrRest =
-  | Note of Note.T
-  | Rest of Rest.T
-
 [<RequireQualifiedAccess>]
 type Clef =
   | G

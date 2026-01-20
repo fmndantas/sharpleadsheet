@@ -12,7 +12,7 @@ let aParsedMeasure () : ParsedMeasure = {
     Denominator = Duration.Quarter
   }
   KeySignature = KeySignature NoteName.C
-  NotesOrRests = []
+  VoiceEntries = []
 }
 
 let withKeySignature (k: KeySignature) (m: ParsedMeasure) : ParsedMeasure = { m with KeySignature = k }
@@ -33,27 +33,40 @@ let withClef (clef: Clef) (m: ParsedMeasure) : ParsedMeasure = { m with Clef = c
 
 let withNote (note: Note.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.append m.NotesOrRests [ NoteOrRest.Note note ]
+      VoiceEntries = List.append m.VoiceEntries [ VoiceEntry.fromNote note ]
 }
 
 let withRest (rest: Rest.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.append m.NotesOrRests [ rest |> NoteOrRest.Rest ]
+      VoiceEntries = List.append m.VoiceEntries [ VoiceEntry.fromRest rest ]
 }
 
 let withNotes (notes: Note.T list) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.map NoteOrRest.Note notes
+      VoiceEntries = [ yield! m.VoiceEntries; yield! List.map VoiceEntry.fromNote notes ]
 }
 
 let withRepeteadNote (count: int) (note: Note.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.Note note))
+      VoiceEntries = List.append m.VoiceEntries (List.replicate count (VoiceEntry.fromNote note))
 }
 
 let withRepeatedRest (count: int) (rest: Rest.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      NotesOrRests = List.append m.NotesOrRests (List.replicate count (NoteOrRest.Rest rest))
+      VoiceEntries = List.append m.VoiceEntries (List.replicate count (VoiceEntry.fromRest rest))
 }
 
-let withSymbols (symbols: NoteOrRest list) (m: ParsedMeasure) : ParsedMeasure = { m with NotesOrRests = symbols }
+let withVoiceEntry (voiceEntry: VoiceEntry.T) (m: ParsedMeasure) : ParsedMeasure = {
+  m with
+      VoiceEntries = List.append m.VoiceEntries [ voiceEntry ]
+}
+
+let withVoiceEntries (voiceEntries: VoiceEntry.T list) (m: ParsedMeasure) : ParsedMeasure = {
+  m with
+      VoiceEntries = voiceEntries
+}
+
+let withRepeteadSymbols (count: int) (voiceEntry: VoiceEntry.T) (m: ParsedMeasure) : ParsedMeasure = {
+  m with
+      VoiceEntries = List.append m.VoiceEntries (List.replicate count voiceEntry)
+}

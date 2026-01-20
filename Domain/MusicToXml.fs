@@ -126,42 +126,34 @@ let private interpretChord (chord: Chord.T) : XElement =
   ]
   |> element "harmony"
 
-let interpretNoteOrRest
-  (divisions: Duration.T)
-  ({
-     NoteOrRest = noteOrRest
-     AttachedToNoteOrRestEvents = attachedToNoteOrRestEvents
-   }: NoteOrRestEvent)
-  : XElement list =
+let interpretVoiceEntry (divisions: Duration.T) (voiceEntryEvent: VoiceEntryEvent) : XElement list =
+  let voiceEntry = voiceEntryEvent.VoiceEntry
+
   let xmlTie xmlType = [
     selfEnclosingElementWithAttributes "tie" [ attribute "type" xmlType ]
     element "notations" [ selfEnclosingElementWithAttributes "tied" [ attribute "type" xmlType ] ]
   ]
 
-  let duration = NoteOrRest.getDuration noteOrRest
+  let duration = VoiceEntry.getDuration voiceEntry
+
+  let chord = voiceEntry |> VoiceEntry.getChord |> Option.map interpretChord
 
   let text =
-    attachedToNoteOrRestEvents
-    |> List.tryFind _.IsText
-    |> Option.bind (function
-      | Text t ->
-        elementWithAttributes "direction" [ attribute "placement" "above" ] [
-          element "direction-type" [ leafElement "words" t ]
-        ]
-        |> Some
-      | _ -> None)
-
-  let chord = noteOrRest |> NoteOrRest.getChord |> Option.map interpretChord
+    voiceEntry
+    |> VoiceEntry.getText
+    |> Option.map (fun t ->
+      elementWithAttributes "direction" [ attribute "placement" "above" ] [
+        element "direction-type" [ leafElement "words" t ]
+      ])
 
   let note =
     element "note" [
-      match noteOrRest with
-      | NoteOrRest.Rest _ -> selfEnclosingElement "rest"
-      | NoteOrRest.Note note -> yield! [ note |> Note.getPitch |> interpretPitch ]
+      voiceEntry
+      |> VoiceEntry.fold (Note.getPitch >> interpretPitch) (fun _ -> selfEnclosingElement "rest")
       yield! interpretDuration divisions duration
-      if attachedToNoteOrRestEvents |> List.contains StartTie then
+      if VoiceEntry.isTied voiceEntry then
         yield! xmlTie "start"
-      if attachedToNoteOrRestEvents |> List.contains StopTie then
+      if Measure.Event.hasStopTie voiceEntryEvent then
         yield! xmlTie "stop"
     ]
 
@@ -199,7 +191,7 @@ let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement
   es
   |> List.collect (fun e ->
     match e with
-    | NoteOrRestEvent noteOrRestEvent -> (Measure.defineDivisions m, noteOrRestEvent) ||> interpretNoteOrRest
+    | VoiceEntryEvent voiceEntryEvent -> (Measure.defineDivisions m, voiceEntryEvent) ||> interpretVoiceEntry
     | _ -> [])
 
 let private createFinalBarline (es: MeasureEvent list) : XElement option =
