@@ -187,6 +187,16 @@ let ``parses a rest`` =
     runWithStateAndAssertOnSuccess Parser.Functions.pRest state content
     <| fun result _ -> result.Rest |> equal "rest is incorrect" expectedResult
 
+let ``parses a rhythmic note`` =
+  testTheory3 "parses a rhythmic note" [
+    case("4").WithData(None, "y4").WithExpectedResult(RhythmicNote.create Duration.Quarter)
+  ]
+  <| fun (lastDuration, content) expectedResult ->
+    let state = defaultParserState |> withoptionalLastDuration lastDuration
+
+    runWithStateAndAssertOnSuccess Parser.Functions.pRhythmicNote state content
+    <| fun result _ -> result.RhythmicNote |> equal "rhythmic note is incorrect" expectedResult
+
 let ``parses a chord`` =
   testTheory3 "parses a chord" [
     caseId(1).WithData("c").WithExpectedResult(Chord.createWithRoot NoteName.C)
@@ -858,6 +868,7 @@ let ParserSpec =
     ``parses a note``
     ``parses a note modifier``
     ``parses a rest``
+    ``parses a rhythmic note``
     ``parses a chord``
     ``parses notes section content``
     ``parses notes section``
