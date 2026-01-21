@@ -844,6 +844,84 @@ let ``parses music`` =
         |> withLastPitch (Pitch.createMiddle NoteName.G)
         |> withLastDuration Duration.Whole
       )
+
+    caseId(4)
+      .WithData(openSample "example-4.sls")
+      .WithExpectedResult(
+        {
+          PartDefinitionSections = [
+            {
+              Id = 1 |> PartId |> Some
+              Name = Some "Chart"
+              TimeSignature = {
+                Numerator = 4
+                Denominator = Duration.Quarter
+              }
+              KeySignature = KeySignature NoteName.A
+              Clef = Clef.G
+            }
+          ]
+          NotesSections = [
+            {
+              PartId = PartId 1
+              Measures = [
+                let measure =
+                  aParsedMeasure ()
+                  |> withTimeSignature {
+                    Numerator = 4
+                    Denominator = Duration.Quarter
+                  }
+                  |> withKeySignature (KeySignature NoteName.A)
+                  |> withClef Clef.G
+
+                // 0
+                measure
+                |> withVoiceEntries [
+                  Duration.QuarterDotted
+                  |> RhythmicNote.create
+                  |> VoiceEntry.fromRhythmicNote
+                  |> VoiceEntry.withChord (Chord.createWithRoot NoteName.A)
+                  |> VoiceEntry.withText "Intro"
+
+                  Duration.Eighth
+                  |> RhythmicNote.create
+                  |> VoiceEntry.fromRhythmicNote
+                  |> VoiceEntry.withTie
+                  |> VoiceEntry.withChord (Chord.createWithRoot NoteName.D)
+                ]
+                |> withRhythmicNote (RhythmicNote.create Duration.Half)
+
+                // 1
+                measure
+                |> withRest (Rest.create Duration.Eighth)
+                |> withVoiceEntries [
+                  Duration.Quarter
+                  |> RhythmicNote.create
+                  |> VoiceEntry.fromRhythmicNote
+                  |> VoiceEntry.withChord (Chord.createWithKind NoteName.FSharp "m")
+
+                  Duration.Eighth
+                  |> RhythmicNote.create
+                  |> VoiceEntry.fromRhythmicNote
+                  |> VoiceEntry.withTie
+                  |> VoiceEntry.withChord (Chord.createWithBass NoteName.D NoteName.E)
+                ]
+                |> withRhythmicNote (RhythmicNote.create Duration.Half)
+              ]
+            }
+          ]
+        },
+        defaultParserState
+        |> withCurrentTimeSignature {
+          Numerator = 4
+          Denominator = Duration.Quarter
+        }
+        |> withCurrentKeySignature (KeySignature NoteName.A)
+        |> withCurrentClef Clef.G
+        |> withCurrentOctave 4
+        |> withoutLastPitch
+        |> withLastDuration Duration.Half
+      )
   ]
   <| fun content (expectedResult: ParsedMusic, expectedFinalState: ParserState) ->
     runAndAssertOnSuccess (Parser.Functions.pMusic defaultSettings) content

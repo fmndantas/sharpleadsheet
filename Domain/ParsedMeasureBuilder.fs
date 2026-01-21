@@ -46,6 +46,11 @@ let withNotes (notes: Note.T list) (m: ParsedMeasure) : ParsedMeasure = {
       VoiceEntries = [ yield! m.VoiceEntries; yield! List.map VoiceEntry.fromNote notes ]
 }
 
+let withRhythmicNote (rhythmicNote: RhythmicNote.T) (m: ParsedMeasure) : ParsedMeasure = {
+  m with
+      VoiceEntries = List.append m.VoiceEntries (rhythmicNote |> VoiceEntry.fromRhythmicNote |> List.singleton)
+}
+
 let withRepeteadNote (count: int) (note: Note.T) (m: ParsedMeasure) : ParsedMeasure = {
   m with
       VoiceEntries = List.append m.VoiceEntries (List.replicate count (VoiceEntry.fromNote note))
@@ -63,7 +68,7 @@ let withVoiceEntry (voiceEntry: VoiceEntry.T) (m: ParsedMeasure) : ParsedMeasure
 
 let withVoiceEntries (voiceEntries: VoiceEntry.T list) (m: ParsedMeasure) : ParsedMeasure = {
   m with
-      VoiceEntries = voiceEntries
+      VoiceEntries = List.append m.VoiceEntries voiceEntries
 }
 
 let withRepeteadSymbols (count: int) (voiceEntry: VoiceEntry.T) (m: ParsedMeasure) : ParsedMeasure = {

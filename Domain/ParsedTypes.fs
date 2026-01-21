@@ -44,6 +44,9 @@ type ParsedRest = {
 
 type ParsedRhythmicNote = {
   RhythmicNote: RhythmicNote.T 
+  IsTied: bool
+  Chord: Chord.T option
+  Text: string option
 }
 
 type ParserState = {

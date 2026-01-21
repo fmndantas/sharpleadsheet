@@ -5,6 +5,7 @@ type T = { Kind: Kind; Modifiers: Modifier list }
 and Kind =
   | Note of Note.T
   | Rest of Rest.T
+  | RhythmicNote of RhythmicNote.T
 
 and Modifier =
   | Tie
@@ -30,6 +31,11 @@ let fromNote (n: Note.T) : T = { Kind = Note n; Modifiers = [] }
 let fromNoteWithTie: Note.T -> T = fromNote >> withTie
 
 let fromRest (r: Rest.T) : T = { Kind = Rest r; Modifiers = [] }
+
+let fromRhythmicNote (r: RhythmicNote.T) : T = {
+  Kind = RhythmicNote r
+  Modifiers = []
+}
 
 let isTied (n: T) : bool =
   n.Modifiers

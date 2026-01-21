@@ -21,6 +21,7 @@ module Types =
   [<RequireQualifiedAccess>]
   type NotesSectionSymbol =
     | Note of ParsedNote
+    | RhythmicNote of ParsedRhythmicNote
     | Rest of ParsedRest
     | OctaveManipulation of int
     | Chord of Chord.T
@@ -187,10 +188,18 @@ module Functions =
       let! state = getUserState
       let! maybeDuration = pstring "y" >>. opt pDuration
       let duration = getUpdatedDuration state maybeDuration
+      let! maybeTie = opt pTie
 
       let rhythmicNote = RhythmicNote.create duration
 
-      return { RhythmicNote = rhythmicNote }
+      do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
+
+      return {
+        RhythmicNote = rhythmicNote
+        IsTied = maybeTie.IsSome
+        Chord = state.LastChord
+        Text = state.LastText
+      }
     }
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
@@ -282,6 +291,7 @@ module Functions =
   let private pNotesSectionSymbol: P<NotesSectionSymbol> =
     choice [
       pNote |>> NotesSectionSymbol.Note
+      pRhythmicNote |>> NotesSectionSymbol.RhythmicNote
       pRest |>> NotesSectionSymbol.Rest
       pOctaveManipulation
       between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord
@@ -312,6 +322,13 @@ module Functions =
       |> VoiceEntry.fromRest
       |> VoiceEntry.withChordOption parsedRest.Chord
       |> VoiceEntry.withTextOption parsedRest.Text
+      |> Some
+    | NotesSectionSymbol.RhythmicNote parsedRhythmicNote ->
+      parsedRhythmicNote.RhythmicNote
+      |> VoiceEntry.fromRhythmicNote
+      |> modifyIfTrue parsedRhythmicNote.IsTied VoiceEntry.withTie
+      |> VoiceEntry.withChordOption parsedRhythmicNote.Chord
+      |> VoiceEntry.withTextOption parsedRhythmicNote.Text
       |> Some
     | _ -> None
 
