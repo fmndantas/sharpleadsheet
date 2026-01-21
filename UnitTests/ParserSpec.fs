@@ -190,9 +190,17 @@ let ``parses a rest`` =
 let ``parses a rhythmic note`` =
   testTheory3 "parses a rhythmic note" [
     case("4").WithData(None, "y4").WithExpectedResult(RhythmicNote.create Duration.Quarter)
+    case("1").WithData(Some Duration.Whole, "y").WithExpectedResult(RhythmicNote.create Duration.Whole)
+    case("32").WithData(None, "y").WithExpectedResult(RhythmicNote.create Duration.ThirtySecond)
   ]
   <| fun (lastDuration, content) expectedResult ->
-    let state = defaultParserState |> withoptionalLastDuration lastDuration
+    let state =
+      defaultParserState
+      |> withCurrentTimeSignature {
+        Numerator = 1
+        Denominator = Duration.ThirtySecond
+      }
+      |> withoptionalLastDuration lastDuration
 
     runWithStateAndAssertOnSuccess Parser.Functions.pRhythmicNote state content
     <| fun result _ -> result.RhythmicNote |> equal "rhythmic note is incorrect" expectedResult

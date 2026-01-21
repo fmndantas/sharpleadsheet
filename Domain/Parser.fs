@@ -182,6 +182,17 @@ module Functions =
       }
     }
 
+  let pRhythmicNote: P<ParsedRhythmicNote> =
+    parse {
+      let! state = getUserState
+      let! maybeDuration = pstring "y" >>. opt pDuration
+      let duration = getUpdatedDuration state maybeDuration
+
+      let rhythmicNote = RhythmicNote.create duration
+
+      return { RhythmicNote = rhythmicNote }
+    }
+
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
     choice [
       pCommandWithBacktrack "id" .>> ws1 >>. num |>> PartDefinitionAttribute.Id
