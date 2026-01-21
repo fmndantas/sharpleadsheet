@@ -52,7 +52,7 @@ let fromRhythmicNote (r: RhythmicNote.T) : T = {
   Modifiers = defaultModifiers
 }
 
-let isTied (n: T) : bool = n.Kind.IsNote && n.Modifiers.IsTied
+let isTied (n: T) : bool = not n.Kind.IsRest && n.Modifiers.IsTied
 
 let getDuration (n: T) : Duration.T =
   match n.Kind with

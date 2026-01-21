@@ -7,12 +7,13 @@ open Case
 
 open Domain
 
-let ``a voice entry made from rest cannot have start tie`` =
-  testTheory3 "a voice entry made from rest cannot have start tie" [
+let ``a voice entry made from rest don't have start tie`` =
+  testTheory3 "a voice entry made from rest don't have start tie" [
     case("1.voice entry created from rest returns isTied = false when Tie modifier is added")
       .WithData(Duration.Whole |> Rest.create |> VoiceEntry.fromRest |> VoiceEntry.withTie)
       .WithExpectedResult
       false
+
     case("2.tied voice entry created from note")
       .WithData(
         Duration.Whole
@@ -27,6 +28,16 @@ let ``a voice entry made from rest cannot have start tie`` =
       .WithData(Duration.Whole |> Note.create 4 NoteName.C |> VoiceEntry.fromNote)
       .WithExpectedResult
       false
+
+    case("4.tied voice entry created from rhythmic note")
+      .WithData(
+        Duration.Whole
+        |> RhythmicNote.create
+        |> VoiceEntry.fromRhythmicNote
+        |> VoiceEntry.withTie
+      )
+      .WithExpectedResult
+      true
   ]
   <| fun voiceEntry expctedResult ->
     VoiceEntry.isTied voiceEntry
@@ -34,4 +45,4 @@ let ``a voice entry made from rest cannot have start tie`` =
 
 [<Tests>]
 let MeasureSpec =
-  testList "voice entry" [ ``a voice entry made from rest cannot have start tie`` ]
+  testList "voice entry" [ ``a voice entry made from rest don't have start tie`` ]
