@@ -58,12 +58,14 @@ let getDuration (n: T) : Duration.T =
   match n.Kind with
   | Note note -> Note.getDuration note
   | Rest rest -> Rest.getDuration rest
+  | RhythmicNote rhythmicNote -> RhythmicNote.getDuration rhythmicNote
 
 let getChord (n: T) : Chord.T option = n.Modifiers.Chord
 
 let getText (n: T) : string option = n.Modifiers.Text
 
-let fold (noteF: Note.T -> 'a) (restF: Rest.T -> 'a) (n: T) : 'a =
+let fold (noteF: Note.T -> 'a) (restF: Rest.T -> 'a) (rhythmicNoteF: RhythmicNote.T -> 'a) (n: T) : 'a =
   match n.Kind with
   | Note n -> noteF n
   | Rest r -> restF r
+  | RhythmicNote r -> rhythmicNoteF r

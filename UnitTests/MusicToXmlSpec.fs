@@ -59,6 +59,7 @@ let ``converts voice entry to xml`` =
     caseId(1)
       .WithData(
         Duration.Quarter,
+        Clef.G,
         (NoteName.C, Duration.Whole)
         ||> Note.create4
         |> VoiceEntry.fromNote
@@ -80,6 +81,7 @@ let ``converts voice entry to xml`` =
     caseId(2)
       .WithData(
         Duration.Quarter,
+        Clef.G,
         Duration.Quarter
         |> Rest.create
         |> VoiceEntry.fromRest
@@ -98,6 +100,7 @@ let ``converts voice entry to xml`` =
     caseId(3)
       .WithData(
         Duration.Sixteenth,
+        Clef.G,
         (NoteName.FSharp, Duration.EighthDotted)
         ||> Note.create4
         |> VoiceEntry.fromNote
@@ -121,6 +124,7 @@ let ``converts voice entry to xml`` =
     case("4.tie start")
       .WithData(
         Duration.Quarter,
+        Clef.G,
         (NoteName.C, Duration.Quarter)
         ||> Note.create4
         |> VoiceEntry.fromNoteWithTie
@@ -146,6 +150,7 @@ let ``converts voice entry to xml`` =
     case("5.tie stop")
       .WithData(
         Duration.Quarter,
+        Clef.G,
         (NoteName.C, Duration.Quarter)
         ||> Note.create4
         |> VoiceEntry.fromNote
@@ -172,6 +177,7 @@ let ``converts voice entry to xml`` =
     case("6.chord attached to note")
       .WithData(
         Duration.Quarter,
+        Clef.G,
         (NoteName.C, Duration.Whole)
         ||> Note.create4
         |> VoiceEntry.fromNote
@@ -204,6 +210,7 @@ let ``converts voice entry to xml`` =
     case("7.chord attached to rest")
       .WithData(
         Duration.Quarter,
+        Clef.G,
         Rest.create Duration.Whole
         |> VoiceEntry.fromRest
         |> VoiceEntry.withChord (Chord.createWithBass NoteName.BFlat NoteName.FSharp)
@@ -231,6 +238,7 @@ let ``converts voice entry to xml`` =
     case("8.text attached to note")
       .WithData(
         Duration.Quarter,
+        Clef.G,
         (NoteName.C, Duration.Whole)
         ||> Note.create4
         |> VoiceEntry.fromNote
@@ -253,16 +261,62 @@ let ``converts voice entry to xml`` =
         <type>whole</type>
       </note>
       "
+
+    case("9.rhythmic note.g clef")
+      .WithData(
+        Duration.Quarter,
+        Clef.G,
+        Duration.HalfDotted
+        |> RhythmicNote.create
+        |> VoiceEntry.fromRhythmicNote
+        |> Measure.Event.voiceEntry
+      )
+      .WithExpectedResult
+      "
+      <note>
+        <unpitched>
+          <display-step>B</display-step>
+          <display-octave>4</display-octave>
+        </unpitched>
+        <duration>3</duration>
+        <type>half</type>
+        <dot/>
+        <notehead>slash</notehead>
+      </note>
+      "
+
+    case("10.rhythmic note.f clef")
+      .WithData(
+        Duration.Quarter,
+        Clef.F,
+        Duration.HalfDotted
+        |> RhythmicNote.create
+        |> VoiceEntry.fromRhythmicNote
+        |> Measure.Event.voiceEntry
+      )
+      .WithExpectedResult
+      "
+        <note>
+          <unpitched>
+            <display-step>D</display-step>
+            <display-octave>3</display-octave>
+          </unpitched>
+          <duration>3</duration>
+          <type>half</type>
+          <dot/>
+          <notehead>slash</notehead>
+        </note>
+        "
   ]
-  <| fun (divisions, measureEvent) expectedResult ->
+  <| fun (divisions, currentClef, measureEvent) expectedResult ->
     let voiceEntryEvent =
       match measureEvent with
       | VoiceEntryEvent e -> e
       | _ -> failwith $"expected {nameof VoiceEntryEvent}"
 
     let result =
-      (divisions, voiceEntryEvent)
-      ||> MusicToXml.interpretVoiceEntry
+      voiceEntryEvent
+      |> MusicToXml.interpretVoiceEntry divisions currentClef
       |> XmlWrapper.element "dummyWrapper"
       |> XmlWrapper.minifyXElement
 

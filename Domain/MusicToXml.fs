@@ -126,16 +126,43 @@ let private interpretChord (chord: Chord.T) : XElement =
   ]
   |> element "harmony"
 
-let interpretVoiceEntry
-  (divisions: Duration.T)
-  ({ VoiceEntry = voiceEntry } as voiceEntryEvent: VoiceEntryEvent)
-  : XElement list =
+let private interpretRhythmicNote (clef: Clef) (_: RhythmicNote.T) : XElement =
+  element "unpitched" [
+    match clef with
+    | Clef.G -> "B"
+    | Clef.F -> "D"
+    |> leafElement "display-step"
 
-  let xmlTie xmlType = [
-    selfEnclosingElementWithAttributes "tie" [ attribute "type" xmlType ]
-    element "notations" [ selfEnclosingElementWithAttributes "tied" [ attribute "type" xmlType ] ]
+    match clef with
+    | Clef.G -> 4
+    | Clef.F -> 3
+    |> toString
+    |> leafElement "display-octave"
   ]
 
+let private interpretTie ({ VoiceEntry = voiceEntry } as voiceEntryEvent: VoiceEntryEvent) = [
+  let xmlTie tieType = [
+    selfEnclosingElementWithAttributes "tie" [ attribute "type" tieType ]
+    element "notations" [ selfEnclosingElementWithAttributes "tied" [ attribute "type" tieType ] ]
+  ]
+
+  if VoiceEntry.isTied voiceEntry then
+    yield! xmlTie "start"
+
+  if Measure.Event.hasStopTie voiceEntryEvent then
+    yield! xmlTie "stop"
+]
+
+let private interpretNoteHead (voiceEntry: VoiceEntry.T) =
+  match voiceEntry.Kind with
+  | VoiceEntry.Kind.RhythmicNote _ -> [ leafElement "notehead" "slash" ]
+  | _ -> []
+
+let interpretVoiceEntry
+  (divisions: Duration.T)
+  (clef: Clef)
+  ({ VoiceEntry = voiceEntry } as voiceEntryEvent: VoiceEntryEvent)
+  : XElement list =
   let duration = VoiceEntry.getDuration voiceEntry
 
   let chord = voiceEntry |> VoiceEntry.getChord |> Option.map interpretChord
@@ -151,12 +178,11 @@ let interpretVoiceEntry
   let note =
     element "note" [
       voiceEntry
-      |> VoiceEntry.fold (Note.getPitch >> interpretPitch) (fun _ -> selfEnclosingElement "rest")
+      |> VoiceEntry.fold (Note.getPitch >> interpretPitch) (fun _ -> selfEnclosingElement "rest") (fun r ->
+        interpretRhythmicNote clef r)
       yield! interpretDuration divisions duration
-      if VoiceEntry.isTied voiceEntry then
-        yield! xmlTie "start"
-      if Measure.Event.hasStopTie voiceEntryEvent then
-        yield! xmlTie "stop"
+      yield! interpretTie voiceEntryEvent
+      yield! interpretNoteHead voiceEntry
     ]
 
   [ yield! Option.toList chord; yield! Option.toList text; note ]
@@ -193,7 +219,7 @@ let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement
   es
   |> List.collect (fun e ->
     match e with
-    | VoiceEntryEvent voiceEntryEvent -> (Measure.defineDivisions m, voiceEntryEvent) ||> interpretVoiceEntry
+    | VoiceEntryEvent voiceEntryEvent -> interpretVoiceEntry (Measure.defineDivisions m) m.Parsed.Clef voiceEntryEvent
     | _ -> [])
 
 let private createFinalBarline (es: MeasureEvent list) : XElement option =
