@@ -1015,6 +1015,254 @@ You can add formatting attributes to `<words>`:
 
 ---
 
+## Rhythmic and Slash Notation
+
+Rhythmic notation and slash notation are common in lead sheets, jazz charts, and rhythm sections where you want to indicate rhythm patterns or repetitions without specifying exact pitches.
+
+### Slash Notation (Rhythm Slashes)
+
+Slash notation displays rhythm strokes on the staff without specific pitches. Each slash represents a beat or rhythmic duration.
+
+#### Basic Slash Note
+
+```xml
+<note>
+  <unpitched>
+    <display-step>B</display-step>
+    <display-octave>4</display-octave>
+  </unpitched>
+  <duration>1</duration>
+  <type>quarter</type>
+  <notehead>slash</notehead>
+</note>
+```
+
+**Key elements:**
+- `<unpitched>` - Indicates no specific pitch (replaces `<pitch>`)
+- `<display-step>` and `<display-octave>` - Where to draw the slash on the staff (typically middle of staff)
+- `<notehead>slash</notehead>` - Makes the note appear as a slash
+
+#### Example: Four Slash Beats in 4/4
+
+```xml
+<measure number="1">
+  <attributes>
+    <divisions>1</divisions>
+    <time>
+      <beats>4</beats>
+      <beat-type>4</beat-type>
+    </time>
+  </attributes>
+  <note>
+    <unpitched>
+      <display-step>B</display-step>
+      <display-octave>4</display-octave>
+    </unpitched>
+    <duration>1</duration>
+    <type>quarter</type>
+    <notehead>slash</notehead>
+  </note>
+  <note>
+    <unpitched>
+      <display-step>B</display-step>
+      <display-octave>4</display-octave>
+    </unpitched>
+    <duration>1</duration>
+    <type>quarter</type>
+    <notehead>slash</notehead>
+  </note>
+  <note>
+    <unpitched>
+      <display-step>B</display-step>
+      <display-octave>4</display-octave>
+    </unpitched>
+    <duration>1</duration>
+    <type>quarter</type>
+    <notehead>slash</notehead>
+  </note>
+  <note>
+    <unpitched>
+      <display-step>B</display-step>
+      <display-octave>4</display-octave>
+    </unpitched>
+    <duration>1</duration>
+    <type>quarter</type>
+    <notehead>slash</notehead>
+  </note>
+</measure>
+```
+
+### Measure Repeat Signs
+
+Measure repeat signs indicate that a measure (or measures) should be repeated without rewriting the notation.
+
+#### Single Measure Repeat
+
+Use the `<measure-style>` element within `<attributes>`:
+
+```xml
+<measure number="2">
+  <attributes>
+    <measure-style>
+      <measure-repeat type="start">1</measure-repeat>
+    </measure-style>
+  </attributes>
+</measure>
+```
+
+**Key elements:**
+- `<measure-style>` - Container for measure-level notation styles
+- `<measure-repeat>` - Indicates a measure repeat
+  - `type` attribute: `"start"` begins the repeat
+  - Text content: number of measures to repeat (usually `1` for single measure)
+
+#### Example: Measure with Repeat Sign
+
+```xml
+<!-- Measure 1: Original pattern -->
+<measure number="1">
+  <attributes>
+    <divisions>2</divisions>
+    <time>
+      <beats>4</beats>
+      <beat-type>4</beat-type>
+    </time>
+  </attributes>
+  <note>
+    <pitch>
+      <step>C</step>
+      <octave>4</octave>
+    </pitch>
+    <duration>2</duration>
+    <type>quarter</type>
+  </note>
+  <note>
+    <pitch>
+      <step>E</step>
+      <octave>4</octave>
+    </pitch>
+    <duration>2</duration>
+    <type>quarter</type>
+  </note>
+  <note>
+    <pitch>
+      <step>G</step>
+      <octave>4</octave>
+    </pitch>
+    <duration>2</duration>
+    <type>quarter</type>
+  </note>
+  <note>
+    <pitch>
+      <step>C</step>
+      <octave>5</octave>
+    </pitch>
+    <duration>2</duration>
+    <type>quarter</type>
+  </note>
+</measure>
+
+<!-- Measure 2: Repeat previous measure -->
+<measure number="2">
+  <attributes>
+    <measure-style>
+      <measure-repeat type="start">1</measure-repeat>
+    </measure-style>
+  </attributes>
+</measure>
+```
+
+**Result:** Measure 2 displays a repeat symbol (%) indicating to repeat measure 1.
+
+#### Multi-Measure Repeat
+
+For repeating multiple measures, use a larger number:
+
+```xml
+<measure number="3">
+  <attributes>
+    <measure-style>
+      <measure-repeat type="start">2</measure-repeat>
+    </measure-style>
+  </attributes>
+</measure>
+```
+
+This indicates to repeat the previous 2 measures.
+
+### Combining Slash Notation with Chord Symbols
+
+A common use case in lead sheets is slash notation with chord symbols:
+
+```xml
+<measure number="1">
+  <attributes>
+    <divisions>1</divisions>
+    <time>
+      <beats>4</beats>
+      <beat-type>4</beat-type>
+    </time>
+  </attributes>
+  
+  <!-- Chord symbol -->
+  <harmony>
+    <root>
+      <root-step>C</root-step>
+    </root>
+    <kind>major</kind>
+  </harmony>
+  
+  <!-- Four slash beats -->
+  <note>
+    <unpitched>
+      <display-step>B</display-step>
+      <display-octave>4</display-octave>
+    </unpitched>
+    <duration>1</duration>
+    <type>quarter</type>
+    <notehead>slash</notehead>
+  </note>
+  <note>
+    <unpitched>
+      <display-step>B</display-step>
+      <display-octave>4</display-octave>
+    </unpitched>
+    <duration>1</duration>
+    <type>quarter</type>
+    <notehead>slash</notehead>
+  </note>
+  <note>
+    <unpitched>
+      <display-step>B</display-step>
+      <display-octave>4</display-octave>
+    </unpitched>
+    <duration>1</duration>
+    <type>quarter</type>
+    <notehead>slash</notehead>
+  </note>
+  <note>
+    <unpitched>
+      <display-step>B</display-step>
+      <display-octave>4</display-octave>
+    </unpitched>
+    <duration>1</duration>
+    <type>quarter</type>
+    <notehead>slash</notehead>
+  </note>
+</measure>
+```
+
+**Result:** A measure showing "C" chord symbol with four slash beats underneath.
+
+### Notes on Implementation
+
+1. **Slash positioning:** Use `B4` (treble clef) or `D3` (bass clef) for centered slashes on the staff
+2. **Measure repeats:** Only require the `<measure-style>` element; no notes needed
+3. **Empty measures:** When using measure repeats, the measure can be empty (only attributes)
+4. **Duration still matters:** Even with slashes, duration values must still add up correctly to fill the measure
+
+---
+
 ## Summary: What You Need to Implement
 
 1. **Header generation** - part-list with IDs and names
@@ -1026,5 +1274,7 @@ You can add formatting attributes to `<words>`:
 7. **Chord symbols** (optional) - add `<harmony>` before notes with root, kind, and optional bass
 8. **Barlines** (optional) - add `<barline>` with style for final bars, repeats, and sections
 9. **Text attachments** (optional) - add `<direction>` with `<words>` for text above/below notes
+10. **Slash notation** (optional) - use `<unpitched>` with `<notehead>slash</notehead>` for rhythm slashes
+11. **Measure repeats** (optional) - use `<measure-style>` with `<measure-repeat>` for repeat signs
 
 **That's it.** MuseScore renders everything else beautifully.

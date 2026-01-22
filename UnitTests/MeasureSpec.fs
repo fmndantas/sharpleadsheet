@@ -13,6 +13,9 @@ open ParsedMeasureBuilder
 open ValidatedMeasureBuilder
 open Measure.Types
 
+module VE = VoiceEntry
+module ME = Measure.Event
+
 let ``generates measure events`` =
   // C, 4/4
   let emptyMeasure =
@@ -152,11 +155,7 @@ let ``generates measure events`` =
       .WithData(measureContext, emptyMeasure |> withRepeteadNote 4 (Note.create4 NoteName.C Duration.Quarter))
       .WithExpectedResult(
         withNextMeasureIndex measureContext,
-        List.replicate
-          4
-          (Note.create4 NoteName.C Duration.Quarter
-           |> VoiceEntry.fromNote
-           |> Measure.Event.voiceEntry),
+        List.replicate 4 (Note.create4 NoteName.C Duration.Quarter |> VE.fromNote |> ME.voiceEntry),
         []
       )
 
@@ -164,7 +163,7 @@ let ``generates measure events`` =
       .WithData(
         measureContext,
         emptyMeasure
-        |> withVoiceEntry (Note.create4 NoteName.C Duration.Whole |> VoiceEntry.fromNoteWithTie)
+        |> withVoiceEntry (Note.create4 NoteName.C Duration.Whole |> VE.fromNoteWithTie)
       )
       .WithExpectedResult(
         withNextMeasureIndex {
@@ -172,9 +171,7 @@ let ``generates measure events`` =
               IsTieStarted = true
         },
         [
-          Note.create4 NoteName.C Duration.Whole
-          |> VoiceEntry.fromNoteWithTie
-          |> Measure.Event.voiceEntry
+          Note.create4 NoteName.C Duration.Whole |> VE.fromNoteWithTie |> ME.voiceEntry
         ],
         []
       )
@@ -194,9 +191,9 @@ let ``generates measure events`` =
         },
         [
           Note.create4 NoteName.C Duration.Whole
-          |> VoiceEntry.fromNote
-          |> Measure.Event.voiceEntry
-          |> Measure.Event.withStopTie
+          |> VE.fromNote
+          |> ME.voiceEntry
+          |> ME.withStopTie
         ],
         []
       )
@@ -205,25 +202,23 @@ let ``generates measure events`` =
       .WithData(
         measureContext,
         emptyMeasure
-        |> withRepeteadSymbols 3 (Note.create4 NoteName.C Duration.Quarter |> VoiceEntry.fromNoteWithTie)
+        |> withRepeteadSymbols 3 (Note.create4 NoteName.C Duration.Quarter |> VE.fromNoteWithTie)
         |> withNote (Note.create4 NoteName.C Duration.Quarter)
       )
       .WithExpectedResult(
         withNextMeasureIndex measureContext,
         [
-          Note.create4 NoteName.C Duration.Quarter
-          |> VoiceEntry.fromNoteWithTie
-          |> Measure.Event.voiceEntry
+          Note.create4 NoteName.C Duration.Quarter |> VE.fromNoteWithTie |> ME.voiceEntry
 
           Note.create4 NoteName.C Duration.Quarter
-          |> VoiceEntry.fromNoteWithTie
-          |> Measure.Event.voiceEntry
-          |> Measure.Event.withStopTie
+          |> VE.fromNoteWithTie
+          |> ME.voiceEntry
+          |> ME.withStopTie
 
           Note.create4 NoteName.C Duration.Quarter
-          |> VoiceEntry.fromNote
-          |> Measure.Event.voiceEntry
-          |> Measure.Event.withStopTie
+          |> VE.fromNote
+          |> ME.voiceEntry
+          |> ME.withStopTie
         ],
         []
       )
@@ -251,19 +246,15 @@ let ``generates measure events`` =
       .WithData(
         measureContext,
         emptyMeasure
-        |> withVoiceEntry (
-          Note.create4 NoteName.C Duration.Whole
-          |> VoiceEntry.fromNote
-          |> VoiceEntry.withText "note text"
-        )
+        |> withVoiceEntry (Note.create4 NoteName.C Duration.Whole |> VE.fromNote |> VE.withText "note text")
       )
       .WithExpectedResult(
         withNextMeasureIndex measureContext,
         [
           Note.create4 NoteName.C Duration.Whole
-          |> VoiceEntry.fromNote
-          |> VoiceEntry.withText "note text"
-          |> Measure.Event.voiceEntry
+          |> VE.fromNote
+          |> VE.withText "note text"
+          |> ME.voiceEntry
         ],
         []
       )
@@ -272,19 +263,15 @@ let ``generates measure events`` =
       .WithData(
         measureContext,
         emptyMeasure
-        |> withVoiceEntry (
-          Rest.create Duration.Whole
-          |> VoiceEntry.fromRest
-          |> VoiceEntry.withText "rest text"
-        )
+        |> withVoiceEntry (Rest.create Duration.Whole |> VE.fromRest |> VE.withText "rest text")
       )
       .WithExpectedResult(
         withNextMeasureIndex measureContext,
         [
           Rest.create Duration.Whole
-          |> VoiceEntry.fromRest
-          |> VoiceEntry.withText "rest text"
-          |> Measure.Event.voiceEntry
+          |> VE.fromRest
+          |> VE.withText "rest text"
+          |> ME.voiceEntry
         ],
         []
       )

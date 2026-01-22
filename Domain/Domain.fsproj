@@ -20,6 +20,7 @@
     <Compile Include="Chord.fs"/>
     <Compile Include="Rest.fs"/>
     <Compile Include="Note.fs"/>
+    <Compile Include="RhythmicNote.fs"/>
     <Compile Include="CommonTypes.fs"/>
     <Compile Include="VoiceEntry.fs"/>
     <Compile Include="KeySignature.fs"/>

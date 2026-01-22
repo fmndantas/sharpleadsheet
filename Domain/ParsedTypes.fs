@@ -42,6 +42,13 @@ type ParsedRest = {
   Text: string option
 }
 
+type ParsedRhythmicNote = {
+  RhythmicNote: RhythmicNote.T 
+  IsTied: bool
+  Chord: Chord.T option
+  Text: string option
+}
+
 type ParserState = {
   CurrentTimeSignature: TimeSignature
   CurrentKeySignature: KeySignature
