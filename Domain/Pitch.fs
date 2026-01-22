@@ -7,7 +7,7 @@ type T = {
 
 let create noteName octave = { NoteName = noteName; Octave = octave }
 
-let createMiddle noteName = create noteName 4
+let create4 noteName = create noteName 4
 
 let getNoteName (v: T) = v.NoteName
 

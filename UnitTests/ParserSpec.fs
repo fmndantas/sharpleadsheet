@@ -664,7 +664,7 @@ let ``parses music`` =
         |> withCurrentClef Clef.F
         |> withCurrentKeySignature (KeySignature NoteName.G)
         |> withCurrentOctave 4
-        |> withLastPitch (Pitch.createMiddle NoteName.C)
+        |> withLastPitch (Pitch.create4 NoteName.C)
         |> withLastDuration Duration.Eighth
       )
 
@@ -831,7 +831,7 @@ let ``parses music`` =
         |> withCurrentKeySignature (KeySignature NoteName.F)
         |> withCurrentClef Clef.G
         |> withCurrentOctave 4
-        |> withLastPitch (Pitch.createMiddle NoteName.G)
+        |> withLastPitch (Pitch.create4 NoteName.G)
         |> withLastDuration Duration.Whole
       )
 
