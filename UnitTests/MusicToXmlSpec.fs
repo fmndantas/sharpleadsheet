@@ -15,6 +15,9 @@ open Validated
 open ValidatedMeasureBuilder
 open Measure.Types
 
+module VE = VoiceEntry
+module ME = Measure.Event
+
 [<Literal>]
 let here = __SOURCE_DIRECTORY__
 
@@ -57,14 +60,7 @@ let ``converts music to xml`` =
 let ``converts voice entry to xml`` =
   testTheory3 "converts voice entry to xml" [
     caseId(1)
-      .WithData(
-        Duration.Quarter,
-        Clef.G,
-        (NoteName.C, Duration.Whole)
-        ||> Note.create4
-        |> VoiceEntry.fromNote
-        |> Measure.Event.voiceEntry
-      )
+      .WithData(Duration.Quarter, Clef.G, (NoteName.C, Duration.Whole) ||> Note.create4 |> VE.fromNote |> ME.voiceEntry)
       .WithExpectedResult(
         "
         <note>
@@ -79,14 +75,7 @@ let ``converts voice entry to xml`` =
       )
 
     caseId(2)
-      .WithData(
-        Duration.Quarter,
-        Clef.G,
-        Duration.Quarter
-        |> Rest.create
-        |> VoiceEntry.fromRest
-        |> Measure.Event.voiceEntry
-      )
+      .WithData(Duration.Quarter, Clef.G, Duration.Quarter |> Rest.create |> VE.fromRest |> ME.voiceEntry)
       .WithExpectedResult(
         "
       <note>
@@ -103,8 +92,8 @@ let ``converts voice entry to xml`` =
         Clef.G,
         (NoteName.FSharp, Duration.EighthDotted)
         ||> Note.create4
-        |> VoiceEntry.fromNote
-        |> Measure.Event.voiceEntry
+        |> VE.fromNote
+        |> ME.voiceEntry
       )
       .WithExpectedResult(
         "
@@ -127,8 +116,8 @@ let ``converts voice entry to xml`` =
         Clef.G,
         (NoteName.C, Duration.Quarter)
         ||> Note.create4
-        |> VoiceEntry.fromNoteWithTie
-        |> Measure.Event.voiceEntry
+        |> VE.fromNoteWithTie
+        |> ME.voiceEntry
       )
       .WithExpectedResult(
         "
@@ -153,9 +142,9 @@ let ``converts voice entry to xml`` =
         Clef.G,
         (NoteName.C, Duration.Quarter)
         ||> Note.create4
-        |> VoiceEntry.fromNote
-        |> Measure.Event.voiceEntry
-        |> Measure.Event.withStopTie
+        |> VE.fromNote
+        |> ME.voiceEntry
+        |> ME.withStopTie
       )
       .WithExpectedResult(
         "
@@ -180,9 +169,9 @@ let ``converts voice entry to xml`` =
         Clef.G,
         (NoteName.C, Duration.Whole)
         ||> Note.create4
-        |> VoiceEntry.fromNote
-        |> VoiceEntry.withChord (Chord.createWithBassAndKind NoteName.CSharp NoteName.GFlat "maj9(#11/13)")
-        |> Measure.Event.voiceEntry
+        |> VE.fromNote
+        |> VE.withChord (Chord.createWithBassAndKind NoteName.CSharp NoteName.GFlat "maj9(#11/13)")
+        |> ME.voiceEntry
       )
       .WithExpectedResult
       "
@@ -212,9 +201,9 @@ let ``converts voice entry to xml`` =
         Duration.Quarter,
         Clef.G,
         Rest.create Duration.Whole
-        |> VoiceEntry.fromRest
-        |> VoiceEntry.withChord (Chord.createWithBass NoteName.BFlat NoteName.FSharp)
-        |> Measure.Event.voiceEntry
+        |> VE.fromRest
+        |> VE.withChord (Chord.createWithBass NoteName.BFlat NoteName.FSharp)
+        |> ME.voiceEntry
       )
       .WithExpectedResult
       "
@@ -241,9 +230,9 @@ let ``converts voice entry to xml`` =
         Clef.G,
         (NoteName.C, Duration.Whole)
         ||> Note.create4
-        |> VoiceEntry.fromNote
-        |> VoiceEntry.withText "text attached to note"
-        |> Measure.Event.voiceEntry
+        |> VE.fromNote
+        |> VE.withText "text attached to note"
+        |> ME.voiceEntry
       )
       .WithExpectedResult
       "
@@ -268,8 +257,8 @@ let ``converts voice entry to xml`` =
         Clef.G,
         Duration.HalfDotted
         |> RhythmicNote.create
-        |> VoiceEntry.fromRhythmicNote
-        |> Measure.Event.voiceEntry
+        |> VE.fromRhythmicNote
+        |> ME.voiceEntry
       )
       .WithExpectedResult
       "
@@ -291,8 +280,8 @@ let ``converts voice entry to xml`` =
         Clef.F,
         Duration.HalfDotted
         |> RhythmicNote.create
-        |> VoiceEntry.fromRhythmicNote
-        |> Measure.Event.voiceEntry
+        |> VE.fromRhythmicNote
+        |> ME.voiceEntry
       )
       .WithExpectedResult
       "
