@@ -20,10 +20,6 @@ module Types =
 
   [<RequireQualifiedAccess>]
   type NotesSectionSymbol =
-    // TODO: delete Note, RhythmicNote and Rest
-    // | Note of ParsedNote
-    // | RhythmicNote of ParsedRhythmicNote
-    // | Rest of ParsedRest
     | VoiceEntry of VoiceEntry.T
     | OctaveManipulation of int
     | Chord of Chord.T
@@ -155,15 +151,6 @@ module Functions =
       let! state = getUserState
       let duration = getUpdatedDuration state maybeParsedDuration
       return Note.create state.CurrentOctave noteName duration
-
-    // TODO: move state update to pVoiceEntry
-    // do!
-    //   updateUserState (
-    //     withLastPitch (Note.getPitch note)
-    //     >> withLastDuration (Note.getDuration note)
-    //     >> withoutLastChord
-    //     >> withoutLastText
-    //   )
     }
 
   let private pRest: P<Rest.T> =
@@ -172,9 +159,6 @@ module Functions =
       let! maybeDuration = pstring "r" >>. opt pDuration
       let duration = getUpdatedDuration state maybeDuration
       return Rest.create duration
-
-    // TODO: move state update to pVoiceEntry
-    // do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
     }
 
   let private pRhythmicNote: P<RhythmicNote.T> =
@@ -183,9 +167,6 @@ module Functions =
       let! maybeDuration = pstring "y" >>. opt pDuration
       let duration = getUpdatedDuration state maybeDuration
       return RhythmicNote.create duration
-
-    // TODO: move state update to pVoiceEntry
-    // do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
     }
 
   let pVoiceEntry: P<VoiceEntry.T> =
@@ -212,7 +193,7 @@ module Functions =
 
       do!
         updateUserState (
-          (VoiceEntry.isNotRest voiceEntry, voiceEntry |> VoiceEntry.getPitch |> withOptionalLastPitch)
+          (VoiceEntry.isNotRest voiceEntry, voiceEntry |> VoiceEntry.getPitch |> withLastPitchOption)
           ||> modifyIfTrue
           >> (voiceEntry |> VoiceEntry.getDuration |> withLastDuration)
           >> withoutLastChord

@@ -1011,7 +1011,6 @@ let ``parses invalid music`` =
       (parserError.Position.Line, parserError.Position.Column)
       |> equal "Error position (Ln, Col) is not the expected" (errorRow, errorCol)
 
-// TODO: cleanup
 [<Tests>]
 let ParserSpec =
   testList "parser" [

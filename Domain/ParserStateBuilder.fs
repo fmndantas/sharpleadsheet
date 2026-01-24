@@ -17,7 +17,6 @@ let aParserState () : ParserState = {
   LastText = None
 }
 
-// TODO: rename all this function with Optional -> Option
 let withCurrentTimeSignature (t: TimeSignature) (s: ParserState) = { s with CurrentTimeSignature = t }
 
 let withCurrentKeySignature (k: KeySignature) (s: ParserState) = { s with CurrentKeySignature = k }
@@ -28,15 +27,15 @@ let withCurrentOctave (o: int) (s: ParserState) = { s with CurrentOctave = o }
 
 let withLastPitch (p: Pitch.T) (s: ParserState) = { s with LastPitch = Some p }
 
-let withOptionalLastPitch (p: Pitch.T option) (s: ParserState) = { s with LastPitch = p }
+let withLastPitchOption (p: Pitch.T option) (s: ParserState) = { s with LastPitch = p }
 
 let withLastDuration (d: Duration.T) (s: ParserState) = { s with LastDuration = Some d }
 
-let withoptionalLastDuration (d: Duration.T option) (s: ParserState) = { s with LastDuration = d }
+let withLastDurationOption (d: Duration.T option) (s: ParserState) = { s with LastDuration = d }
 
 let withLastChord (c: Chord.T) (s: ParserState) = { s with LastChord = Some c }
 
-let withOptionalLastChord (c: Chord.T option) (s: ParserState) = { s with LastChord = c }
+let withLastChordOption (c: Chord.T option) (s: ParserState) = { s with LastChord = c }
 
 let withoutLastPitch (s: ParserState) = { s with LastPitch = None }
 
