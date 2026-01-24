@@ -54,6 +54,11 @@ let fromRhythmicNote (r: RhythmicNote.T) : T = {
 
 let isTied (n: T) : bool = not n.Kind.IsRest && n.Modifiers.IsTied
 
+let getPitch (n: T) : Pitch.T option =
+  match n.Kind with
+  | Note note -> Some(Note.getPitch note)
+  | _ -> None
+
 let getDuration (n: T) : Duration.T =
   match n.Kind with
   | Note note -> Note.getDuration note
@@ -69,3 +74,6 @@ let fold (noteF: Note.T -> 'a) (restF: Rest.T -> 'a) (rhythmicNoteF: RhythmicNot
   | Note n -> noteF n
   | Rest r -> restF r
   | RhythmicNote r -> rhythmicNoteF r
+
+let isNote (n: T) : bool =
+  n |> fold (fun _ -> true) (fun _ -> false) (fun _ -> false)
