@@ -29,25 +29,28 @@ and ParsedMeasure = {
   VoiceEntries: VoiceEntry.T list
 }
 
-type ParsedNote = {
-  Note: Note.T
-  IsTied: bool
-  Chord: Chord.T option
-  Text: string option
-}
+// TODO: delete
+// type ParsedNote = {
+//   Note: Note.T
+//   IsTied: bool
+//   Chord: Chord.T option
+//   Text: string option
+// }
 
-type ParsedRest = {
-  Rest: Rest.T
-  Chord: Chord.T option
-  Text: string option
-}
+// TODO: delete
+// type ParsedRest = {
+//   Rest: Rest.T
+//   Chord: Chord.T option
+//   Text: string option
+// }
 
-type ParsedRhythmicNote = {
-  RhythmicNote: RhythmicNote.T 
-  IsTied: bool
-  Chord: Chord.T option
-  Text: string option
-}
+// TODO: delete
+// type ParsedRhythmicNote = {
+//   RhythmicNote: RhythmicNote.T 
+//   IsTied: bool
+//   Chord: Chord.T option
+//   Text: string option
+// }
 
 type ParserState = {
   CurrentTimeSignature: TimeSignature

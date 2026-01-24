@@ -20,14 +20,22 @@ module Types =
 
   [<RequireQualifiedAccess>]
   type NotesSectionSymbol =
-    | Note of ParsedNote
-    | RhythmicNote of ParsedRhythmicNote
-    | Rest of ParsedRest
+    // TODO: delete Note, RhythmicNote and Rest
+    // | Note of ParsedNote
+    // | RhythmicNote of ParsedRhythmicNote
+    // | Rest of ParsedRest
+    | VoiceEntry of VoiceEntry.T
     | OctaveManipulation of int
     | Chord of Chord.T
     | Comment
     | MeasureDivider
     | Text of string
+
+  [<RequireQualifiedAccess>]
+  type ParsedVoiceEntrySymbol =
+    | ParsedNote of Note.T
+    | ParsedRest of Rest.T
+    | ParsedRhythmicNote of RhythmicNote.T
 
 module Functions =
   open Types
@@ -55,13 +63,13 @@ module Functions =
     let str: P<_> = many1Satisfy (System.Char.IsWhiteSpace >> not)
     let num: P<_> = pint32
 
-  let pCommand s =
-    pchar ':' >>. pstring s <?> sprintf ":%s" s
+    let pCommand s =
+      pchar ':' >>. pstring s <?> sprintf ":%s" s
 
-  let pEndCommand s =
-    pstring s >>. pchar ':' <?> sprintf "%s:" s
+    let pEndCommand s =
+      pstring s >>. pchar ':' <?> sprintf "%s:" s
 
-  let pCommandWithBacktrack s = pchar ':' >>? pstring s
+    let pCommandWithBacktrack s = pchar ':' >>? pstring s
 
   let pclef: P<Clef> =
     [ "f"; "g" ] |> List.map pstring |> choice
@@ -133,73 +141,72 @@ module Functions =
       | "32" -> Duration.ThirtySecond
       | _ -> failwith $"Unknown duration: \"{v}\""
 
-  let getUpdatedDuration (state: ParserState) (maybeNewDuration: Duration.T option) =
+  let private getUpdatedDuration (state: ParserState) (maybeNewDuration: Duration.T option) =
     maybeNewDuration
     |> Option.orElse state.LastDuration
     |> Option.defaultValue state.CurrentTimeSignature.Denominator
 
-  let pTie: P<unit> = pstring "~" |>> fun _ -> ()
+  let private pTie: P<unit> = pstring "~" |>> fun _ -> ()
 
-  let pNote: P<ParsedNote> =
+  let private pNote: P<Note.T> =
     parse {
       let! noteName = pNoteName
       let! maybeParsedDuration = opt pDuration
       let! state = getUserState
       let duration = getUpdatedDuration state maybeParsedDuration
-      let! maybeTie = opt pTie
+      // TODO: move to VoiceEntry
+      // let! maybeTie = opt pTie
+      return Note.create state.CurrentOctave noteName duration
 
-      let note = Note.create state.CurrentOctave noteName duration
-
-      do!
-        updateUserState (
-          withLastPitch (Note.getPitch note)
-          >> withLastDuration (Note.getDuration note)
-          >> withoutLastChord
-          >> withoutLastText
-        )
-
-      return {
-        Note = note
-        IsTied = maybeTie.IsSome
-        Chord = state.LastChord
-        Text = state.LastText
-      }
+    // TODO: move state update to pVoiceEntry
+    // do!
+    //   updateUserState (
+    //     withLastPitch (Note.getPitch note)
+    //     >> withLastDuration (Note.getDuration note)
+    //     >> withoutLastChord
+    //     >> withoutLastText
+    //   )
     }
 
-  let pRest: P<ParsedRest> =
+  let private pRest: P<Rest.T> =
     parse {
       let! state = getUserState
       let! maybeDuration = pstring "r" >>. opt pDuration
       let duration = getUpdatedDuration state maybeDuration
+      return Rest.create duration
 
-      do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
-
-      let rest = Rest.create duration
-
-      return {
-        Rest = rest
-        Chord = state.LastChord
-        Text = state.LastText
-      }
+    // TODO: move state update to pVoiceEntry
+    // do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
     }
 
-  let pRhythmicNote: P<ParsedRhythmicNote> =
+  let private pRhythmicNote: P<RhythmicNote.T> =
     parse {
       let! state = getUserState
       let! maybeDuration = pstring "y" >>. opt pDuration
       let duration = getUpdatedDuration state maybeDuration
+      // TODO: move to VoiceEntry
       let! maybeTie = opt pTie
 
-      let rhythmicNote = RhythmicNote.create duration
+      return RhythmicNote.create duration
 
-      do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
+    // TODO: move state update to pVoiceEntry
+    // do! updateUserState (withLastDuration duration >> withoutLastChord >> withoutLastText)
+    }
 
-      return {
-        RhythmicNote = rhythmicNote
-        IsTied = maybeTie.IsSome
-        Chord = state.LastChord
-        Text = state.LastText
-      }
+  let pVoiceEntry: P<VoiceEntry.T> =
+    parse {
+      let! parsedVoiceEntrySymbol =
+        choice [
+          pNote |>> ParsedVoiceEntrySymbol.ParsedNote
+          pRest |>> ParsedVoiceEntrySymbol.ParsedRest
+          pRhythmicNote |>> ParsedVoiceEntrySymbol.ParsedRhythmicNote
+        ]
+
+      return
+        match parsedVoiceEntrySymbol with
+        | ParsedVoiceEntrySymbol.ParsedNote note -> VoiceEntry.fromNote note
+        | ParsedVoiceEntrySymbol.ParsedRest rest -> VoiceEntry.fromRest rest
+        | ParsedVoiceEntrySymbol.ParsedRhythmicNote rhythmicNote -> VoiceEntry.fromRhythmicNote rhythmicNote
     }
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
@@ -263,8 +270,6 @@ module Functions =
       return NotesSectionSymbol.OctaveManipulation updatedOctave
     }
 
-  let pBar: P<string> = pstring "|"
-
   let pChord: P<Chord.T> =
     parse {
       let pChordKind = manySatisfy (fun c -> c <> ']' && c <> '/')
@@ -288,16 +293,16 @@ module Functions =
       return content
     }
 
+  let private pBar: P<string> = pstring "|"
+
   let private pNotesSectionSymbol: P<NotesSectionSymbol> =
     choice [
-      pNote |>> NotesSectionSymbol.Note
-      pRhythmicNote |>> NotesSectionSymbol.RhythmicNote
-      pRest |>> NotesSectionSymbol.Rest
       pOctaveManipulation
       between (pchar '[') (pchar ']') pChord |>> NotesSectionSymbol.Chord
+      pText |>> NotesSectionSymbol.Text
+      pVoiceEntry |>> NotesSectionSymbol.VoiceEntry
       pComment |>> fun _ -> NotesSectionSymbol.Comment
       pBar |>> fun _ -> NotesSectionSymbol.MeasureDivider
-      pText |>> NotesSectionSymbol.Text
     ]
     >>= fun result ->
       followedBy (ws >>. pBar) |>> (fun _ -> true) <|> preturn false
@@ -310,26 +315,7 @@ module Functions =
 
   let private notesSectionSymbolToVoiceEntry: NotesSectionSymbol -> VoiceEntry.T option =
     function
-    | NotesSectionSymbol.Note parsedNote ->
-      parsedNote.Note
-      |> VoiceEntry.fromNote
-      |> modifyIfTrue parsedNote.IsTied VoiceEntry.withTie
-      |> VoiceEntry.withChordOption parsedNote.Chord
-      |> VoiceEntry.withTextOption parsedNote.Text
-      |> Some
-    | NotesSectionSymbol.Rest parsedRest ->
-      parsedRest.Rest
-      |> VoiceEntry.fromRest
-      |> VoiceEntry.withChordOption parsedRest.Chord
-      |> VoiceEntry.withTextOption parsedRest.Text
-      |> Some
-    | NotesSectionSymbol.RhythmicNote parsedRhythmicNote ->
-      parsedRhythmicNote.RhythmicNote
-      |> VoiceEntry.fromRhythmicNote
-      |> modifyIfTrue parsedRhythmicNote.IsTied VoiceEntry.withTie
-      |> VoiceEntry.withChordOption parsedRhythmicNote.Chord
-      |> VoiceEntry.withTextOption parsedRhythmicNote.Text
-      |> Some
+    | NotesSectionSymbol.VoiceEntry voiceEntry -> Some voiceEntry
     | _ -> None
 
   let pNotesSectionContent: P<ParsedMeasure list> =

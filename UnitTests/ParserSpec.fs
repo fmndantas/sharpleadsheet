@@ -134,32 +134,8 @@ let ``parses a duration`` =
     runAndAssertOnSuccess Parser.Functions.pDuration data
     <| fun result _ -> result |> equal "duration is incorrect" expectedResult
 
-let ``parses a note`` =
-  testTheory3 "parses a note" [
-    case("c8").WithData(None, None, "c8").WithExpectedResult(Note.create4 NoteName.C Duration.Eighth)
-    case("f16").WithData(None, None, "f16").WithExpectedResult(Note.create4 NoteName.F Duration.Sixteenth)
-
-    case("f, there is a last note ~~> uses last note duration")
-      .WithData(Some Duration.Whole, Pitch.create NoteName.C 3 |> Some, "f")
-      .WithExpectedResult(Note.create4 NoteName.F Duration.Whole)
-
-    case("f, there is not a last note ~~> uses current time signature denominator")
-      .WithData(None, None, "f")
-      .WithExpectedResult(Note.create4 NoteName.F Duration.Quarter)
-
-    case("b1").WithData(None, None, "b1").WithExpectedResult(Note.create4 NoteName.B Duration.Whole)
-  ]
-  <| fun (lastDuration, lastPitch, content) expectedResult ->
-    let currentState =
-      defaultParserState
-      |> withOptionalLastPitch lastPitch
-      |> withoptionalLastDuration lastDuration
-
-    runWithStateAndAssertOnSuccess Parser.Functions.pNote currentState content
-    <| fun result _ -> result.Note |> equal "note is incorrect" expectedResult
-
-let ``parses a note modifier`` =
-  testTheory3 "parses a note modifier" [
+let ``parses a voice entry modifier`` =
+  testTheory3 "parses a voice entry modifier" [
     case("text.a").WithData("t", "t:verse").WithExpectedResult { Prefix = "t"; Content = "verse" }
     case("text.b").WithData("t", "t:{verse}").WithExpectedResult { Prefix = "t"; Content = "verse" }
     case("text.c").WithData("t", "t:{a b c}").WithExpectedResult { Prefix = "t"; Content = "a b c" }
@@ -168,44 +144,76 @@ let ``parses a note modifier`` =
     runAndAssertOnSuccess (Parser.Functions.pModifier prefix) data
     <| fun result _ -> result |> equal "note modifier is incorrect" expectedResult
 
-let ``parses a rest`` =
-  testTheory3 "parses a rest" [
-    case("4").WithData(None, "r4").WithExpectedResult(Rest.create Duration.Quarter)
-    case("8.").WithData(None, "r8.").WithExpectedResult(Rest.create Duration.EighthDotted)
-    case("1").WithData(None, "r1").WithExpectedResult(Rest.create Duration.Whole)
-    case("2.").WithData(Some Duration.HalfDotted, "r").WithExpectedResult(Rest.create Duration.HalfDotted)
-    case("4.").WithData(None, "r").WithExpectedResult(Rest.create Duration.Sixteenth)
-    case("1.").WithData(Some Duration.WholeDotted, "r16.").WithExpectedResult(Rest.create Duration.SixteenthDotted)
+// TODO: assert state?
+let ``parses a voice entry`` =
+  testTheory3 "parses a voice entry" [
+    caseId(1)
+      .WithData(defaultParserState, "c8")
+      .WithExpectedResult(Note.create4 NoteName.C Duration.Eighth |> VE.fromNote)
+
+    caseId(2)
+      .WithData(defaultParserState, "f16")
+      .WithExpectedResult(Note.create4 NoteName.F Duration.Sixteenth |> VE.fromNote)
+
+    case("3.f, there is a last note ~~> uses last note duration")
+      .WithData(
+        defaultParserState
+        |> withLastDuration Duration.Whole
+        |> withLastPitch (Pitch.create3 NoteName.C),
+        "f"
+      )
+      .WithExpectedResult(Note.create4 NoteName.F Duration.Whole |> VE.fromNote)
+
+    case("4.f, there is not a last note ~~> uses current time signature denominator")
+      .WithData(defaultParserState, "f")
+      .WithExpectedResult(Note.create4 NoteName.F Duration.Quarter |> VE.fromNote)
+
+    case("5.b1")
+      .WithData(defaultParserState, "b1")
+      .WithExpectedResult(Note.create4 NoteName.B Duration.Whole |> VE.fromNote)
+
+    case("6.r4").WithData(defaultParserState, "r4").WithExpectedResult(Rest.create Duration.Quarter |> VE.fromRest)
+
+    case("7.r8.")
+      .WithData(defaultParserState, "r8.")
+      .WithExpectedResult(Rest.create Duration.EighthDotted |> VE.fromRest)
+
+    case("8.r1").WithData(defaultParserState, "r1").WithExpectedResult(Rest.create Duration.Whole |> VE.fromRest)
+
+    case("9.r")
+      .WithData(defaultParserState |> withLastDuration Duration.HalfDotted, "r")
+      .WithExpectedResult(Rest.create Duration.HalfDotted |> VE.fromRest)
+
+    case("10.r")
+      .WithData(
+        defaultParserState
+        |> withCurrentTimeSignature {
+          Numerator = 1
+          Denominator = Duration.Sixteenth
+        },
+        "r"
+      )
+      .WithExpectedResult(Rest.create Duration.Sixteenth |> VE.fromRest)
+
+    case("11.r16.")
+      .WithData(defaultParserState |> withLastDuration Duration.WholeDotted, "r16.")
+      .WithExpectedResult(Rest.create Duration.SixteenthDotted |> VE.fromRest)
+
+    case("12.y4")
+      .WithData(defaultParserState, "y4")
+      .WithExpectedResult(RhythmicNote.create Duration.Quarter |> VE.fromRhythmicNote)
+
+    case("13.y")
+      .WithData(defaultParserState |> withLastDuration Duration.Whole, "y")
+      .WithExpectedResult(RhythmicNote.create Duration.Whole |> VE.fromRhythmicNote)
+
+    case("14.y")
+      .WithData(defaultParserState |> withLastDuration Duration.ThirtySecond, "y")
+      .WithExpectedResult(RhythmicNote.create Duration.ThirtySecond |> VE.fromRhythmicNote)
   ]
-  <| fun (lastDuration, content) expectedResult ->
-    let state =
-      defaultParserState
-      |> withCurrentTimeSignature {
-        Numerator = 1
-        Denominator = Duration.Sixteenth
-      }
-      |> withoptionalLastDuration lastDuration
-
-    runWithStateAndAssertOnSuccess Parser.Functions.pRest state content
-    <| fun result _ -> result.Rest |> equal "rest is incorrect" expectedResult
-
-let ``parses a rhythmic note`` =
-  testTheory3 "parses a rhythmic note" [
-    case("4").WithData(None, "y4").WithExpectedResult(RhythmicNote.create Duration.Quarter)
-    case("1").WithData(Some Duration.Whole, "y").WithExpectedResult(RhythmicNote.create Duration.Whole)
-    case("32").WithData(None, "y").WithExpectedResult(RhythmicNote.create Duration.ThirtySecond)
-  ]
-  <| fun (lastDuration, content) expectedResult ->
-    let state =
-      defaultParserState
-      |> withCurrentTimeSignature {
-        Numerator = 1
-        Denominator = Duration.ThirtySecond
-      }
-      |> withoptionalLastDuration lastDuration
-
-    runWithStateAndAssertOnSuccess Parser.Functions.pRhythmicNote state content
-    <| fun result _ -> result.RhythmicNote |> equal "rhythmic note is incorrect" expectedResult
+  <| fun (currentParserState, content) expectedResult ->
+    runWithStateAndAssertOnSuccess Parser.Functions.pVoiceEntry currentParserState content
+    <| fun result _ -> result |> equal "voice entry is wrong" expectedResult
 
 let ``parses a chord`` =
   testTheory3 "parses a chord" [
@@ -935,17 +943,19 @@ let ``parses invalid music`` =
       (parserError.Position.Line, parserError.Position.Column)
       |> equal "Error position (Ln, Col) is not the expected" (errorRow, errorCol)
 
+// TODO: cleanup
 [<Tests>]
 let ParserSpec =
   testList "parser" [
     ``parses a part definition section``
     ``parses a note name``
     ``parses a duration``
-    ``parses a note``
-    ``parses a note modifier``
-    ``parses a rest``
-    ``parses a rhythmic note``
+    // ``parses a note``
     ``parses a chord``
+    ``parses a voice entry modifier``
+    // ``parses a rest``
+    // ``parses a rhythmic note``
+    ``parses a voice entry``
     ``parses notes section content``
     ``parses notes section``
     ``parses music``
