@@ -17,6 +17,7 @@ let aParserState () : ParserState = {
   LastText = None
 }
 
+// TODO: rename all this function with Optional -> Option
 let withCurrentTimeSignature (t: TimeSignature) (s: ParserState) = { s with CurrentTimeSignature = t }
 
 let withCurrentKeySignature (k: KeySignature) (s: ParserState) = { s with CurrentKeySignature = k }

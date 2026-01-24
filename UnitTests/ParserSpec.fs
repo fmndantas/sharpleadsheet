@@ -146,6 +146,8 @@ let ``parses a voice entry modifier`` =
 
 // TODO: assert state?
 let ``parses a voice entry`` =
+  let aChord = Chord.createWithRoot NoteName.C
+
   testTheory3 "parses a voice entry" [
     caseId(1)
       .WithData(defaultParserState, "c8")
@@ -210,10 +212,44 @@ let ``parses a voice entry`` =
     case("14.y")
       .WithData(defaultParserState |> withLastDuration Duration.ThirtySecond, "y")
       .WithExpectedResult(RhythmicNote.create Duration.ThirtySecond |> VE.fromRhythmicNote)
+
+    case("15.tie.c8~")
+      .WithData(defaultParserState, "c8~")
+      .WithExpectedResult(Note.create4 NoteName.C Duration.Eighth |> VE.fromNote |> VE.withTie)
+
+    // This case is obviously wrong because a rest cannot be tied,
+    // but we are just testing the parser here
+    case("16.tie.r2.~")
+      .WithData(defaultParserState, "r2.~")
+      .WithExpectedResult(Rest.create Duration.HalfDotted |> VE.fromRest |> VE.withTie)
+
+    case("17.tie.y4~")
+      .WithData(defaultParserState, "y4~")
+      .WithExpectedResult(RhythmicNote.create Duration.Quarter |> VE.fromRhythmicNote |> VE.withTie)
+
+    case("18.chord.d2")
+      .WithData(defaultParserState |> withLastChord aChord, "d2")
+      .WithExpectedResult(Note.create4 NoteName.D Duration.Half |> VE.fromNote |> VE.withChord aChord)
+
+    case("19.chord.r2")
+      .WithData(defaultParserState |> withLastChord aChord, "r1")
+      .WithExpectedResult(Rest.create Duration.Whole |> VE.fromRest |> VE.withChord aChord)
+
+    case("20.chord.y1")
+      .WithData(defaultParserState |> withLastChord aChord, "y1")
+      .WithExpectedResult(RhythmicNote.create Duration.Whole |> VE.fromRhythmicNote |> VE.withChord aChord)
+
+    case("21.text.af1")
+      .WithData(defaultParserState |> withLastText "any text", "af1")
+      .WithExpectedResult(
+        Note.create4 NoteName.AFlat Duration.Whole
+        |> VE.fromNote
+        |> VE.withText "any text"
+      )
   ]
   <| fun (currentParserState, content) expectedResult ->
     runWithStateAndAssertOnSuccess Parser.Functions.pVoiceEntry currentParserState content
-    <| fun result _ -> result |> equal "voice entry is wrong" expectedResult
+    <| fun result _ -> result |> deepEqual expectedResult
 
 let ``parses a chord`` =
   testTheory3 "parses a chord" [

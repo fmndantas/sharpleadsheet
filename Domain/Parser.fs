@@ -154,8 +154,6 @@ module Functions =
       let! maybeParsedDuration = opt pDuration
       let! state = getUserState
       let duration = getUpdatedDuration state maybeParsedDuration
-      // TODO: move to VoiceEntry
-      // let! maybeTie = opt pTie
       return Note.create state.CurrentOctave noteName duration
 
     // TODO: move state update to pVoiceEntry
@@ -184,9 +182,6 @@ module Functions =
       let! state = getUserState
       let! maybeDuration = pstring "y" >>. opt pDuration
       let duration = getUpdatedDuration state maybeDuration
-      // TODO: move to VoiceEntry
-      let! maybeTie = opt pTie
-
       return RhythmicNote.create duration
 
     // TODO: move state update to pVoiceEntry
@@ -202,11 +197,20 @@ module Functions =
           pRhythmicNote |>> ParsedVoiceEntrySymbol.ParsedRhythmicNote
         ]
 
-      return
+      let! maybeTie = opt pTie
+
+      let! state = getUserState
+
+      let voiceEntry =
         match parsedVoiceEntrySymbol with
         | ParsedVoiceEntrySymbol.ParsedNote note -> VoiceEntry.fromNote note
         | ParsedVoiceEntrySymbol.ParsedRest rest -> VoiceEntry.fromRest rest
         | ParsedVoiceEntrySymbol.ParsedRhythmicNote rhythmicNote -> VoiceEntry.fromRhythmicNote rhythmicNote
+        |> modifyIfTrue maybeTie.IsSome VoiceEntry.withTie
+        |> VoiceEntry.withChordOption state.LastChord
+        |> VoiceEntry.withTextOption state.LastText
+
+      return voiceEntry
     }
 
   let pPartDefinitionAttribute: P<PartDefinitionAttribute> =
