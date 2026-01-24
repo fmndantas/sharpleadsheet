@@ -252,7 +252,7 @@ let ``parses a voice entry`` =
 
 let ``voice entry parsing updates parser state`` =
   testTheory3 "voice entry parsing updates parser state" [
-    caseId(1)
+    case("1.note")
       .WithData(
         defaultParserState
         |> withCurrentOctave 5
@@ -271,12 +271,42 @@ let ``voice entry parsing updates parser state`` =
         |> withoutLastText
       )
 
-    case("2.rest does not affect pitch")
-      .WithData(defaultParserState |> withLastPitch (Pitch.create4 NoteName.AFlat), "r1")
+    case("2.rest")
+      .WithData(
+        defaultParserState
+        |> withCurrentOctave 3
+        |> withLastPitch (Pitch.create4 NoteName.C)
+        |> withoutLastDuration
+        |> withLastChord (Chord.createWithRoot NoteName.C)
+        |> withLastText "some text",
+        "r1"
+      )
       .WithExpectedResult(
         defaultParserState
-        |> withLastPitch (Pitch.create4 NoteName.AFlat)
+        |> withCurrentOctave 3
+        |> withLastPitch (Pitch.create4 NoteName.C)
         |> withLastDuration Duration.Whole
+        |> withoutLastChord
+        |> withoutLastText
+      )
+
+    case("3.rhythmic note")
+      .WithData(
+        defaultParserState
+        |> withCurrentOctave 4
+        |> withLastPitch (Pitch.create4 NoteName.C)
+        |> withoutLastDuration
+        |> withLastChord (Chord.createWithRoot NoteName.C)
+        |> withLastText "some text",
+        "y16"
+      )
+      .WithExpectedResult(
+        defaultParserState
+        |> withCurrentOctave 4
+        |> withLastPitch (Pitch.create4 NoteName.C)
+        |> withLastDuration Duration.Sixteenth
+        |> withoutLastChord
+        |> withoutLastText
       )
   ]
   <| fun (initialParserState, content) expectedFinalParserState ->

@@ -193,7 +193,7 @@ module Functions =
 
       do!
         updateUserState (
-          (VoiceEntry.isNotRest voiceEntry, voiceEntry |> VoiceEntry.getPitch |> withLastPitchOption)
+          (VoiceEntry.isNote voiceEntry, voiceEntry |> VoiceEntry.getPitch |> withLastPitchOption)
           ||> modifyIfTrue
           >> (voiceEntry |> VoiceEntry.getDuration |> withLastDuration)
           >> withoutLastChord

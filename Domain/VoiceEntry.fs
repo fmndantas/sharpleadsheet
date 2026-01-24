@@ -75,5 +75,5 @@ let fold (noteF: Note.T -> 'a) (restF: Rest.T -> 'a) (rhythmicNoteF: RhythmicNot
   | Rest r -> restF r
   | RhythmicNote r -> rhythmicNoteF r
 
-let isNotRest (n: T) : bool =
-  n |> fold (fun _ -> true) (fun _ -> false) (fun _ -> true)
+let isNote (n: T) : bool =
+  n |> fold (fun _ -> true) (fun _ -> false) (fun _ -> false)
