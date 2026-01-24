@@ -24,7 +24,8 @@ Its goal is to offer a simple and intuitive input syntax, combined with clear an
 | :--- | :---: |
 | Chord symbols | ✅ |
 | Text attached to voice entry | ✅ |
-| Rhythmic slash notation | ⏳ In Progress |
+| Rhythmic notation | ✅  |
+| Slash notation | ⏳ In Progress |
 | Multiple parts and staves | ⏳ In Progress |
 | Simple repeats | ⏳ In Progress |
 | Double barlines | ⏳ In Progress |
