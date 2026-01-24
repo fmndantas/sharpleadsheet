@@ -8,6 +8,8 @@ let create3 noteName = create noteName 3
 
 let create4 noteName = create noteName 4
 
+let create5 noteName = create noteName 5
+
 let getNoteName (v: T) = v.NoteName
 
 let getOctave (v: T) = v.Octave

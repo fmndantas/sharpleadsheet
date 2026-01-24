@@ -144,7 +144,6 @@ let ``parses a voice entry modifier`` =
     runAndAssertOnSuccess (Parser.Functions.pModifier prefix) data
     <| fun result _ -> result |> equal "note modifier is incorrect" expectedResult
 
-// TODO: assert state?
 let ``parses a voice entry`` =
   let aChord = Chord.createWithRoot NoteName.C
 
@@ -250,6 +249,39 @@ let ``parses a voice entry`` =
   <| fun (currentParserState, content) expectedResult ->
     runWithStateAndAssertOnSuccess Parser.Functions.pVoiceEntry currentParserState content
     <| fun result _ -> result |> deepEqual expectedResult
+
+let ``voice entry parsing updates parser state`` =
+  testTheory3 "voice entry parsing updates parser state" [
+    caseId(1)
+      .WithData(
+        defaultParserState
+        |> withCurrentOctave 5
+        |> withoutLastPitch
+        |> withoutLastDuration
+        |> withLastChord (Chord.createWithRoot NoteName.C)
+        |> withLastText "some text",
+        "af32"
+      )
+      .WithExpectedResult(
+        defaultParserState
+        |> withCurrentOctave 5
+        |> withLastPitch (Pitch.create5 NoteName.AFlat)
+        |> withLastDuration Duration.ThirtySecond
+        |> withoutLastChord
+        |> withoutLastText
+      )
+
+    case("2.rest does not affect pitch")
+      .WithData(defaultParserState |> withLastPitch (Pitch.create4 NoteName.AFlat), "r1")
+      .WithExpectedResult(
+        defaultParserState
+        |> withLastPitch (Pitch.create4 NoteName.AFlat)
+        |> withLastDuration Duration.Whole
+      )
+  ]
+  <| fun (initialParserState, content) expectedFinalParserState ->
+    runWithStateAndAssertOnSuccess Parser.Functions.pVoiceEntry initialParserState content
+    <| fun _ finalState -> finalState |> deepEqual expectedFinalParserState
 
 let ``parses a chord`` =
   testTheory3 "parses a chord" [
@@ -986,12 +1018,10 @@ let ParserSpec =
     ``parses a part definition section``
     ``parses a note name``
     ``parses a duration``
-    // ``parses a note``
     ``parses a chord``
     ``parses a voice entry modifier``
-    // ``parses a rest``
-    // ``parses a rhythmic note``
     ``parses a voice entry``
+    ``voice entry parsing updates parser state``
     ``parses notes section content``
     ``parses notes section``
     ``parses music``

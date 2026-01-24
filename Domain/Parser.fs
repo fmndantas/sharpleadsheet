@@ -210,6 +210,15 @@ module Functions =
         |> VoiceEntry.withChordOption state.LastChord
         |> VoiceEntry.withTextOption state.LastText
 
+      do!
+        updateUserState (
+          (VoiceEntry.isNotRest voiceEntry, voiceEntry |> VoiceEntry.getPitch |> withOptionalLastPitch)
+          ||> modifyIfTrue
+          >> (voiceEntry |> VoiceEntry.getDuration |> withLastDuration)
+          >> withoutLastChord
+          >> withoutLastText
+        )
+
       return voiceEntry
     }
 
