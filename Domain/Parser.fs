@@ -36,10 +36,10 @@ module Types =
 module Functions =
   open Types
 
-  type private P<'a> = Parser<'a, ParserState>
+  type P<'a> = Parser<'a, ParserState>
 
   [<AutoOpen>]
-  module private Debug =
+  module Debug =
     let (<!>) (p: P<_>) label : P<_> =
       if true then
         p
@@ -51,7 +51,7 @@ module Functions =
           reply
 
   [<AutoOpen>]
-  module private Helpers =
+  module Helpers =
     let pComment: P<_> = pchar '#' >>. skipRestOfLine false
     let ws: P<_> = spaces
     let ws1: P<_> = spaces1
