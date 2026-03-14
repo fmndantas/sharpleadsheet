@@ -13,6 +13,8 @@ let aParsedMeasure () : ParsedMeasure = {
   }
   KeySignature = KeySignature NoteName.C
   VoiceEntries = []
+  StartBarline = Barline.Simple
+  EndBarline = Barline.Simple
 }
 
 let withKeySignature (k: KeySignature) (m: ParsedMeasure) : ParsedMeasure = { m with KeySignature = k }
@@ -75,3 +77,7 @@ let withRepeteadSymbols (count: int) (voiceEntry: VoiceEntry.T) (m: ParsedMeasur
   m with
       VoiceEntries = List.append m.VoiceEntries (List.replicate count voiceEntry)
 }
+
+let withStartBarline (barline: Barline) (m: ParsedMeasure) : ParsedMeasure = { m with StartBarline = barline }
+
+let withEndBarline (barline: Barline) (m: ParsedMeasure) : ParsedMeasure = { m with EndBarline = barline }

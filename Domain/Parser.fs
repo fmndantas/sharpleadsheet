@@ -24,7 +24,7 @@ module Types =
     | OctaveManipulation of int
     | Chord of Chord.T
     | Comment
-    | MeasureDivider
+    | Bar of Barline
     | Text of string
 
   [<RequireQualifiedAccess>]
@@ -41,7 +41,7 @@ module Functions =
   [<AutoOpen>]
   module private Debug =
     let (<!>) (p: P<_>) label : P<_> =
-      if true then
+      if false then
         p
       else
         fun stream ->
@@ -59,6 +59,7 @@ module Functions =
     let str: P<_> = many1Satisfy (System.Char.IsWhiteSpace >> not)
     let num: P<_> = pint32
 
+    // TODO: pCommand -> pStartCommand
     let pCommand s =
       pchar ':' >>. pstring s <?> sprintf ":%s" s
 
@@ -287,7 +288,13 @@ module Functions =
       return content
     }
 
-  let private pBar: P<string> = pstring "|"
+  let pBar: P<Barline> =
+    [ "|:"; ":|"; "|" ] |> List.map pstring |> choice
+    |>> function
+      | "|" -> Barline.Simple
+      | "|:" -> Barline.StartRepeat
+      | ":|" -> Barline.EndRepeat
+      | _ -> failwith "Unknown barline"
 
   let private pNotesSectionSymbol: P<NotesSectionSymbol> =
     choice [
@@ -296,48 +303,15 @@ module Functions =
       pText |>> NotesSectionSymbol.Text
       pVoiceEntry |>> NotesSectionSymbol.VoiceEntry
       pComment |>> fun _ -> NotesSectionSymbol.Comment
-      pBar |>> fun _ -> NotesSectionSymbol.MeasureDivider
+      pBar |>> NotesSectionSymbol.Bar
     ]
     >>= fun result ->
       followedBy (ws >>. pBar) |>> (fun _ -> true) <|> preturn false
-      >>= fun isNextSymbolABar ->
-        (if isNextSymbolABar || result.IsMeasureDivider then
-           spaces
-         else
-           spaces1)
-        >>% result
-
-  let private notesSectionSymbolToVoiceEntry: NotesSectionSymbol -> VoiceEntry.T option =
-    function
-    | NotesSectionSymbol.VoiceEntry voiceEntry -> Some voiceEntry
-    | _ -> None
+      >>= fun isNextSymbolABar -> (if isNextSymbolABar || result.IsBar then spaces else spaces1) >>% result
 
   let pNotesSectionContent: P<ParsedMeasure list> =
     parse {
       let! symbols = many pNotesSectionSymbol
-
-      let symbolsPerMeasure =
-        symbols
-        |> List.fold
-          (fun acc symbol ->
-            if symbol.IsMeasureDivider then
-              [] :: acc
-            else
-              let accHead = acc |> List.tryHead |> Option.defaultValue []
-
-              let updatedAccHead =
-                symbol
-                |> notesSectionSymbolToVoiceEntry
-                |> Option.map (fun voiceEntry -> voiceEntry :: accHead)
-                |> Option.defaultValue accHead
-
-              if List.isEmpty acc then
-                List.singleton updatedAccHead
-              else
-                updatedAccHead :: List.tail acc)
-          []
-        |> List.map List.rev
-        |> List.rev
 
       let! state = getUserState
 
@@ -345,19 +319,32 @@ module Functions =
       let timeSignature = state.CurrentTimeSignature
       let clef = state.CurrentClef
 
-      let createMeasure symbols =
+      let createMeasure () =
         aParsedMeasure ()
         |> withKeySignature keySignature
         |> withTimeSignature timeSignature
         |> withClef clef
-        |> withVoiceEntries symbols
 
-      let updatedMeasures =
-        symbolsPerMeasure
-        |> List.filter (List.isEmpty >> not)
-        |> List.fold (fun acc symbols -> List.append acc [ createMeasure symbols ]) []
+      let measure0 = createMeasure ()
 
-      return updatedMeasures
+      return
+        symbols
+        |> List.fold
+          (fun (acc: ParsedMeasure list) symbol ->
+            match symbol with
+            | NotesSectionSymbol.Bar Barline.Simple -> createMeasure () :: acc
+            | NotesSectionSymbol.Bar Barline.StartRepeat ->
+              (createMeasure () |> withStartBarline Barline.StartRepeat) :: acc
+            // Puts end repeat in the last measure, then inserts the new measure
+            | NotesSectionSymbol.Bar Barline.EndRepeat ->
+              let updatedCurrentHead = acc |> List.head |> withEndBarline Barline.EndRepeat
+              let newHead = createMeasure ()
+              newHead :: updatedCurrentHead :: List.tail acc
+            | NotesSectionSymbol.VoiceEntry ve -> (acc |> List.head |> withVoiceEntry ve) :: List.tail acc
+            | _ -> acc)
+          (List.singleton measure0)
+        |> List.filter (fun m -> m.VoiceEntries.Length > 0)
+        |> List.rev
     }
 
   let pNotesSection: P<ParsedNotesSection> =

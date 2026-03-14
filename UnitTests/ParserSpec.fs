@@ -250,6 +250,16 @@ let ``parses a voice entry`` =
     runWithStateAndAssertOnSuccess Parser.Functions.pVoiceEntry currentParserState content
     <| fun result _ -> result |> deepEqual expectedResult
 
+let ``parses a barline`` =
+  testTheory3 "parses a barline" [
+    case("1.simple").WithData("|").WithExpectedResult Barline.Simple
+    case("2.start repeat").WithData("|:").WithExpectedResult Barline.StartRepeat
+    case("3.end repeat").WithData(":|").WithExpectedResult Barline.EndRepeat
+  ]
+  <| fun content expectedResult ->
+    runWithStateAndAssertOnSuccess Parser.Functions.pBar defaultParserState content
+    <| fun result _ -> result |> equal "barline is incorrect" expectedResult
+
 let ``voice entry parsing updates parser state`` =
   testTheory3 "voice entry parsing updates parser state" [
     case("1.note")
@@ -607,6 +617,39 @@ let ``parses notes section content`` =
             |> VE.fromNote
             |> VE.withText "this_is_a_string"
           )
+        ]
+      )
+
+    caseId(10)
+      .WithData(defaultParserState, openSample "sequence-of-notes-10-simple-repetition.sls")
+      .WithExpectedResult(
+        let measure =
+          aParsedMeasure ()
+          |> withCommonTimeSignature
+          |> withCNaturalKeySignature
+          |> withClef Clef.G
+
+        [
+          measure
+          |> withVoiceEntry (Note.create4 NoteName.C Duration.Whole |> VE.fromNote)
+
+          measure
+          |> withStartBarline Barline.StartRepeat
+          |> withVoiceEntry (Note.create4 NoteName.C Duration.Whole |> VE.fromNote)
+          |> withEndBarline Barline.EndRepeat
+
+          measure
+          |> withVoiceEntry (Note.create4 NoteName.C Duration.Whole |> VE.fromNote)
+
+          measure
+          |> withVoiceEntry (Note.create4 NoteName.C Duration.Whole |> VE.fromNote)
+          |> withStartBarline Barline.StartRepeat
+          |> withEndBarline Barline.EndRepeat
+
+          measure
+          |> withVoiceEntry (Note.create4 NoteName.C Duration.Whole |> VE.fromNote)
+          |> withStartBarline Barline.StartRepeat
+          |> withEndBarline Barline.EndRepeat
         ]
       )
   ]
@@ -1050,6 +1093,7 @@ let ParserSpec =
     ``parses a chord``
     ``parses a voice entry modifier``
     ``parses a voice entry``
+    ``parses a barline``
     ``voice entry parsing updates parser state``
     ``parses notes section content``
     ``parses notes section``

@@ -70,6 +70,7 @@ let generateEvents
     if context.CurrentClef <> measure.Clef then
       DefineClefEvent measure.Clef
 
+    // NOTE: using start and end barline will imply in discarding this event
     if context.TotalNumberOfMeasures = context.CurrentMeasureIndex + 1 then
       FinalBarlineEvent
   ]
