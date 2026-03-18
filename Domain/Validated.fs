@@ -124,6 +124,24 @@ let private createFromValidParsedPart
   partDefinitionSections
   |> List.map (fun partDefinition ->
     let partId = Option.get partDefinition.Id
+    let thisPartMeasures = measures |> Map.tryFind partId |> Option.defaultValue []
+
+    let thisPartMeasures' =
+      thisPartMeasures
+      |> List.tryLast
+      |> Option.map (fun m ->
+        let m' = {
+          m with
+              Parsed = {
+                m.Parsed with
+                    EndBarline = Barline.Final
+              }
+        }
+
+        thisPartMeasures
+        |> List.take (thisPartMeasures.Length - 1)
+        |> fun ls -> List.append ls [ m' ])
+      |> Option.defaultValue thisPartMeasures
 
     {
       PartId = partId
@@ -132,7 +150,7 @@ let private createFromValidParsedPart
       Clef = partDefinition.Clef
       TimeSignature = partDefinition.TimeSignature
       KeySignature = partDefinition.KeySignature
-      Measures = measures |> Map.tryFind partId |> Option.defaultValue []
+      Measures = thisPartMeasures'
     })
 
 let musicFromParsedMusic (p: ParsedMusic) : Result<Music, ValidationError list> =

@@ -24,6 +24,7 @@ let here = __SOURCE_DIRECTORY__
 let openXml (file: string) =
   File.ReadAllText(Path.Join(here, "Xmls", file))
 
+// TODO: transform this in an e2e test
 let ``converts music to xml`` =
   testTheory3 "converts music to xml" [
     case("hello world")
@@ -44,6 +45,7 @@ let ``converts music to xml`` =
               |> withCommonTimeSignature
               |> withCNaturalKeySignature
               |> withNote (Note.create4 NoteName.C Duration.Whole)
+              |> withEndBarline Barline.Final
               |> toValidatedMeasure 1
             ]
           }

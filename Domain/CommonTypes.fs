@@ -37,3 +37,4 @@ type Barline =
   | Simple
   | StartRepeat
   | EndRepeat
+  | Final

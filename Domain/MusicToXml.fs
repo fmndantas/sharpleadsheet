@@ -222,8 +222,8 @@ let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement
     | VoiceEntryEvent voiceEntryEvent -> interpretVoiceEntry (Measure.defineDivisions m) m.Parsed.Clef voiceEntryEvent
     | _ -> [])
 
-let private createFinalBarline (es: MeasureEvent list) : XElement option =
-  if List.contains FinalBarlineEvent es then
+let private createFinalBarline (m: Validated.Measure) : XElement option =
+  if m.Parsed.EndBarline.IsFinal then
     elementWithAttributes "barline" [ attribute "location" "right" ] [ leafElement "bar-style" "light-heavy" ]
     |> Some
   else
@@ -233,7 +233,7 @@ let createMeasure (m: Validated.Measure, es: MeasureEvent list) : XElement =
   [
     createMeasureAttributes m es
     yield! createMeasureNotes m es
-    yield! es |> createFinalBarline |> Option.toList
+    yield! m |> createFinalBarline |> Option.toList
   ]
   |> elementWithAttributes "measure" [ m.MeasureId |> measureId2String |> attribute "number" ]
 
