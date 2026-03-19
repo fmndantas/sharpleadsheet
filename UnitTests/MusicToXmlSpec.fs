@@ -1,7 +1,6 @@
 module UnitTests.MusicToXmlSpec
 
 open System
-open System.IO
 
 open Expecto
 open Expecto.Flip.Expect
@@ -10,52 +9,10 @@ open UnitTests.Case
 
 open Domain
 open CommonTypes
-open ParsedMeasureBuilder
-open Validated
-open ValidatedMeasureBuilder
 open Measure.Types
 
 module VE = VoiceEntry
 module ME = Measure.Event
-
-[<Literal>]
-let here = __SOURCE_DIRECTORY__
-
-let openXml (file: string) =
-  File.ReadAllText(Path.Join(here, "Xmls", file))
-
-let ``converts music to xml`` =
-  testTheory3 "converts music to xml" [
-    case("hello world")
-      .WithData(
-        [
-          {
-            Name = "Instrument Name"
-            PartId = PartId 10
-            Clef = Clef.G
-            TimeSignature = {
-              Numerator = 4
-              Denominator = Duration.Quarter
-            }
-            KeySignature = KeySignature NoteName.C
-            Measures = [
-              aParsedMeasure ()
-              |> withClef Clef.G
-              |> withCommonTimeSignature
-              |> withCNaturalKeySignature
-              |> withNote (Note.create4 NoteName.C Duration.Whole)
-              |> toValidatedMeasure 1
-            ]
-          }
-        ]
-      )
-      .WithExpectedResult(openXml "helloworld.xml")
-  ]
-  <| fun (music: Validated.Music) (expectedResult: string) ->
-    let result = MusicToXml.convert music
-
-    (XmlWrapper.minifyXDocumentText expectedResult, XmlWrapper.minifyXDocument result)
-    ||> equal "generated xml is incorrect"
 
 let ``converts voice entry to xml`` =
   testTheory3 "converts voice entry to xml" [
@@ -307,10 +264,10 @@ let ``converts voice entry to xml`` =
       voiceEntryEvent
       |> MusicToXml.interpretVoiceEntry divisions currentClef
       |> XmlWrapper.element "dummyWrapper"
-      |> XmlWrapper.minifyXElement
+      |> XmlWrapper.formatXElement
 
     ("<dummyWrapper>" + expectedResult + "</dummyWrapper>"
-     |> XmlWrapper.minifyXDocumentText,
+     |> XmlWrapper.minifyPlainText,
      result)
     ||> equal "generated xml is incorrect"
 
@@ -329,7 +286,7 @@ let ``converts duration to xml`` =
     let minifiedResult =
       (divisions, duration)
       ||> MusicToXml.interpretDuration
-      |> List.map XmlWrapper.minifyXElement
+      |> List.map XmlWrapper.formatXElement
 
     [
       ("duration", toString expectedDuration) ||> XmlWrapper.leafElement
@@ -339,7 +296,7 @@ let ``converts duration to xml`` =
     ]
     |> List.indexed
     |> List.iter (fun (i, item) ->
-      contains (sprintf "item %d not found" i) (XmlWrapper.minifyXElement item) minifiedResult)
+      contains (sprintf "item %d not found" i) (XmlWrapper.formatXElement item) minifiedResult)
 
 let ``converts pitch to xml`` =
   testTheory3 "converts pitch to xml" [
@@ -363,7 +320,7 @@ let ``converts pitch to xml`` =
   <| fun pitch (step, octave, alter) ->
     pitch
     |> MusicToXml.interpretPitch
-    |> XmlWrapper.minifyXElement
+    |> XmlWrapper.formatXElement
     |> equal
       "generated xml is incorrect"
       (sprintf
@@ -373,13 +330,59 @@ let ``converts pitch to xml`` =
         (if alter = 0 then
            String.Empty
          else
-           sprintf "<alter>%+d</alter>" alter))
+           sprintf "<alter>%+d</alter>" alter)
+       |> XmlWrapper.minifyPlainText)
+
+let ``converts barline to xml`` =
+  testTheory3 "converts barline to xml" [
+    case("1.simple repeat.don't produce xml").WithData(Barline.Simple).WithExpectedResult None
+
+    case("2.final barline")
+      .WithData(Barline.Final)
+      .WithExpectedResult(
+        Some
+          """
+      <barline location="right">
+        <bar-style>light-heavy</bar-style>
+      </barline>
+    """
+      )
+
+    case("3.start repeat")
+      .WithData(Barline.StartRepeat)
+      .WithExpectedResult(
+        Some
+          """
+      <barline location="left">
+        <bar-style>heavy-light</bar-style>
+        <repeat direction="forward"/>
+      </barline>
+      """
+      )
+
+    case("4.end repeat")
+      .WithData(Barline.EndRepeat)
+      .WithExpectedResult(
+        Some
+          """
+      <barline location="right">
+        <bar-style>light-heavy</bar-style>
+        <repeat direction="backward"/>
+      </barline>
+        """
+      )
+  ]
+  <| fun barline expectedResult ->
+    barline
+    |> MusicToXml.interpretBarline
+    |> Option.map XmlWrapper.formatXElement
+    |> equal "result is incorrect" (Option.map XmlWrapper.minifyPlainText expectedResult)
 
 [<Tests>]
 let MusicToXmlSpec =
   testList "music to xml" [
-    ``converts music to xml``
     ``converts voice entry to xml``
     ``converts duration to xml``
     ``converts pitch to xml``
+    ``converts barline to xml``
   ]

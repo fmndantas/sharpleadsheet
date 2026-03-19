@@ -171,11 +171,54 @@ let ``creates validated music from correct parsed music`` =
         Measures = [
           {
             MeasureId = MeasureId 1
-            Parsed = aParsedMeasure () |> withNote (c4WithDuration Duration.Whole)
+            Parsed =
+              aParsedMeasure ()
+              |> withNote (c4WithDuration Duration.Whole)
+              |> withEndBarline Barline.Final
           }
         ]
       }
     ]
+
+let ``puts final barline at the end of piece`` =
+  testCase "puts final barline at the end of piece"
+  <| fun () ->
+    let parsedMusic = {
+      PartDefinitionSections = [
+        {
+          Id = 1 |> PartId |> Some
+          Name = Some "Instrument"
+          KeySignature = KeySignature NoteName.C
+          TimeSignature = {
+            Numerator = 4
+            Denominator = Duration.Quarter
+          }
+          Clef = Clef.G
+        }
+      ]
+      NotesSections = [
+        {
+          PartId = PartId 1
+          Measures = [
+            aParsedMeasure () |> withNote (c4WithDuration Duration.Whole)
+            aParsedMeasure () |> withNote (c4WithDuration Duration.Whole)
+          ]
+        }
+      ]
+    }
+
+    parsedMusic
+    |> Validated.musicFromParsedMusic
+    |> wantOk "result should be ok"
+    |> fun v ->
+        let part = v.Head
+        let firstMeasure, lastMeasure = part.Measures.Head, List.last part.Measures
+
+        firstMeasure.Parsed.EndBarline.IsFinal
+        |> isFalse "end barline at the first measure should be final"
+
+        lastMeasure.Parsed.EndBarline.IsFinal
+        |> isTrue "end barline at the last measure should be final"
 
 let ``invalidates wrong parsed measures`` =
   let measure =
@@ -274,5 +317,6 @@ let ValidatorSpec =
     ``invalidates wrong parsed parts``
     ``invalidates wrong parsed notes sections``
     ``creates validated music from correct parsed music``
+    ``puts final barline at the end of piece``
     ``invalidates wrong parsed measures``
   ]

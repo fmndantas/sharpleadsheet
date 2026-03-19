@@ -69,9 +69,6 @@ let generateEvents
 
     if context.CurrentClef <> measure.Clef then
       DefineClefEvent measure.Clef
-
-    if context.TotalNumberOfMeasures = context.CurrentMeasureIndex + 1 then
-      FinalBarlineEvent
   ]
 
   let context' = {

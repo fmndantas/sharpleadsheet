@@ -122,15 +122,13 @@ let printfnWarning text =
 let printfnError text =
   printfnColoredText ConsoleColor.Red text
 
+let transformPathIntoMusicXml = parse >> Result.map convertValidatedMusicToXml
+
 let run (arguments: ParseResults<CliParser.CliArguments>) =
   let slsFile = arguments.GetResult Sls_File
   let outputDirectory = arguments.GetResult Output_Directory
 
-  let result =
-    slsFile
-    |> parse
-    |> Result.map convertValidatedMusicToXml
-    |> Result.map (saveXmlFile slsFile outputDirectory)
+  let result = transformPathIntoMusicXml >> Result.map (saveXmlFile slsFile outputDirectory) <| slsFile
 
   match result with
   | Result.Ok outputFile -> printfnSuccess (sprintf "Parsing went OK! Output was saved in \"%s\"" outputFile)

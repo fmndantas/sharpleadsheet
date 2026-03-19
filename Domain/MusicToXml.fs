@@ -222,18 +222,40 @@ let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement
     | VoiceEntryEvent voiceEntryEvent -> interpretVoiceEntry (Measure.defineDivisions m) m.Parsed.Clef voiceEntryEvent
     | _ -> [])
 
-let private createFinalBarline (es: MeasureEvent list) : XElement option =
-  if List.contains FinalBarlineEvent es then
+let interpretBarline (b: Barline) : XElement option =
+  match b with
+  | Barline.Simple -> None
+  | Barline.StartRepeat ->
+    elementWithAttributes "barline" [ attribute "location" "left" ] [
+      leafElement "bar-style" "heavy-light"
+      selfEnclosingElementWithAttributes "repeat" [ attribute "direction" "forward" ]
+    ]
+    |> Some
+  | Barline.EndRepeat ->
+    elementWithAttributes "barline" [ attribute "location" "right" ] [
+      leafElement "bar-style" "light-heavy"
+      selfEnclosingElementWithAttributes "repeat" [ attribute "direction" "backward" ]
+    ]
+    |> Some
+  | Barline.Final ->
     elementWithAttributes "barline" [ attribute "location" "right" ] [ leafElement "bar-style" "light-heavy" ]
     |> Some
-  else
-    None
+
+let private createBarlines (m: Validated.Measure) : list<XElement> =
+  let startBarline = interpretBarline m.Parsed.StartBarline
+  let endBarline = interpretBarline m.Parsed.EndBarline
+
+  match startBarline, endBarline with
+  | None, None -> []
+  | Some one, None
+  | None, Some one -> [ one ]
+  | Some startBarline, Some endBarline -> [ startBarline; endBarline ]
 
 let createMeasure (m: Validated.Measure, es: MeasureEvent list) : XElement =
   [
     createMeasureAttributes m es
     yield! createMeasureNotes m es
-    yield! es |> createFinalBarline |> Option.toList
+    yield! createBarlines m
   ]
   |> elementWithAttributes "measure" [ m.MeasureId |> measureId2String |> attribute "number" ]
 

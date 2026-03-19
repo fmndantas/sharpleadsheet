@@ -27,6 +27,8 @@ and ParsedMeasure = {
   KeySignature: KeySignature
   Clef: Clef
   VoiceEntries: VoiceEntry.T list
+  StartBarline: Barline
+  EndBarline: Barline
 }
 
 type ParserState = {

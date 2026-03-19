@@ -238,8 +238,8 @@ let ``generates measure events`` =
               TotalNumberOfMeasures = 132
               CurrentMeasureIndex = 132
         },
-        [ FinalBarlineEvent ],
-        []
+        [],
+        [ FinalBarlineEvent ]
       )
 
     case("text attached to note")

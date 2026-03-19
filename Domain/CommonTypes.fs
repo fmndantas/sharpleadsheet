@@ -31,3 +31,10 @@ type Fifth =
   | Zero
   | Flat of int
   | Sharp of int
+
+[<RequireQualifiedAccess>]
+type Barline =
+  | Simple
+  | StartRepeat
+  | EndRepeat
+  | Final
