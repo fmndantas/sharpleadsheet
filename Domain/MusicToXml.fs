@@ -222,7 +222,7 @@ let createMeasureNotes (m: Validated.Measure) (es: MeasureEvent list) : XElement
     | VoiceEntryEvent voiceEntryEvent -> interpretVoiceEntry (Measure.defineDivisions m) m.Parsed.Clef voiceEntryEvent
     | _ -> [])
 
-let private interpretBarline (b: Barline) : XElement option =
+let interpretBarline (b: Barline) : XElement option =
   match b with
   | Barline.Simple -> None
   | Barline.StartRepeat ->

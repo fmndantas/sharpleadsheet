@@ -333,10 +333,56 @@ let ``converts pitch to xml`` =
            sprintf "<alter>%+d</alter>" alter)
        |> XmlWrapper.minifyPlainText)
 
+let ``converts barline to xml`` =
+  testTheory3 "converts barline to xml" [
+    case("1.simple repeat.don't produce xml").WithData(Barline.Simple).WithExpectedResult None
+
+    case("2.final barline")
+      .WithData(Barline.Final)
+      .WithExpectedResult(
+        Some
+          """
+      <barline location="right">
+        <bar-style>light-heavy</bar-style>
+      </barline>
+    """
+      )
+
+    case("3.start repeat")
+      .WithData(Barline.StartRepeat)
+      .WithExpectedResult(
+        Some
+          """
+      <barline location="left">
+        <bar-style>heavy-light</bar-style>
+        <repeat direction="forward"/>
+      </barline>
+      """
+      )
+
+    case("4.end repeat")
+      .WithData(Barline.EndRepeat)
+      .WithExpectedResult(
+        Some
+          """
+      <barline location="right">
+        <bar-style>light-heavy</bar-style>
+        <repeat direction="backward"/>
+      </barline>
+        """
+      )
+  ]
+  <| fun barline expectedResult ->
+    barline
+    |> MusicToXml.interpretBarline
+    |> Option.map XmlWrapper.formatXElement
+    |> equal "result is incorrect" (Option.map XmlWrapper.minifyPlainText expectedResult)
+
 [<Tests>]
 let MusicToXmlSpec =
   testList "music to xml" [
     ``converts voice entry to xml``
     ``converts duration to xml``
     ``converts pitch to xml``
+    ``converts barline to xml``
   ]
