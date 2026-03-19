@@ -25,6 +25,7 @@
     <Compile Include="MusicToXmlSpec.fs" />
     <Compile Include="ParserSpec.fs" />
     <Compile Include="ValidatedSpec.fs" />
+    <Compile Include="WorkflowSpec.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
@@ -42,6 +43,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.fsproj" />
+    <ProjectReference Include="..\App\App.fsproj" />
   </ItemGroup>
 
 </Project>

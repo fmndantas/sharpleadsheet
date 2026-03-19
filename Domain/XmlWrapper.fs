@@ -24,10 +24,12 @@ let selfEnclosingElement (name: string) : XElement =
 
 let document (root: XElement) : XDocument = XDocument root
 
-let minifyXDocument (v: XDocument) : string =
-  v.ToString SaveOptions.DisableFormatting |> removeSelfClosingSpaces
+let minifyPlainText (xml: string) : string =
+  let doc = XDocument.Parse xml
 
-let minifyXElement (v: XElement) : string =
-  v.ToString SaveOptions.DisableFormatting |> removeSelfClosingSpaces
+  doc.ToString SaveOptions.DisableFormatting |> removeSelfClosingSpaces
 
-let minifyXDocumentText (v: string) : string = XDocument.Parse v |> minifyXDocument
+let formatXDocument (xDocument: XDocument) =
+  xDocument |> toString |> minifyPlainText
+
+let formatXElement (xElement: XElement) = xElement |> toString |> minifyPlainText
