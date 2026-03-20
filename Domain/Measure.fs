@@ -20,7 +20,6 @@ module Types =
     | DefineTimeSignatureEvent of TimeSignature
     | DefineClefEvent of Clef
     | VoiceEntryEvent of VoiceEntryEvent
-    | FinalBarlineEvent
 
   and VoiceEntryEvent = {
     VoiceEntry: VoiceEntry.T

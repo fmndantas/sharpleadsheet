@@ -223,25 +223,6 @@ let ``generates measure events`` =
         []
       )
 
-    case("final barline")
-      .WithData(
-        {
-          measureContext with
-              TotalNumberOfMeasures = 132
-              CurrentMeasureIndex = 131
-        },
-        emptyMeasure
-      )
-      .WithExpectedResult(
-        {
-          measureContext with
-              TotalNumberOfMeasures = 132
-              CurrentMeasureIndex = 132
-        },
-        [],
-        [ FinalBarlineEvent ]
-      )
-
     case("text attached to note")
       .WithData(
         measureContext,
