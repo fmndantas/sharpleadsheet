@@ -1,11 +1,21 @@
-## SharpLeadsheet
+## sharpLeadsheet
 
-SharpLeadsheet is a **CLI (Command Line Interface)** tool for rapidly converting plain text musical notation into **MusicXML** files. 
-Its goal is to offer a simple and intuitive input syntax, combined with clear and helpful user feedback.
+SharpLeadsheet is a **CLI (Command Line Interface)** tool for rapidly converting plain text musical notation into **MusicXML** files.
+It aims to provide a simple and intuitive input syntax, combined with clear and helpful user feedback.
+
+### Workflow
+
+```
+---------------    ------------------    -----------------------
+| `.sls` file | -> | sharpleadsheet | -> | (music) `.xml` file |
+---------------    ------------------    -----------------------
+```
+
+Once generated, the `.xml` file can be imported into MuseScore (or any other music notation software) for further editing.
 
 ## Features
 
-### ✅ Current Status: Phase 1
+### ✅ Phase 1: Completed
 
 | Feature | Status |
 | :--- | :---: |
@@ -18,36 +28,42 @@ Its goal is to offer a simple and intuitive input syntax, combined with clear an
 | Tied notes | ✅ |
 | Final barline | ✅ |
 
-### 🚀 Next Steps (Phase 2)
+### ⏳ Phase 2: In Progress
 
 | Feature | Status |
 | :--- | :---: |
 | Chord symbols | ✅ |
 | Text attached to voice entry | ✅ |
-| Rhythmic notation | ✅  |
+| Rhythmic notation | ✅ |
+| Simple repeats | ✅ |
+| Repeats with endings | ⏳ In Progress |
 | Slash notation | ⏳ In Progress |
-| Multiple parts and staves | ⏳ In Progress |
-| Simple repeats | ⏳ In Progress |
 | Double barlines | ⏳ In Progress |
 | Rehearsal marks | ⏳ In Progress |
 
 ## How to Use
 
-Detailed documentation on the input syntax will be added soon.
+Currently, you can run the tool using the `dotnet run` command:
 
-In the meantime, explore the **`Samples`** folder for input file examples.
+```bash
+dotnet run -- your_music.sls -o /tmp/
+```
+
+Detailed documentation for the input syntax will be added soon.
+
+In the meantime, please check the **`Samples`** folder for example input files.
 
 ## Why SharpLeadsheet?
 
-**Other text-based music notation tools** like [LilyPond](http://lilypond.org/), [ABC Notation](https://abcnotation.com/), and [MusicXML](https://www.w3.org/2021/06/musicxml40/) are powerful and feature-rich, but they come with complexity.
+While other text-based music notation tools like [LilyPond](http://lilypond.org/), [ABC Notation](https://abcnotation.com/), and [MusicXML](https://www.w3.org/2021/06/musicxml40/) are powerful and feature-rich, they can be complex to learn and use.
 
-**SharpLeadsheet is different: it focuses on simplicity!**
+**SharpLeadsheet focuses on simplicity!**
 
-## Contribution
+## Contributing
 
-SharpLeadsheet is an **open source** project. Contributions are welcome!
+SharpLeadsheet is an **open source** project, and contributions are welcome!
 
-Feel free to:
+You can contribute by:
 
-1.  Open an **Issue** to report bugs or suggest new features.
-2.  Open a **Pull Request** for issues you want to tackle.
+1.  Opening an **Issue** to report bugs or suggest new features.
+2.  Opening a **Pull Request** to address existing issues.
