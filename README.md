@@ -1,4 +1,4 @@
-## sharpLeadsheet
+## sharpleadsheet
 
 SharpLeadsheet is a **CLI (Command Line Interface)** tool for rapidly converting plain text musical notation into **MusicXML** files.
 It aims to provide a simple and intuitive input syntax, combined with clear and helpful user feedback.
